@@ -52,6 +52,9 @@ export function ComunAppV2Home({
     .filter((item: any) => !item.read_at)
     .sort((a: any, b: any) => priority(b.priority) - priority(a.priority));
   const firstPauta = center?.memberships?.[0]?.pauta ?? pautas[0];
+  const featuredPublicPauta =
+    pautas.find((pauta: any) => pauta.source === "remote") ??
+    pautas.find((pauta: any) => pauta.source === "editorial_fallback");
   const firstAction = center?.actions?.[0] ?? actions[0];
   const firstTask = center?.tasks?.[0];
   const firstResult = center?.results?.[0] ?? results[0];
@@ -148,20 +151,32 @@ export function ComunAppV2Home({
         <h2 id="home-first-pauta" className="comun-v2-section-title mb-3">
           Uma pauta para conhecer
         </h2>
-        {firstPauta ? (
-          <ComunPautaCard
-            href={withComunAppV2(`/comun/pautas/${firstPauta.slug}`)}
-            title={firstPauta.title}
-            summary={
-              firstPauta.public_synthesis ??
-              firstPauta.summary ??
-              "Processo em acompanhamento."
-            }
-            status={publicPautaStatusLabel(
-              firstPauta.public_status ?? firstPauta.status ?? "",
-            )}
-            nextAction={firstPauta.next_step ?? "Acompanhar atualização"}
-          />
+        {featuredPublicPauta ? (
+          <>
+            {featuredPublicPauta.source === "editorial_fallback" ? (
+              <p className="mb-3 text-sm text-comun-black/70">
+                Destaque editorial do COMUN. Não indica resultados ou
+                participações já verificados.
+              </p>
+            ) : null}
+            <ComunPautaCard
+              href={withComunAppV2(`/comun/pautas/${featuredPublicPauta.slug}`)}
+              title={featuredPublicPauta.title}
+              summary={
+                featuredPublicPauta.public_synthesis ??
+                featuredPublicPauta.summary ??
+                "Processo em acompanhamento."
+              }
+              status={publicPautaStatusLabel(
+                featuredPublicPauta.public_status ??
+                  featuredPublicPauta.status ??
+                  "",
+              )}
+              nextAction={
+                featuredPublicPauta.next_step ?? "Acompanhar atualização"
+              }
+            />
+          </>
         ) : (
           <div className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4">
             <p className="text-sm text-comun-black/70">
@@ -318,6 +333,23 @@ export function ComunAppV2Home({
           Acompanhamentos
         </h2>
         <div className="grid gap-4 lg:grid-cols-2">
+          {center &&
+          firstPauta &&
+          firstPauta.slug !== featuredPublicPauta?.slug ? (
+            <ComunPautaCard
+              href={withComunAppV2(`/comun/pautas/${firstPauta.slug}`)}
+              title={firstPauta.title}
+              summary={
+                firstPauta.public_synthesis ??
+                firstPauta.summary ??
+                "Processo em acompanhamento."
+              }
+              status={publicPautaStatusLabel(
+                firstPauta.public_status ?? firstPauta.status ?? "",
+              )}
+              nextAction={firstPauta.next_step ?? "Acompanhar atualização"}
+            />
+          ) : null}
           {firstAction ? (
             <ComunActionCard
               href={withComunAppV2(`/comun/acoes/${firstAction.slug}`)}
