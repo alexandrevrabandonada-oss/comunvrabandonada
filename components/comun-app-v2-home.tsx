@@ -187,7 +187,8 @@ export function ComunAppV2Home({
               prefetch={false}
               className="mt-2 inline-flex min-h-11 items-center gap-2 font-black underline underline-offset-4"
             >
-              Explorar pautas públicas <ArrowRight size={17} aria-hidden="true" />
+              <span>Explorar pautas públicas</span>
+              <ArrowRight size={17} aria-hidden="true" />
             </Link>
           </div>
         )}
