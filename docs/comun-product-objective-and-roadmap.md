@@ -26,11 +26,14 @@ sem desorientar quem chega para relatar algo.
    único grupo de escolha inicial; "Aprender a organizar" fica como link discreto,
    sem duplicar a coleção completa de cartões. A coleção existente continua em
    `/comun/participar` e na Home legacy para compatibilidade.
-2. **Conteúdo antes de catálogo:** mover a primeira pauta real já obtida do
-   próprio backend para junto das entradas. Se não existir pauta elegível,
-   explicitar ausência e oferecer o catálogo; não fabricar fotos, histórias,
-   atividade, resultados ou contagens. Evitar repetir a mesma pauta na seção
-   posterior de acompanhamentos.
+2. **Conteúdo antes de catálogo:** antecipar uma pauta pública com
+   `source=remote`, quando houver, a partir do leitor existente. Se houver
+   somente o fallback editorial canônico de Calçadas, exibir essa origem e
+   esclarecer que ela não comprova participação nem resultados. Sem qualquer
+   item elegível, explicitar ausência e oferecer o catálogo; não fabricar
+   fotos, histórias, atividade, resultados ou contagens. Preservar em
+   Acompanhamentos a pauta pessoal distinta quando a pessoa estiver logada,
+   sem duplicar exatamente a mesma pauta.
 3. **Sem novos poderes:** nenhum novo endpoint, autenticação, tabela, migration,
    feed, perfilamento, like, alteração de elegibilidade, ranking, telemetria,
    permissão, jogo, publicação, mensagem ou mudança em Production.
@@ -47,8 +50,10 @@ sem desorientar quem chega para relatar algo.
   perto da entrada quando houver item elegível.
 - Em `?experiencia=legacy` e `/comun/participar`, a jornada de orientação
   anterior e seus links persistem. Os links diretos/teclado continuam válidos.
-- Sem pautas publicáveis, a Home mostra ausência verificável, não uma pauta
-  fictícia. Nunca expor dados privados ou contornar flags/editoria.
+- Sem pautas publicáveis ou fallback editorial autorizado, a Home mostra
+  ausência, não uma pauta fictícia. Quando o fallback for usado, ele é
+  identificado como editorial, sem confundir com publicação remota. Nunca
+  expor dados privados ou contornar flags/editoria.
 - Regressões existentes de navegação, browser, WCAG/Axe, foco, mobile 320–390,
   scroll, abertura/retorno e falta de conexão precisam passar no SHA exato.
 - Teste com pessoas novas deve verificar: localizar conteúdo útil sem login,
