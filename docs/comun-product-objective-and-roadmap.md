@@ -923,3 +923,70 @@ por este checkpoint; compreensão e atratividade humanas continuam pendentes.
 ### Regra antidesvio
 
 **Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.
+
+### SOC-D09 — Descoberta pública limitada, com disponibilidade verificável (2026-10-15)
+
+**Decisão:** implementar no Explorar existente “Para conhecer com calma”, até dois
+itens de Acervo/Rádio/Feirinha e seis no total. Memória, escuta e trocas têm valor
+próprio; não exigem cadastro, militância ou tarefa. Não há feed, ranking, nova
+telemetria, schema ou publicação automática.
+
+**Motivo/consequência:** ausência de amostra editorial real não impede testar a
+implementação com dados sintéticos identificados no laboratório. Não se certifica
+vitrine disponível em Production. Categorias vazias são omitidas; sem itens a grade
+existente permanece. Falhas independentes são `unavailable`, não vazio legítimo.
+Os leitores capturam erro na consulta necessária, antes do adaptador legado que
+retorna arrays. Comunidades com fallback seed não são fonte desta seção.
+
+**Contrato:** leitores especializados, publicação, direitos, consentimentos e flags
+existentes permanecem autoridades. Acervo inicial limita-se a fotografia/documento;
+Rádio exige a elegibilidade existente; Feirinha exige organização elegível e prazo
+futuro. DTO explícito não carrega contatos, identidades ou originais. Links locais
+levam ao detalhe revalidado e transportam somente categoria/experiência e handle
+público. Retirada não autoriza acesso e oferece retorno. Snapshot não é autorização.
+
+**Estado:** candidato independente sobre main `8b0ba0d2`, sem dependência de #546
+ou #549. Somente o pin Playwright 1.64.1 foi transportado separadamente para
+reprodução do navegador. #545 permanece aberto; #546 e #549 estacionados pelos
+gates/dependências já documentados. Nenhuma integração nesta passada.
+
+**Critério verificável:** três estados nos limites de consulta; isolamento de fonte;
+allowlist/limites/URLs; páginas e componentes reais em navegador mobile/desktop;
+retirada entre lista e detalhe, acesso direto, teclado, axe e ausência de escrita;
+prova real Auth/Postgres em runner descartável próprio, distinta do transporte
+controlado do navegador. Evidências e comandos em
+`reports/current/comun-soc-d09-public-discovery.md` e
+`docs/comun-public-discovery-lab.md`.
+
+**Dependências/lacunas:** conteúdo real elegível e revisão editorial/humana não
+inventados; aparelhos reais/Safari/Firefox/ensaio humano NOT_RUN. Escola permanece
+independente: CAPTCHA humano exclusivo, cinco fluxos externos, recuperação fresca
+validada e seis preflights não dispensados. A indisponibilidade do Docker local não
+é prova de integração. Próximo incremento único: continuidade da busca/filtros
+públicos, após revisão desta entrega; não abrir outra pilha dependente do schema.
+
+**SOC-D09 / verificação remota inicial:** PR #552 draft, run 38755178014 em
+`3ad8bcb8`: browser e Auth/Postgres real SUCCESS. A prova visual foi refinada
+importando o CSS v2 completo e repetindo 12/12 localmente; margem original do
+produto preservada. Os preflights 48.2-A/48.4-A1–A6 desta execução bloquearam por
+CA TLS ausente no runner antes do schema; não confundir com a pendência conhecida
+da Escola nem enfraquecer verify-full. CI global ainda não aprovado; sem merge.
+
+**SOC-D09 / correção estreita de execução read-only:** os logs demonstraram
+CA padrão ausente em 48.2-A/48.4-A1–A6, antes de qualquer captura de schema.
+Reutilizar o certificado público já fixado pelo projeto/A7 em `PGSSLROOTCERT`,
+com `PGSSLMODE=verify-full` e `default_transaction_read_only=on`, somente nos
+13 passos que consultam metadados/plano. Nenhuma query, hash esperado, regra,
+secret, permissão ou migration muda. Testes fixam semanticamente o escopo e os
+hashes dos scripts originais de main. Estado: correção candidata no #552, commit
+separado da experiência; execução remota necessária. Isso não resolve nem dispensa
+a migration pendente da Escola. Sem outra pilha de PRs.
+
+Retomada U0/SOC-D06 — 16/10/2026: lacuna concreta na Rádio candidata do #552:
+os leitores já retornam composição e condições de licença públicas, mas o detalhe
+app-v2 omitia esses campos e o legacy omitia todo o bloco de créditos. Ambos
+reutilizam agora uma apresentação pública comum, preservando filtros de visibilidade
+e direitos aprovados, sem presumir autorização de reutilização quando faltar licença.
+A retirada continua reconsultada antes de renderizar. Candidato não integrado;
+validação sintética e checks do novo SHA exigem evidência própria. Nenhum schema,
+flag, Production ou integração automática de #553/#554 autorizado por esta entrega.

@@ -1,3 +1,6 @@
+import { ComunPublicDiscovery } from "@/components/comun-public-discovery";
+import { readPublicDiscovery } from "@/lib/server/comun-public-discovery";
+import type { DiscoverySource } from "@/lib/comun-public-discovery";
 import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
 import { ComunShell, Section } from "@/components/comun-shell";
@@ -104,11 +107,18 @@ export default async function ExplorarPage({
 }) {
   const params = await searchParams;
   const appV2 = isComunAppV2(params.experiencia);
+  const discovery = await readPublicDiscovery();
   const availableCategories = isComunObservatoriesFoundationEnabled()
     ? [...categories, observatoriesCategory]
     : categories;
   if (appV2)
-    return <ExploreAppV2 params={params} categories={availableCategories} />;
+    return (
+      <ExploreAppV2
+        params={params}
+        categories={availableCategories}
+        discovery={discovery}
+      />
+    );
   return (
     <ComunShell>
       <Section>
@@ -119,6 +129,11 @@ export default async function ExplorarPage({
           Encontre um lugar, um grupo, um problema, uma ferramenta ou uma
           memória.
         </p>
+        <ComunPublicDiscovery
+          sources={discovery}
+          experience="legacy"
+          category={params.categoria}
+        />
         <form
           action="/comun/buscar"
           className="mt-6 grid gap-2 sm:grid-cols-[1fr_auto]"
@@ -160,10 +175,12 @@ export default async function ExplorarPage({
 
 function ExploreAppV2({
   params,
+  discovery,
   categories: availableCategories,
 }: {
   params: SearchParams;
   categories: readonly ExploreCategory[];
+  discovery: DiscoverySource[];
 }) {
   const category =
     typeof params.categoria === "string" ? params.categoria : "tudo";
@@ -254,6 +271,11 @@ function ExploreAppV2({
           </div>
         ) : null}
 
+        <ComunPublicDiscovery
+          sources={discovery}
+          experience="app-v2"
+          category={category}
+        />
         <div className="mt-6 grid gap-3">
           {activeCategories.map(([title, description, href, value]) => (
             <Link

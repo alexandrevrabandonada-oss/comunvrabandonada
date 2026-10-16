@@ -40,6 +40,10 @@ jobs:
           cat "$RUNNER_TEMP/48-4-a1-ownership.txt" >> "$GITHUB_ENV"
 
       - name: Inspect economic metadata without business content
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         shell: bash
         run: |
           set -euo pipefail
@@ -71,6 +75,10 @@ jobs:
           fs.writeFileSync('.ci-artifacts/48-4-a1-preflight/mode',s.offerTablePresent?'promoted':'candidate');
           NODE
       - name: Prove exact migration plan
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
