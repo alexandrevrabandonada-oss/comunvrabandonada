@@ -1,6 +1,6 @@
 # COMUN ORCH-V2 — resiliência, backstops e integração controlada
 
-**Estado: CANDIDATO EM PR, NÃO ATIVADO NA AUTOMAÇÃO LOCAL.** Especificação: [Issue #555](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/issues/555). Este contrato é subordinado ao roadmap único em `docs/comun-product-objective-and-roadmap.md`.
+**Estado: candidato draft #556 com adaptador operacional versionado.** A ativação local anterior (`d36d0574`) está preservada; a instalação desta revisão exige provas próprias e readback. A ref local `refs/comun/roadmap-execution` mantém o histórico de ativação e inventário. Não confundir motor remoto com versão instalada nem ticks controlados com disparo nativo. Especificação: [Issue #555](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/issues/555). Este contrato é subordinado ao roadmap único em `docs/comun-product-objective-and-roadmap.md`.
 
 ## Escopo entregue
 
@@ -83,3 +83,48 @@ Com 5 ou menos PRs, novos PRs só são elegíveis se houver no máximo uma imple
 **Importante:** não há transação atômica com GitHub na decisão do motor. Antes da ação real `CREATE_PR`, o launcher deve **consultar novamente o inventário remoto e reexecutar a admissão**, confirmar ausência de PR existente de mesmo escopo e registrar intenção idempotente na ref canônica via CAS. Se o inventário estiver parcial, inacessível, defasado ou se houver corrida, abortar com proteção. Sem limite contornado por novos IDs de tarefa, branches ou worktrees.
 
 No momento da inspeção, havia 22 PRs abertos, incluindo a pilha #511–#515; não marcar todos como integráveis. #545 é candidato para revisão, mas não tem reviews humanos registrados e não está autorizado a merge automático. #556 deve receber correções no próprio PR. O limite deve entrar **também no executor de operações GitHub**, não apenas no planejador declarativo.
+
+## Executor local e dívida de integração — revisão de 16/10
+
+O adaptador em scripts/process conecta o motor publicado à automação existente.
+O manifesto do launcher fixa seis módulos, remoto, common-dir e blobs canônicos.
+Ledger V2 é aditivo: preserve V1, campos desconhecidos, provas, leases e intenções.
+Persistir somente sob bytes do owner, hash esperado e ref observada. Um snapshot
+antigo do checkpoint nunca reabre prova operacional mais recente. Recuperação
+explícita exige owner/bytes/PID/start/host, sessão comprovadamente encerrada e
+nenhuma concorrência; idade ou PID morto não autorizam takeover.
+
+INTEGRATION_DEBT: acima de cinco PRs, priorizar revisão/reparo em branches
+existentes, sem branches para contorno. Nesta missão no_new_prs=true proíbe
+qualquer abertura, inclusive quando a fila diminuir. Máximo duas implementações
+e uma integração; o lock compartilhado e a lease atual tornam a execução local
+serial, dentro desses tetos. pr_effect e target_pr são persistidos por tarefa.
+
+O executor real é comun-orch-github-executor.mjs, chamado pelo launcher somente
+em create-pr explícito. Ele consulta GitHub sem cache dentro da chamada, valida
+fila/WIP/crédito/PR existente, grava intenção UNCERTAIN por CAS e consulta outra
+vez imediatamente antes do efeito. Mudança da fila cancela com NOT_APPLIED;
+timeout mantém UNCERTAIN e impede duplicação. Nesta missão o caminho de criação
+é bloqueado e não será chamado. Só testes usam provedores mutáveis sintéticos.
+Não há criação de PR fora desse executor no runtime local autorizado.
+
+Os testes de processos/Git, interrupção, CAS, retomada e canário instalado são
+separados dos 54 testes puros do candidato cda454e9. O workflow ORCH-V2 executa
+ambos. Nenhum resultado de CI de cda454e9 é transportado para seu descendente.
+A fronteira de criação testa corrida após planejamento e após intenção, fila
+parcial/desatualizada, timeout e idempotência; nenhuma API real é criada em teste.
+
+Suspensão reversível: tick --hold preserva estado; atualizar somente o prompt da
+mesma automação pela ferramenta, sem mudar frequência. Retomar removendo --hold.
+Ao sair sem resultado usar record cycle-complete; dois ciclos sem progresso
+suspendem. Antes de push registrar operation-intent, depois reconciliar o HEAD
+remoto com o SHA esperado. Um push material por ciclo; não criar commit vazio,
+rerun ou deployment para tornar status verde. No máximo duas falhas equivalentes.
+
+Certificação de revisão não é integração: #545 em 0eb41ec4 tem checks próprios
+aprovados e nenhuma thread/review pendente, mas Preview exato CANCELED intencional.
+Ancestral 2d965ea3 READY e diff completo apenas docs/testes provam equivalência
+separada; exigência de Preview exato continua pendente. READY_FOR_REVIEW permite
+revisão humana, nunca merge/Production automático. #550 é documental; #554 deve
+preservar o action submitPublicSearch de #553 e os trechos Jogos de #550. Sete
+preflights da Escola continuam obrigatórios em #552/#553; nenhuma dispensa.

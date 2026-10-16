@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "scripts/roadmap/orch-v2*.mjs"
+      - "scripts/process/comun-orch*.mjs"
+      - "scripts/process/orch-v2-candidate.mjs"
       - ".github/workflows/comun-orch-v2-contract.yml"
   workflow_dispatch:
 
@@ -26,3 +28,5 @@ jobs:
         run: node --version
       - name: Test read-only orchestrator and PR backlog gate
         run: node --test scripts/roadmap/orch-v2.node-test.mjs
+      - name: Test local adapter and isolated operational scenarios
+        run: node --test scripts/process/comun-orch-v2.node-test.mjs scripts/process/comun-orch-integration.node-test.mjs scripts/process/comun-orch-github-executor.node-test.mjs

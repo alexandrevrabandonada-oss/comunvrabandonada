@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "COMUN ORCH-V2 operational state (inside the existing checkpoint)",
+  "type": "object",
+  "required": ["schema_version", "revision", "tasks"],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "revision": { "type": "integer", "minimum": 0 },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "task_id",
+          "status",
+          "priority",
+          "dependencies",
+          "input_fingerprint",
+          "failure_fingerprint",
+          "attempts_for_fingerprint",
+          "next_probe_at",
+          "owner_id",
+          "last_material_change",
+          "human_action_required",
+          "last_notified_fingerprint",
+          "evidence_sha",
+          "inputs",
+          "evidence",
+          "operations"
+        ],
+        "properties": {
+          "task_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "status": {
+            "enum": [
+              "READY",
+              "RUNNING",
+              "WAIT_CI",
+              "WAIT_EXTERNAL",
+              "WAIT_HUMAN",
+              "RETRY_BACKOFF",
+              "BLOCKED_PROTECTED",
+              "DONE"
+            ]
+          },
+          "priority": { "type": "number" },
+          "dependencies": { "type": "array", "items": { "type": "string" } },
+          "attempts_for_fingerprint": { "type": "integer", "minimum": 0 },
+          "input_fingerprint": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "failure_fingerprint": { "type": ["string", "null"] },
+          "next_probe_at": { "type": ["string", "null"] },
+          "owner_id": { "type": ["string", "null"] },
+          "last_material_change": { "type": ["string", "null"] },
+          "human_action_required": { "type": ["string", "null"] },
+          "last_notified_fingerprint": { "type": ["string", "null"] },
+          "evidence_sha": { "type": ["string", "null"] },
+          "inputs": { "type": "object" },
+          "evidence": { "type": "array" },
+          "operations": { "type": "array" }
+        }
+      }
+    }
+  }
+}
