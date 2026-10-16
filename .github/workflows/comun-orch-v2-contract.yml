@@ -29,4 +29,4 @@ jobs:
       - name: Test read-only orchestrator and PR backlog gate
         run: node --test scripts/roadmap/orch-v2.node-test.mjs
       - name: Test local adapter and isolated operational scenarios
-        run: node --test scripts/process/comun-orch-v2.node-test.mjs scripts/process/comun-orch-integration.node-test.mjs scripts/process/comun-orch-github-executor.node-test.mjs
+        run: node --test scripts/process/comun-orch-v2.node-test.mjs scripts/process/comun-orch-integration.node-test.mjs scripts/process/comun-orch-github-executor.node-test.mjs scripts/process/comun-orch-workflow-probes.node-test.mjs
