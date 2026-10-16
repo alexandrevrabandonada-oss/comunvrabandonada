@@ -70,3 +70,16 @@ O motor não altera Production, schema, migrations, flags, permissões, indexaç
 **Situação de 16/10/2026:** #553 tem COST-02 aprovado no HEAD `bbb533ad`, mas deployment exato `CANCELED` por `COMUN_VERCEL_BUILD_IGNORED:no-runtime-allowlist`; ancestral `f2aaea03` tinha Preview `READY`. Os sete preflights da Escola continuam separados e bloqueantes. Registro detalhado: [Issue #555, evidência complementar](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/issues/555#issuecomment-6219018776).
 
 **Relatório obrigatório:** ENTREGUE / VERIFICADO / PENDENTE / PRÓXIMO MOVIMENTO. Nunca confundir especificado, codificado, testado localmente, PR draft, integrado localmente ou Production.
+
+
+## WIP e admissibilidade de PRs — backstop aplicado ao planejador
+
+Antes de executar qualquer tarefa `READY`, declarar `prEffect` obrigatoriamente: `NONE`, `EXISTING_PR` com `targetPr` numérico, ou `NEW_PR` com ação explícita `CREATE_PR`/`NEW_FEATURE_PR`/`OPEN_PULL_REQUEST`. Efeito não declarado bloqueia a candidatura, sem impedir reparos e revisões independentes devidamente classificados. Nunca informar `NONE` numa tarefa que possa abrir PR; a CLI é um motor de decisão e não substitui a auditoria das ações reais.
+
+Uma tarefa de `NEW_PR` exige inventário `portfolio` verificado, do repositório canônico, com `observedAt` há até 30 minutos, `openCount`, todos os `openPrNumbers` sem duplicação, `activeImplementationCount`, `activeIntegrationCount` e `newPrCredits` quando sob o limiar. Com **mais de 5 PRs abertos**, o modo `INTEGRATION_DEBT_MODE` proíbe novos PRs funcionais. Exceção somente de segurança urgente ou reparo indispensável à integração existente, comprovada como impossível na branch atual e explicitamente aprovada por humano; o executor deve verificar autorização real, e não confiar cegamente num booleano recebido.
+
+Com 5 ou menos PRs, novos PRs só são elegíveis se houver no máximo uma implementação e nenhuma integração ativa no momento da criação, e um crédito confirmado por merge/encerramento justificado. `newPrCredits` nunca deriva de simples passagem de tempo, troca de SHA ou fechamento desconhecido; consumir crédito uma vez com CAS. As 2 implementações e 1 integração são limites **de trabalho em progresso**, não autorização de mesclar PRs.
+
+**Importante:** não há transação atômica com GitHub na decisão do motor. Antes da ação real `CREATE_PR`, o launcher deve **consultar novamente o inventário remoto e reexecutar a admissão**, confirmar ausência de PR existente de mesmo escopo e registrar intenção idempotente na ref canônica via CAS. Se o inventário estiver parcial, inacessível, defasado ou se houver corrida, abortar com proteção. Sem limite contornado por novos IDs de tarefa, branches ou worktrees.
+
+No momento da inspeção, havia 22 PRs abertos, incluindo a pilha #511–#515; não marcar todos como integráveis. #545 é candidato para revisão, mas não tem reviews humanos registrados e não está autorizado a merge automático. #556 deve receber correções no próprio PR. O limite deve entrar **também no executor de operações GitHub**, não apenas no planejador declarativo.
