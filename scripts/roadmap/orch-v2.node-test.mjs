@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { fingerprint, planCycle, recordFailure, observeInputs, notificationDecision,
-  classifyPreview, reconcileExternalOutcome } from './orch-v2.mjs';
+  classifyPreview, reconcileExternalOutcome, recordCycleResult, recordProbeObservation } from './orch-v2.mjs';
 const now='2026-10-16T16:00:00Z';
 const lock={status:'OWNED',ownerId:'cycle-101',verified:true};
 const task=(id,status='READY',more={})=>({taskId:id,status,authorized:true,priority:1,dependencies:[],...more});
@@ -44,3 +44,33 @@ test('protected action never permitted by reconciler',()=>assert.equal(reconcile
 test('invalid state fails closed',()=>assert.throws(()=>planCycle({tasks:[task('a','INVALID')],now,lock}),/INVALID_TASK_STATUS/));
 test('CLI produces a read-only plan',()=>{const r=spawnSync(process.execPath,[fileURLToPath(new URL('./orch-v2-cli.mjs',import.meta.url))],{encoding:'utf8',input:JSON.stringify({operation:'plan',args:{tasks:[task('a')],now,lock}})});assert.equal(r.status,0);assert.equal(JSON.parse(r.stdout).kind,'EXECUTE_ONE')});
 test('CLI cannot invoke unadvertised mutations',()=>{const r=spawnSync(process.execPath,[fileURLToPath(new URL('./orch-v2-cli.mjs',import.meta.url))],{encoding:'utf8',input:'{"operation":"delete-lock","args":{}}'});assert.equal(r.status,2);assert.equal(r.stdout,'')});
+
+test('two no-progress cycles stall a persistently READY task',()=>{
+  const one=recordCycleResult(task('work','READY',{inputFingerprint:'sha-a'}),{cycleId:'c1',inputFingerprint:'sha-a',beforeEvidence:'same',afterEvidence:'same',now}).task;
+  assert.equal(one.status,'READY');
+  const two=recordCycleResult(one,{cycleId:'c2',inputFingerprint:'sha-a',beforeEvidence:'same',afterEvidence:'same',now}).task;
+  assert.equal(two.status,'WAIT_EXTERNAL');
+  assert.equal(planCycle({tasks:[two,task('independent')],now,lock}).taskId,'independent');
+});
+test('duplicate cycle evidence does not inflate the stall counter',()=>{
+  const x=recordCycleResult(task('x'),{cycleId:'c1',inputFingerprint:'sha-a',beforeEvidence:'v1',afterEvidence:'v1',now}).task;
+  assert.equal(recordCycleResult(x,{cycleId:'c1',inputFingerprint:'sha-a',beforeEvidence:'v1',afterEvidence:'v1',now}).changed,false);
+});
+test('evidence change resets stall budget',()=>{
+  const x=recordCycleResult(task('x','READY',{noProgressCycles:1,inputFingerprint:'sha-a'}),{cycleId:'c2',inputFingerprint:'sha-a',beforeEvidence:'v1',afterEvidence:'v2',now}).task;
+  assert.equal(x.noProgressCycles,0); assert.equal(x.status,'READY');
+});
+test('unchanged CI probes use progressively longer read-only windows',()=>{
+  const a=recordProbeObservation(task('ci','WAIT_CI',{observationFingerprint:'pending'}),{probeId:'p1',observationFingerprint:'pending',now}).task;
+  assert.equal(a.probeNoChangeCount,1); assert.equal(a.nextProbeAt,'2026-10-16T17:00:00.000Z');
+  const b=recordProbeObservation(a,{probeId:'p2',observationFingerprint:'pending',now:'2026-10-16T17:00:00Z'}).task;
+  assert.equal(b.nextProbeAt,'2026-10-16T21:00:00.000Z');
+});
+test('duplicate probe id never triggers another write',()=>{
+  const a=recordProbeObservation(task('ci','WAIT_CI'),{probeId:'p1',observationFingerprint:'new',now}).task;
+  assert.equal(recordProbeObservation(a,{probeId:'p1',observationFingerprint:'new',now}).changed,false);
+});
+test('new remote observation requalifies only when eligible',()=>{
+  const a=recordProbeObservation(task('ci','WAIT_CI',{observationFingerprint:'pending'}),{probeId:'p1',observationFingerprint:'success',eligible:true,now}).task;
+  assert.equal(a.status,'READY');
+});
