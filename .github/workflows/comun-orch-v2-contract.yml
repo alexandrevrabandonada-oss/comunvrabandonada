@@ -1,0 +1,28 @@
+name: COMUN ORCH-V2 contract
+
+on:
+  pull_request:
+    paths:
+      - "scripts/roadmap/orch-v2*.mjs"
+      - ".github/workflows/comun-orch-v2-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: comun-orch-v2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pure-planner-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73c27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Assert Node availability
+        run: node --version
+      - name: Test read-only orchestrator and PR backlog gate
+        run: node --test scripts/roadmap/orch-v2.node-test.mjs
