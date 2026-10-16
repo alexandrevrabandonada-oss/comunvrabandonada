@@ -66,14 +66,22 @@ function validDemonstratedClaims(input: {
   claimIds: readonly string[];
   claims: readonly ComunCompetencyClaim[];
   evidence: readonly ComunCompetencyEvidence[];
+  now: Date;
 }) {
+  if (!Number.isFinite(input.now.getTime())) return false;
   const claimsById = new Map(input.claims.map((claim) => [claim.id, claim]));
   return input.claimIds.every((id) => {
     const claim = claimsById.get(id);
+    const reviewDueAt = claim?.reviewDueAt === null
+      ? null
+      : new Date(claim?.reviewDueAt ?? "");
     return (
       Boolean(claim) &&
       claim!.userId === input.userId &&
       claim!.state === "demonstrated" &&
+      (reviewDueAt === null ||
+        (Number.isFinite(reviewDueAt.getTime()) &&
+          reviewDueAt.getTime() > input.now.getTime())) &&
       validateComunCompetencyClaim(claim!, input.evidence).length === 0
     );
   });
@@ -119,6 +127,7 @@ export function evaluateComunFactoryMachineUse(input: {
       claimIds: authorization.competencyClaimIds,
       claims: input.claims,
       evidence: input.evidence,
+      now,
     })
   )
     reasons.push("competency_not_demonstrated");

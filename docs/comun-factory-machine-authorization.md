@@ -73,6 +73,12 @@ A autorização pode referenciar claims demonstradas.
 
 Se a claim deixar de ser válida, a autorização deixa de liberar uso pelo contrato.
 
+Uma claim com revisão vencida (inclusive no instante do prazo) ou data de revisão
+inválida não libera nenhum modo. A comparação usa o mesmo `now` injetado da
+avaliação; revisão sem prazo (`null`) e revisão futura preservam os demais gates.
+Um relógio de avaliação inválido também bloqueia. Isso é apenas avaliação do
+contrato candidato, sem conceder autorização ou ativar equipamento real.
+
 Mas a competência sozinha nunca gera autorização.
 
 ## Relação com risco do Caso FC
