@@ -17,10 +17,24 @@ type PublicMusic = {
 export function ComunRadioPublicRights({
   credits = [],
   music = [],
+  publishedAt,
 }: {
   credits?: PublicCredit[];
   music?: PublicMusic[];
+  publishedAt?: string | null;
 }) {
+  const publication = publishedAt?.trim() ? new Date(publishedAt) : null;
+  // published_at is a timestamp with timezone; never interpret a wall clock in
+  // the server's local timezone or normalize an impossible calendar date.
+  const calendarDate = publishedAt?.slice(0, 10);
+  const validPublication =
+    publication &&
+    Number.isFinite(publication.getTime()) &&
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(
+      publishedAt!,
+    ) &&
+    new Date(`${calendarDate}T00:00:00Z`).toISOString().slice(0, 10) ===
+      calendarDate;
   const publicCredits = credits.filter(
     (credit) => credit.public_visibility === "public",
   );
@@ -32,6 +46,23 @@ export function ComunRadioPublicRights({
       data-comun-radio-rights
       className="surface-memory grid gap-5 rounded-[var(--comun-radius-cultural)] p-5 text-comun-black lg:grid-cols-2"
     >
+      <p
+        className="min-w-0 break-words lg:col-span-2"
+        data-comun-radio-publication
+      >
+        {validPublication ? (
+          <>
+            Publicação:{" "}
+            <time dateTime={publication.toISOString()}>
+              {publication.toLocaleDateString("pt-BR", { timeZone: "UTC" })}
+            </time>
+          </>
+        ) : publication ? (
+          "Data de publicação inválida."
+        ) : (
+          "Data de publicação não informada."
+        )}
+      </p>
       <section className="min-w-0 break-words">
         <h3 className="font-black">Créditos públicos</h3>
         {publicCredits.length ? (

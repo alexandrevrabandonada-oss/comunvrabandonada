@@ -181,6 +181,15 @@ function client() {
           if (table === "comun_archive_items") rows = [];
           if (table === "comun_solidarity_offers") rows = [];
         }
+        if (table === "comun_radio_episodes" && mode.startsWith("date-")) {
+          const dates: Record<string, string | null> = {
+            "date-utc": "2026-10-01T23:30:00-03:00",
+            "date-missing": null,
+            "date-invalid": "invalid-publication-date",
+          };
+          if (mode in dates)
+            rows = rows.map((r) => ({ ...r, published_at: dates[mode] }));
+        }
         return resolve({
           data: single ? (rows[0] ?? null) : rows,
           error: null,

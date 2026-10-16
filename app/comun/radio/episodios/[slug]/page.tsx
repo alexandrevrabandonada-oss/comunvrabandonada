@@ -160,6 +160,7 @@ export default async function EpisodePage({
           </ComunRelatedSection>
           <ComunRelatedSection title="Créditos e direitos">
             <ComunRadioPublicRights
+              publishedAt={episode.published_at}
               credits={episode.comun_radio_credits}
               music={episode.comun_radio_music_uses}
             />
@@ -215,6 +216,7 @@ export default async function EpisodePage({
             Créditos e direitos
           </h2>
           <ComunRadioPublicRights
+            publishedAt={episode.published_at}
             credits={episode.comun_radio_credits}
             music={episode.comun_radio_music_uses}
           />
