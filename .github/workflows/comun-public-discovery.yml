@@ -9,6 +9,9 @@ on:
       - "lib/public-source*"
       - "lib/server/comun-public-discovery*"
       - "components/comun-public-discovery*"
+      - "components/comun-radio-public-rights*"
+      - "lib/comun-radio-public-rights*"
+      - "app/comun/radio/episodios/**"
       - "app/comun/explorar/**"
       - "tests/public-discovery/**"
       - "scripts/discovery/**"
@@ -27,7 +30,7 @@ jobs:
       - run: node --test scripts/discovery/lab-guard.node-test.mjs
       - name: Verified TLS and unchanged read-only preflight contracts
         run: node --test scripts/ci/readonly-database-ca.node-test.mjs scripts/ci/readonly-reconciled-migration-plan.node-test.mjs tests/ci/readonly-observatory-migration-metadata.node-test.mjs
-      - run: node node_modules/vitest/vitest.mjs run lib/comun-public-discovery.test.ts lib/public-source-reads.test.ts lib/server/comun-public-discovery.test.ts lib/radio-public-reads.test.ts
+      - run: node node_modules/vitest/vitest.mjs run lib/comun-public-discovery.test.ts lib/public-source-reads.test.ts lib/server/comun-public-discovery.test.ts lib/radio-public-reads.test.ts lib/comun-radio-public-rights.test.ts
       - run: npx playwright install --with-deps chromium
       - run: node tests/public-discovery/run-fixture.mjs build
       - run: npx playwright test -c playwright.public-discovery.config.ts

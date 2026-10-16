@@ -981,3 +981,12 @@ secret, permissão ou migration muda. Testes fixam semanticamente o escopo e os
 hashes dos scripts originais de main. Estado: correção candidata no #552, commit
 separado da experiência; execução remota necessária. Isso não resolve nem dispensa
 a migration pendente da Escola. Sem outra pilha de PRs.
+
+Retomada U0/SOC-D06 — 16/10/2026: lacuna concreta na Rádio candidata do #552:
+os leitores já retornam composição e condições de licença públicas, mas o detalhe
+app-v2 omitia esses campos e o legacy omitia todo o bloco de créditos. Ambos
+reutilizam agora uma apresentação pública comum, preservando filtros de visibilidade
+e direitos aprovados, sem presumir autorização de reutilização quando faltar licença.
+A retirada continua reconsultada antes de renderizar. Candidato não integrado;
+validação sintética e checks do novo SHA exigem evidência própria. Nenhum schema,
+flag, Production ou integração automática de #553/#554 autorizado por esta entrega.

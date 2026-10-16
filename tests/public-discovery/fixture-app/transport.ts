@@ -92,6 +92,34 @@ const tables: Record<string, Record<string, unknown>[]> = {
     id: "asset-local",
     archive_item_id: "episode-local",
   })),
+  comun_radio_credits: [
+    {
+      episode_item_id: "episode-local",
+      public_credit: "Equipe de escuta local",
+      credit_role: "Apresentação",
+      position: 1,
+      public_visibility: "public",
+    },
+    {
+      episode_item_id: "episode-local",
+      public_credit: "Crédito reservado do laboratório",
+      credit_role: "Participação",
+      position: 2,
+      public_visibility: "private",
+    },
+  ],
+  comun_radio_music_uses: [
+    {
+      episode_item_id: "episode-local",
+      title_public: "Canção da praça",
+      performer_public: "Roda musical",
+      composer_public: "Autoria comunitária",
+      license_public:
+        "Escuta autorizada; redistribuição depende de autorização.",
+      rights_status: "approved",
+      allow_streaming: true,
+    },
+  ],
   comun_radio_programs: [program],
   comun_radio_episodes: [episode],
   comun_radio_voice_consents: [

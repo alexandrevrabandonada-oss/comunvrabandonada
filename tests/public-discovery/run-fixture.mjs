@@ -1,4 +1,4 @@
-import { mkdirSync, copyFileSync } from "node:fs";
+import { mkdirSync, copyFileSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -22,6 +22,14 @@ if (mode === "build") {
     new URL("./fixture-app/public/", import.meta.url),
   );
   mkdirSync(`${target}/icons`, { recursive: true });
+  // Synthetic silence for the real player in episode presentation checks.
+  writeFileSync(
+    `${target}/audio-lab.wav`,
+    Buffer.from(
+      "UklGRsQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "base64",
+    ),
+  );
   for (const asset of [
     "sw.js",
     "icons/comun-192.png",

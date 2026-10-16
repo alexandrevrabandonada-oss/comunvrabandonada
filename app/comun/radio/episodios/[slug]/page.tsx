@@ -1,3 +1,4 @@
+import { ComunRadioPublicRights } from "@/components/comun-radio-public-rights";
 import { DiscoveryReturn } from "@/components/comun-public-discovery";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -104,6 +105,7 @@ export default async function EpisodePage({
     });
     return (
       <ComunShell
+        publicReadOnlyFallback
         appBar={{
           title: episode.title_public,
           contextLabel: `Rádio · ${episode.comun_radio_programs?.title_public ?? "episódio"}`,
@@ -157,38 +159,10 @@ export default async function EpisodePage({
             )}
           </ComunRelatedSection>
           <ComunRelatedSection title="Créditos e direitos">
-            <div className="surface-memory grid gap-5 rounded-[var(--comun-radius-cultural)] p-5 text-comun-black lg:grid-cols-2">
-              <section>
-                <h3 className="font-black">Créditos públicos</h3>
-                <ul className="mt-2 grid gap-1">
-                  {episode.comun_radio_credits
-                    ?.filter(
-                      (credit: any) => credit.public_visibility === "public",
-                    )
-                    .map((credit: any) => (
-                      <li key={`${credit.position}-${credit.public_credit}`}>
-                        {credit.public_credit} — {credit.credit_role}
-                      </li>
-                    ))}
-                </ul>
-              </section>
-              <section>
-                <h3 className="font-black">Músicas autorizadas</h3>
-                <ul className="mt-2 grid gap-1">
-                  {episode.comun_radio_music_uses
-                    ?.filter((music: any) =>
-                      ["approved", "public_domain_verified"].includes(
-                        music.rights_status,
-                      ),
-                    )
-                    .map((music: any) => (
-                      <li key={music.title_public}>
-                        {music.title_public} · {music.performer_public}
-                      </li>
-                    ))}
-                </ul>
-              </section>
-            </div>
+            <ComunRadioPublicRights
+              credits={episode.comun_radio_credits}
+              music={episode.comun_radio_music_uses}
+            />
           </ComunRelatedSection>
           {episode.transcript?.content ? (
             <ComunRelatedSection title="Transcrição revisada">
@@ -212,7 +186,7 @@ export default async function EpisodePage({
     );
   }
   return (
-    <ComunShell>
+    <ComunShell publicReadOnlyFallback>
       <Section>
         <DiscoveryReturn query={discoveryQuery} />
         <p className="text-xs font-black uppercase text-comun-yellow">
@@ -236,6 +210,15 @@ export default async function EpisodePage({
         ) : (
           <p className="mt-7 border-2 p-4">Áudio público indisponível.</p>
         )}
+        <section aria-labelledby="episode-rights-heading" className="mt-7">
+          <h2 id="episode-rights-heading" className="mb-3 text-2xl font-black">
+            Créditos e direitos
+          </h2>
+          <ComunRadioPublicRights
+            credits={episode.comun_radio_credits}
+            music={episode.comun_radio_music_uses}
+          />
+        </section>
         <Link
           href="/comun/radio/direitos-e-consentimento"
           className="mt-8 inline-block underline"
