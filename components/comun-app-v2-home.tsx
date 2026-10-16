@@ -147,7 +147,11 @@ export function ComunAppV2Home({
         </Link>
       </p>
 
-      <section aria-labelledby="home-first-pauta" className="mt-7">
+      <section
+        aria-labelledby="home-first-pauta"
+        className="mt-7"
+        data-comun-home-featured-source={featuredPublicPauta?.source ?? "empty"}
+      >
         <h2 id="home-first-pauta" className="comun-v2-section-title mb-3">
           Uma pauta para conhecer
         </h2>
