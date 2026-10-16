@@ -56,6 +56,7 @@ export function planCycle({tasks, now, lock, checkpointValid = true}) {
     return {kind:'PROTECTED_NOOP', reason:lock?.status === 'LIVE_OTHER' ? 'another-owner' : 'lock-ownership-unverified'};
   }
   const ready = tasks.filter(t => t.status === 'READY' &&
+    !(t.noProgressCycles >= 2 && t.stalledOnFingerprint === t.inputFingerprint) &&
     !PROTECTED_ACTIONS.has(t.action) && t.authorized === true &&
     (t.dependencies || []).every(id => map.get(id)?.status === 'DONE'));
   ready.sort((a,b) => (b.priority ?? 0)-(a.priority ?? 0) || a.taskId.localeCompare(b.taskId));
@@ -143,4 +144,37 @@ export function reconcileExternalOutcome({operationKind, outcome, verifiedRemote
   }
   return outcome === 'COMPLETED' && verifiedRemoteResult === 'COMPLETED' ? {kind:'ALREADY_DONE'} :
     {kind:'BLOCK',reason:'not-verified'};
+}
+
+/** Two cycles without material evidence circuit-break current READY input. */
+export function recordCycleResult(task, { cycleId, inputFingerprint, beforeEvidence, afterEvidence, now }) {
+  requireTask(task); timeMs(now);
+  if (!cycleId || !inputFingerprint || !beforeEvidence || !afterEvidence) throw new Error('CYCLE_EVIDENCE_REQUIRED');
+  if (task.lastCycleId === cycleId) return {changed:false, task};
+  if (!['READY','RUNNING'].includes(task.status)) throw new Error('CYCLE_STATUS_NOT_EXECUTABLE');
+  const changed = beforeEvidence !== afterEvidence;
+  const sameInput = task.inputFingerprint === inputFingerprint;
+  const n = changed ? 0 : sameInput ? Math.min(2,(task.noProgressCycles || 0)+1) : 1;
+  const halted = n >= 2;
+  return {changed:true, task:{...copyTask(task), lastCycleId:cycleId,
+    inputFingerprint, noProgressCycles:n,
+    stalledOnFingerprint:halted ? inputFingerprint : null,
+    status:halted ? 'WAIT_EXTERNAL' : task.status,
+    nextProbeAt:halted ? null : task.nextProbeAt ?? null}};
+}
+
+/** Remote observation backstop; unchanged CI checks decay to daily read-only probes. */
+export function recordProbeObservation(task, {probeId, observationFingerprint, now, eligible = false}) {
+  requireTask(task);
+  const ms=timeMs(now);
+  if (!probeId || !observationFingerprint) throw new Error('PROBE_EVIDENCE_REQUIRED');
+  if (!['WAIT_CI','WAIT_EXTERNAL'].includes(task.status)) throw new Error('PROBE_STATUS_INVALID');
+  if (task.lastProbeId === probeId) return {changed:false, task};
+  const unchanged = task.observationFingerprint === observationFingerprint;
+  const streak=unchanged ? Math.min((task.probeNoChangeCount || 0)+1,4) : 0;
+  const intervals=[15,60,240,720,1440];
+  const status=!unchanged && eligible ? 'READY' : task.status;
+  return {changed:true, task:{...copyTask(task), lastProbeId:probeId, observationFingerprint,
+    probeNoChangeCount:streak, status,
+    nextProbeAt:status==='READY' ? null : new Date(ms+intervals[streak]*60000).toISOString()}};
 }
