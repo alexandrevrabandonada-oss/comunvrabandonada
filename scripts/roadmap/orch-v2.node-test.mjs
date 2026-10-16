@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { fingerprint, planCycle, recordFailure, observeInputs, notificationDecision,
-  classifyPreview, reconcileExternalOutcome, recordCycleResult, recordProbeObservation } from './orch-v2.mjs';
+  classifyPreview, reconcileExternalOutcome, recordCycleResult, recordProbeObservation,
+  classifyPrAdmission, COMUN_REPOSITORY } from './orch-v2.mjs';
 const now='2026-10-16T16:00:00Z';
 const lock={status:'OWNED',ownerId:'cycle-101',verified:true};
-const task=(id,status='READY',more={})=>({taskId:id,status,authorized:true,priority:1,dependencies:[],...more});
+const task=(id,status='READY',more={})=>({taskId:id,status,authorized:true,priority:1,dependencies:[],prEffect:'NONE',...more});
 const base={headSha:'h'.repeat(40),projectId:'project1',branch:'codex/feature',cost02:'SUCCESS'};
 const exact={sha:base.headSha,projectId:base.projectId,branch:base.branch,source:'git',environment:'preview',state:'CANCELED',ignoreReason:'no-runtime-allowlist'};
 const ancestor={...exact,sha:'a'.repeat(40),state:'READY'};
@@ -73,4 +74,71 @@ test('duplicate probe id never triggers another write',()=>{
 test('new remote observation requalifies only when eligible',()=>{
   const a=recordProbeObservation(task('ci','WAIT_CI',{observationFingerprint:'pending'}),{probeId:'p1',observationFingerprint:'success',eligible:true,now}).task;
   assert.equal(a.status,'READY');
+});
+
+const portfolio=(overrides={})=>({
+  verified:true,repository:COMUN_REPOSITORY,observedAt:now,
+  openCount:22,openPrNumbers:Array.from({length:22},(_,i)=>i+535),
+  activeImplementationCount:2,activeIntegrationCount:1,newPrCredits:0,
+  ...overrides
+});
+const createPr=()=>task('new-feature','READY',{prEffect:'NEW_PR',action:'CREATE_PR',priority:100});
+test('22 open PRs blocks a new feature PR but not work on existing #545',()=>{
+  const integration=task('integrate-545','READY',{prEffect:'EXISTING_PR',targetPr:545,priority:9});
+  assert.equal(classifyPrAdmission({task:createPr(),portfolio:portfolio(),now}).reason,'integration-debt-mode');
+  assert.deepEqual(planCycle({tasks:[createPr(),integration],now,lock,portfolio:portfolio()}),
+    {kind:'EXECUTE_ONE',taskId:'integrate-545',ownerId:lock.ownerId});
+});
+test('a new PR alone is PROTECTED_NOOP during integration debt',()=>{
+  const p=planCycle({tasks:[createPr()],now,lock,portfolio:portfolio()});
+  assert.equal(p.kind,'PROTECTED_NOOP');
+});
+test('missing PR-effect declaration fails closed',()=>{
+  assert.equal(classifyPrAdmission({task:task('unknown','READY',{prEffect:undefined}),now}).reason,'pr-effect-unclassified');
+  assert.equal(planCycle({tasks:[task('unknown','READY',{prEffect:undefined})],now,lock}).kind,'PROTECTED_NOOP');
+});
+test('declaring NONE cannot bypass a CREATE_PR action',()=>{
+  assert.equal(classifyPrAdmission({task:task('rogue','READY',{action:'CREATE_PR'}),now}).admitted,false);
+});
+test('existing PR tasks must identify target number',()=>{
+  assert.equal(classifyPrAdmission({task:task('repair','READY',{prEffect:'EXISTING_PR'}),now}).reason,'existing-pr-not-identified');
+});
+test('new PR fails closed without current remote inventory',()=>{
+  assert.equal(classifyPrAdmission({task:createPr(),now}).reason,'portfolio-unverified-or-stale');
+});
+test('stale inventory fails closed',()=>{
+  const p=portfolio({observedAt:'2026-10-16T15:00:00Z'});
+  assert.equal(classifyPrAdmission({task:createPr(),portfolio:p,now}).admitted,false);
+});
+test('mismatched repository fails closed',()=>{
+  assert.equal(classifyPrAdmission({task:createPr(),portfolio:portfolio({repository:'other/repo'}),now}).admitted,false);
+});
+test('inconsistent PR count fails closed',()=>{
+  assert.equal(classifyPrAdmission({task:createPr(),portfolio:portfolio({openCount:21}),now}).admitted,false);
+});
+test('open 5 with no merge/close credit cannot create PR',()=>{
+  const p=portfolio({openCount:5,openPrNumbers:[1,2,3,4,5],activeImplementationCount:1,activeIntegrationCount:0});
+  assert.equal(classifyPrAdmission({task:createPr(),portfolio:p,now}).reason,'no-verified-merge-or-closure-credit');
+});
+test('active implementation WIP cap blocks new PR even under 5 open',()=>{
+  const p=portfolio({openCount:4,openPrNumbers:[1,2,3,4],activeImplementationCount:2,activeIntegrationCount:0,newPrCredits:1});
+  assert.equal(classifyPrAdmission({task:createPr(),portfolio:p,now}).reason,'active-wip-cap-reached');
+});
+test('active integration WIP cap blocks new PR even under 5 open',()=>{
+  const p=portfolio({openCount:4,openPrNumbers:[1,2,3,4],activeImplementationCount:1,activeIntegrationCount:1,newPrCredits:1});
+  assert.equal(classifyPrAdmission({task:createPr(),portfolio:p,now}).reason,'active-wip-cap-reached');
+});
+test('a new PR under cap requires an actual verified credit',()=>{
+  const p=portfolio({openCount:4,openPrNumbers:[1,2,3,4],activeImplementationCount:1,activeIntegrationCount:0,newPrCredits:1});
+  assert.equal(classifyPrAdmission({task:createPr(),portfolio:p,now}).admitted,true);
+});
+test('backlog exceptions require explicit human approval and evidence',()=>{
+  const t=createPr();
+  const exception={...t,exceptionKind:'INTEGRATION_REPAIR',existingPrUnavailable:true,exceptionEvidence:'approved scope documented',exceptionHumanApproved:true};
+  assert.equal(classifyPrAdmission({task:exception,portfolio:portfolio(),now}).admitted,true);
+  assert.equal(classifyPrAdmission({task:{...exception,exceptionHumanApproved:false},portfolio:portfolio(),now}).admitted,false);
+});
+test('PR gate does not bypass ownership checks',()=>{
+  const p=portfolio({openCount:4,openPrNumbers:[1,2,3,4],activeImplementationCount:0,activeIntegrationCount:0,newPrCredits:1});
+  assert.equal(planCycle({tasks:[createPr()],now,portfolio:p,lock:{status:'ORPHAN_UNKNOWN'}}).kind,'PROTECTED_NOOP');
 });
