@@ -2,7 +2,7 @@
 // Side-effect-free adapter. One JSON decision to stdout, zero mutations.
 import { stdin, stdout, stderr } from 'node:process';
 import { planCycle, classifyPreview, fingerprint, notificationDecision,
-  recordFailure, observeInputs, reconcileExternalOutcome } from './orch-v2.mjs';
+  recordFailure, observeInputs, reconcileExternalOutcome, recordCycleResult, recordProbeObservation } from './orch-v2.mjs';
 
 const OPERATIONS = Object.freeze({
   plan: planCycle,
@@ -12,6 +12,8 @@ const OPERATIONS = Object.freeze({
   failure: ({task,...args}) => recordFailure(task,args),
   observe: ({task,...args}) => observeInputs(task,args),
   external: reconcileExternalOutcome,
+  cycle: ({task,...args}) => recordCycleResult(task,args),
+  probe: ({task,...args}) => recordProbeObservation(task,args),
 });
 try {
   const chunks = [];
