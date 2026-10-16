@@ -40,9 +40,64 @@ function requireTask(task) {
   if (!STATES_SET.has(task.status)) throw new Error('INVALID_TASK_STATUS');
 }
 function copyTask(task) { return {...task, dependencies: [...(task.dependencies || [])]}; }
+/** PR creation admission is only advisory until the executor rechecks GitHub. */
+export const COMUN_REPOSITORY = 'alexandrevrabandonada-oss/comunvrabandonada';
+export const PR_BACKLOG_THRESHOLD = 5;
+const PR_EFFECTS = new Set(['NONE', 'EXISTING_PR', 'NEW_PR']);
+const NEW_PR_ACTIONS = new Set(['CREATE_PR', 'NEW_FEATURE_PR', 'OPEN_PULL_REQUEST']);
+const MAX_PORTFOLIO_AGE_MS = 30 * 60 * 1000;
+function validPortfolio(portfolio, ms) {
+  const t = Date.parse(portfolio?.observedAt);
+  return portfolio?.verified === true && portfolio?.repository === COMUN_REPOSITORY &&
+    Number.isInteger(portfolio.openCount) && portfolio.openCount >= 0 &&
+    Array.isArray(portfolio.openPrNumbers) &&
+    portfolio.openPrNumbers.length === portfolio.openCount &&
+    new Set(portfolio.openPrNumbers).size === portfolio.openCount &&
+    portfolio.openPrNumbers.every(n => Number.isInteger(n) && n > 0) &&
+    Number.isFinite(t) && t <= ms && ms - t <= MAX_PORTFOLIO_AGE_MS &&
+    Number.isInteger(portfolio.activeImplementationCount) &&
+    portfolio.activeImplementationCount >= 0 &&
+    Number.isInteger(portfolio.activeIntegrationCount) &&
+    portfolio.activeIntegrationCount >= 0;
+}
+/** Read-only planning gate; caller must recheck immediately before creating a PR. */
+export function classifyPrAdmission({task, portfolio, now}) {
+  requireTask(task);
+  const ms = timeMs(now);
+  if (!PR_EFFECTS.has(task.prEffect)) return {admitted:false,reason:'pr-effect-unclassified'};
+  if (task.prEffect === 'NONE') {
+    return NEW_PR_ACTIONS.has(task.action) ?
+      {admitted:false,reason:'pr-creation-misclassified'} : {admitted:true,reason:'no-pr-write'};
+  }
+  if (task.prEffect === 'EXISTING_PR') {
+    if (!Number.isInteger(task.targetPr) || task.targetPr <= 0)
+      return {admitted:false,reason:'existing-pr-not-identified'};
+    if (NEW_PR_ACTIONS.has(task.action))
+      return {admitted:false,reason:'pr-creation-misclassified'};
+    return {admitted:true,reason:'existing-pr'};
+  }
+  if (!NEW_PR_ACTIONS.has(task.action)) return {admitted:false,reason:'new-pr-action-not-explicit'};
+  if (!validPortfolio(portfolio,ms)) return {admitted:false,reason:'portfolio-unverified-or-stale'};
+  if (portfolio.openCount > PR_BACKLOG_THRESHOLD) {
+    const exception = task.exceptionKind === 'URGENT_SECURITY' ||
+      task.exceptionKind === 'INTEGRATION_REPAIR';
+    const approved = task.exceptionHumanApproved === true &&
+      typeof task.exceptionEvidence === 'string' && task.exceptionEvidence.length >= 12 &&
+      task.existingPrUnavailable === true;
+    return exception && approved ?
+      {admitted:true,reason:'explicitly-authorized-backlog-exception'} :
+      {admitted:false,reason:'integration-debt-mode'};
+  }
+  if (portfolio.activeImplementationCount >= 2 || portfolio.activeIntegrationCount >= 1)
+    return {admitted:false,reason:'active-wip-cap-reached'};
+  if (!Number.isInteger(portfolio.newPrCredits) || portfolio.newPrCredits < 1)
+    return {admitted:false,reason:'no-verified-merge-or-closure-credit'};
+  return {admitted:true,reason:'within-backlog-and-wip-budget'};
+}
+
 
 /** Launcher alone validates the lock ownership and commits checkpoint via CAS. */
-export function planCycle({tasks, now, lock, checkpointValid = true}) {
+export function planCycle({tasks, now, lock, portfolio, checkpointValid = true}) {
   const ms = timeMs(now);
   if (!checkpointValid) return {kind:'PROTECTED_NOOP', reason:'checkpoint-unverified'};
   if (!Array.isArray(tasks)) throw new Error('TASKS_REQUIRED');
@@ -55,10 +110,12 @@ export function planCycle({tasks, now, lock, checkpointValid = true}) {
   if (!lock || lock.status !== 'OWNED' || !lock.ownerId || lock.verified !== true) {
     return {kind:'PROTECTED_NOOP', reason:lock?.status === 'LIVE_OTHER' ? 'another-owner' : 'lock-ownership-unverified'};
   }
-  const ready = tasks.filter(t => t.status === 'READY' &&
+  const candidates = tasks.filter(t => t.status === 'READY' &&
     !(t.noProgressCycles >= 2 && t.stalledOnFingerprint === t.inputFingerprint) &&
     !PROTECTED_ACTIONS.has(t.action) && t.authorized === true &&
     (t.dependencies || []).every(id => map.get(id)?.status === 'DONE'));
+  const ready = candidates.filter(t => classifyPrAdmission({task:t,portfolio,now:ms}).admitted);
+  const suppressed = candidates.length > ready.length;
   ready.sort((a,b) => (b.priority ?? 0)-(a.priority ?? 0) || a.taskId.localeCompare(b.taskId));
   if (ready.length) return {kind:'EXECUTE_ONE', taskId:ready[0].taskId, ownerId:lock.ownerId};
   const probes = tasks.filter(t => ['WAIT_CI','WAIT_EXTERNAL','RETRY_BACKOFF'].includes(t.status) &&
@@ -66,7 +123,8 @@ export function planCycle({tasks, now, lock, checkpointValid = true}) {
     !(t.status === 'RETRY_BACKOFF' && (t.attemptsForFingerprint || 0) >= 2));
   probes.sort((a,b) => timeMs(a.nextProbeAt)-timeMs(b.nextProbeAt) || a.taskId.localeCompare(b.taskId));
   if (probes.length) return {kind:'PROBE_ONE', taskId:probes[0].taskId, ownerId:lock.ownerId};
-  return {kind:'QUIET_NOOP', reason:'no-eligible-work-or-probe'};
+  return suppressed ? {kind:'PROTECTED_NOOP',reason:'pr-admission-gate-blocked'} :
+    {kind:'QUIET_NOOP', reason:'no-eligible-work-or-probe'};
 }
 
 /** Two equivalent failures exhaust retries; attemptId prevents duplicate increments. */
