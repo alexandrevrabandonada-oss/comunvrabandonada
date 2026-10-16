@@ -122,8 +122,21 @@ for (const experience of ["", "?experiencia=legacy"]) {
     });
     await page.goto(`/comun${experience}`);
     const paths = page.locator("[data-comun-participation-paths]");
-    await expect(paths).toBeVisible();
-    await paths
+    if (experience) {
+      await expect(paths).toBeVisible();
+    } else {
+      await expect(paths).toHaveCount(0);
+      await expect(
+        page.getByRole("link", { name: "Buscar um assunto", exact: true }),
+      ).toHaveAttribute("href", "/comun/buscar");
+      await expect(
+        page.getByRole("heading", { name: "Uma pauta para conhecer" }),
+      ).toBeVisible();
+      await expect(
+        page.locator("[data-comun-motorola-primary-action]"),
+      ).toHaveAttribute("href", "/comun/relatar");
+    }
+    await (experience ? paths : page)
       .getByRole("link", { name: "Aprender a organizar", exact: true })
       .focus();
     await page.keyboard.press("Enter");
