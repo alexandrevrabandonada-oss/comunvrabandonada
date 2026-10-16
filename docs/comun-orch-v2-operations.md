@@ -8,10 +8,10 @@
 
 ```sh
 node --test scripts/roadmap/orch-v2.node-test.mjs
-printf '%s\n' '{"operation":"plan","args":{"now":"2026-10-16T16:00:00Z","lock":{"status":"OWNED","ownerId":"cycle-123","verified":true},"tasks":[{"taskId":"search","status":"READY","priority":10,"authorized":true,"dependencies":[]}]}}' | node scripts/roadmap/orch-v2-cli.mjs
+printf '%s\n' '{"operation":"plan","args":{"now":"2026-10-16T16:00:00Z","lock":{"status":"OWNED","ownerId":"cycle-123","verified":true},"tasks":[{"taskId":"search","status":"READY","priority":10,"authorized":true,"prEffect":"NONE","dependencies":[]}]}}' | node scripts/roadmap/orch-v2-cli.mjs
 ```
 
-O CLI só aceita `plan`, `preview`, `fingerprint`, `notify`, `failure`, `observe`, `cycle`, `probe` e `external`. Input inválido é erro fechado (exit 2), sem plano de execução.
+O CLI só aceita `plan`, `preview`, `fingerprint`, `notify`, `failure`, `observe`, `cycle`, `probe` e `external`. O inventário remoto e a classificação de PR devem ser providos pelo launcher, e operações de escrita nunca são expostas por esse CLI. Input inválido é erro fechado (exit 2), sem plano de execução.
 
 ## Estados e ledger
 
