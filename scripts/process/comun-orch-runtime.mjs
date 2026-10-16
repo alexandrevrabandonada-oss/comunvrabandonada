@@ -101,7 +101,7 @@ export function inspectLock(common) {
       read(path.join(dir,'owner.json')):fs.readdirSync(dir).sort()) };
   }
   let alive = false;
-  if (owner.machine === os.hostname() && Number.isInteger(owner.pid)) {
+  if (owner.machine === os.hostname() && Number.isInteger(owner.pid) && owner.pid > 0) {
     try {
       process.kill(owner.pid, 0);
       alive = true;
