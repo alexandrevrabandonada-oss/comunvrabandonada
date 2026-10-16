@@ -78,6 +78,24 @@ ainda sem testes executados neste registro. Não equivale a merge, Preview READY
 disponibilidade pública ou validação humana. Próximo bloqueio: classificar CI do
 piloto e coordenar merge/rebase com #553 sem dispensar gates.
 
+### Checkpoint técnico do candidato — 16/10/2026
+
+Branch isolada `codex/comun-home-discovery-pilot-20261015`, PR #554
+draft. O primeiro head `5b9f7a1e` teve Experience Coherence e o
+contrato sintético de continuidade **SUCCESS**, mas Core Journeys falhou
+no Prettier do componente e COST-02 recusou ausência do marcador Preview.
+Essas falhas não são testes verdes. A correção de estilo foi aplicada, assim
+como um atributo público não sensível para distinguir o cartão `remote`,
+o destaque `editorial_fallback` e o estado `empty`. Um teste de navegação
+verifica as três possibilidades sem fabricar conteúdo.
+
+O commit com marcador de Preview apenas solicita o build canônico em Git
+e não comprova Vercel READY, deployment GitHub válido, CI verde, merge,
+atualização de Production ou usabilidade humana. Preservar o bloqueio se
+a CI ou o Preview não comprovarem o SHA exato. Conferir conflito funcional
+com #553 (submissão segura da Busca Viva) antes de integrar. Não substituir
+verificações de aparelhos reais por Playwright.
+
 ## Continuidade independente — 12/10/2026
 
 Candidato funcional `42f7ddd6`: cópia de texto da ouvidoria e protocolo agora
