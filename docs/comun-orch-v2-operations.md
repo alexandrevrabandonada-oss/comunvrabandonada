@@ -11,13 +11,13 @@ node --test scripts/roadmap/orch-v2.node-test.mjs
 printf '%s\n' '{"operation":"plan","args":{"now":"2026-10-16T16:00:00Z","lock":{"status":"OWNED","ownerId":"cycle-123","verified":true},"tasks":[{"taskId":"search","status":"READY","priority":10,"authorized":true,"dependencies":[]}]}}' | node scripts/roadmap/orch-v2-cli.mjs
 ```
 
-O CLI só aceita `plan`, `preview`, `fingerprint`, `notify`, `failure`, `observe` e `external`. Input inválido é erro fechado (exit 2), sem plano de execução.
+O CLI só aceita `plan`, `preview`, `fingerprint`, `notify`, `failure`, `observe`, `cycle`, `probe` e `external`. Input inválido é erro fechado (exit 2), sem plano de execução.
 
 ## Estados e ledger
 
 Estados: `READY`, `RUNNING`, `WAIT_CI`, `WAIT_EXTERNAL`, `WAIT_HUMAN`, `RETRY_BACKOFF`, `BLOCKED_PROTECTED`, `DONE`.
 
-Para cada tarefa: `taskId`, `status`, `priority`, `authorized`, `dependencies[]`, e opcionalmente `action`, `inputFingerprint`, `failureFingerprint`, `attemptsForFingerprint`, `lastAttemptId`, `nextProbeAt`, `lastNotifiedFingerprint`, `evidenceSha`.
+Para cada tarefa: `taskId`, `status`, `priority`, `authorized`, `dependencies[]`, e opcionalmente `action`, `inputFingerprint`, `failureFingerprint`, `attemptsForFingerprint`, `lastAttemptId`, `nextProbeAt`, `lastNotifiedFingerprint`, `evidenceSha`, `noProgressCycles`, `stalledOnFingerprint`, `lastCycleId`, `observationFingerprint`, `probeNoChangeCount`, `lastProbeId`.
 
 Os `inputFingerprint`s devem refletir alterações reais nas entradas pertinentes — SHA, check/run, contrato, autorização, dependências e identificador de owner — **não** a hora da consulta. Uma mudança de fingerprint limpa o orçamento de retry, mas **não** supera gates `WAIT_HUMAN` ou `BLOCKED_PROTECTED`.
 
@@ -27,6 +27,8 @@ Os `inputFingerprint`s devem refletir alterações reais nas entradas pertinente
 | --- | --- |
 | Outro owner ativo ou lock órfão sem proveniência verificável | `PROTECTED_NOOP`; nunca remover lock apenas porque PID morreu |
 | Tarefa prioritária bloqueada e outra independente READY | `EXECUTE_ONE` para a elegível; uma entrega por ciclo |
+| Dois ciclos distintos sem mudança de evidência em tarefa READY | `WAIT_EXTERNAL` e seleção de outra frente; não repetir indefinidamente a mesma tarefa |
+| Sondagem CI sem mudança | Backoff progressivo 15 min, 1 h, 4 h, 12 h e máximo diário; sem rerun/novo build |
 | Primeira falha transitória | `RETRY_BACKOFF`, próxima tentativa só após janela |
 | Segunda falha equivalente | `WAIT_EXTERNAL` sem retry até mudança material |
 | Todas as tarefas aguardando | `QUIET_NOOP`: zero worktree, commit, push, build, rerun e alerta duplicado |
