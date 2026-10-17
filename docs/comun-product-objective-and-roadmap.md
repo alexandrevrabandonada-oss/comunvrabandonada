@@ -145,6 +145,8 @@ As frentes abaixo não alteram o gate de lançamento da V1. Contratos, documenta
 
 **49-D1 — Piloto sem novo schema fabril.** Executar casos reais usando Pauta/Tarefa/Ação e Escola; registrar manualmente custo, risco, versões e resultado. Gate mínimo: 10 casos iniciados, 5 resolvidos e lacunas de dados demonstradas. Checkpoint ampliado FC-MVP-25: 25 casos, 15 resolvidos, 5 projetos abertos, 3 operadores autônomos, 5 pessoas em formação, 1 escola, 1 projeto de acessibilidade, 1 tecnologia ambiental e 1 solução reutilizada.
 
+O contrato candidato do piloto está em [comun-factory-pilot-contract.md](comun-factory-pilot-contract.md). O Caso FC é projeção técnica: trabalho real de design, protótipo, teste, fabricação ou instalação exige Tarefa canônica. R2/R3 exigem evidência de teste para instalação; R3 exige aprovação qualificada para fabricar/instalar; R4 fica bloqueado no fluxo comunitário comum.
+
 **49-D2 — Extensão mínima orientada por evidência.** Só depois do piloto, considerar estado técnico do caso, versões/BOM e rastreabilidade. Nunca duplicar Pauta, Ação, Tarefa, Resultado, Comunidade, competência, progresso da Escola ou identidade.
 
 **49-D3 — Operação física.** Máquinas, filas, materiais, manutenção, instalações, falhas e segurança. Dados de máquina não viram reputação social.
