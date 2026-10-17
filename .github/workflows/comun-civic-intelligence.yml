@@ -128,6 +128,11 @@ jobs:
           npm run test:unit
           npm run audit:rls-matrix
           npm run security:test
+          # Retire only dev-generated Next types left by the Playwright web server.
+          # Preserve application sources and production route types; keep strict typecheck.
+          node --test scripts/quality/clean-disposable-dev-types.node-test.mjs
+          node scripts/quality/clean-disposable-dev-types.mjs
+          npx next typegen
           npm run typecheck
           npm run lint
           npm run build
