@@ -54,6 +54,14 @@ o intervalo40min e a ref operacional. Rollback continua por commit descendente
 sob owner/CAS e restauração do prompt pela ferramenta; nunca rebobinar ledger/V1.
 Provas desta missão: `reports/current/comun-orch-intelligence-20261017.json`.
 
+Contradição real no primeiro candidato016b28bf: V1/run39073207133 falhou no
+`git diff --check`, por CRLF no relatório novo. O log exibiu o diff contendo
+“toomanyrequests”; isso não prova quota no passo falho. O classificador agora
+isola o comando que terminou com erro, remove payload de diff e reconhece
+whitespace como CODE. Grupo estruturado sem comando falho comprovado permanece
+indeterminado. O relatório usa LF. Regressões reproduzem essa fonte nova; não
+há dispensa do gate nem rerun cego do mesmo código.
+
 ## Reconciliação limitada de instalação — 17/10/2026
 
 O launcher instalado deve ser identificado pelo prompt da única automação e pelo

@@ -40,6 +40,24 @@ test('cause-conditioned recovery never reruns or spends retry credit; repeated i
   assert.equal(recoveryDecision(d,{now:NOW,uncertain:true}).action,'RECONCILE_OPERATION');
   assert.equal(recoveryDecision(d,{now:NOW,protected_task:true}).action,'WAIT_EXISTING_AUTHORIZATION');
 });
+test('real V1 contradiction: quoted diff is not a Docker outage; failed whitespace command is CODE',()=>{
+  const diffJob={...job,steps:[{number:12,name:'Run git diff --check origin/main...HEAD',conclusion:'failure'}]};
+  const log=['2026-10-17T22:00:00Z ##[group]Run supabase start',
+    '2026-10-17T22:00:01Z Error response from daemon: toomanyrequests: Rate exceeded',
+    '2026-10-17T22:00:02Z ##[group]Run git diff --check origin/main...HEAD',
+    '2026-10-17T22:00:03Z ##[endgroup]',
+    '2026-10-17T22:00:04Z report.json:1: trailing whitespace.',
+    '2026-10-17T22:00:05Z +  "cause": "toomanyrequests: Rate exceeded",',
+    '2026-10-17T22:00:06Z +  "test": "AssertionError: printed source",',
+    '2026-10-17T22:00:07Z ##[error]Process completed with exit code 2.'].join('\n');
+  const d=diagnose(log,{job:diffJob});assert.equal(d.classification,'CODE');assert.equal(d.log_scope,'FAILED_COMMAND');
+  assert.deepEqual(d.signals,[{category:'CODE',code:'DIFF_WHITESPACE'}]);
+  assert.equal(recoveryDecision(d).action,'PROPOSE_EXISTING_BRANCH_REPAIR');
+  assert.equal(diagnose('+toomanyrequests: Rate exceeded',{job:diffJob}).classification,'INSUFFICIENT_EVIDENCE');
+});
+test('unresolved structured failed command stays indeterminate despite matching earlier log text',()=>{
+  assert.equal(diagnose('##[group]setup\ntoomanyrequests: Rate exceeded\n##[error]unknown failure').determination,'INDETERMINATE');
+});
 test('reconciler reads exact failed jobs/logs once; diagnosis enrichment never resets exhausted budget',()=>{
   const t=workflow();let reads=0;const source=readTracked(t,provider,()=>{reads++;return 'Error status 502: Bad Gateway';});
   assert.equal(reads,1);assert.equal(source.diagnostics.jobs[0].classification,'EXTERNAL_DEPENDENCY');
