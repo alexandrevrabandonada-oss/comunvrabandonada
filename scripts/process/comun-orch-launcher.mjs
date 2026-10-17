@@ -61,29 +61,67 @@ try {
   const option = (name, fallback) =>
     args.includes(name) ? args[args.indexOf(name) + 1] : fallback;
   let result;
-  if(args[0]==='create-pr') {
+  if (args[0] === 'diagnose') {
+    // Read-only local recovery snapshot. Does not acquire locks or query providers.
+    const core = await import(pathToFileURL(path.join(directory, 'comun-orch-v2.mjs')));
+    const {state, expectedHash} = runtime.loadState(ctx);
+    const lock = runtime.inspectLock(ctx.common);
+    const planned = core.plan(state, {now: Date.now(), material_budget: 1});
+    const counts = Object.fromEntries(core.STATES.map(status => [
+      status, state.tasks.filter(t => t.status === status).length,
+    ]));
+    const unobserved = state.tasks.filter(t =>
+      t.status === 'WAIT_EXTERNAL' && (!t.probe || !t.next_probe_at)
+    ).map(t => t.task_id);
+    result = {
+      action: 'DIAGNOSE',
+      read_only: true,
+      lock: lock.state,
+      canonical: ctx.canonical,
+      ledger_initialized: expectedHash !== null,
+      revision: state.revision,
+      would_action: lock.state === 'FREE' ? planned.action : 'PROTECTED_NOOP',
+      would_reason: lock.state === 'FREE' ? planned.reason : lock.state,
+      counts,
+      due_probe_count: planned.probes.length,
+      unobserved_wait_external: unobserved,
+      requires_reconciliation: unobserved.length > 0,
+      tasks: state.tasks.map(t => ({
+        task_id: t.task_id, status: t.status,
+        pr_effect: t.pr_effect ?? null, target_pr: t.target_pr ?? null,
+        next_probe_at: t.next_probe_at ?? null,
+      })),
+      notify: false, writes: 0, worktrees: 0,
+    };
+  } else if (args[0] === 'create-pr') {
     const executor=await import(pathToFileURL(path.join(directory,'comun-orch-github-executor.mjs')));
     result=executor.createPullRequest(ctx,JSON.parse(fs.readFileSync(option('--event'),'utf8')));
-  } else result = args.includes('--hold')
-    ? {action:'NOOP',reason:'REVERSIBLE_CANARY_HOLD',notify:false,writes:0,worktrees:0}
-    : ["record", "observe"].includes(args[0])
-    ? runtime[args[0]](
-        ctx,
-        JSON.parse(fs.readFileSync(option("--event"), "utf8")),
-      )
-    : runtime.tick(ctx, {
-        simulate: args.includes("--simulate"),
-        material_budget: Number(option("--budget", "1")),
-      });
+  } else if (["record", "observe"].includes(args[0])) {
+    result = runtime[args[0]](ctx, JSON.parse(fs.readFileSync(option("--event"), "utf8")));
+  } else if (args[0] === 'tick' || args.length === 0) {
+    result = args.includes('--hold')
+      ? {action:'NOOP',reason:'REVERSIBLE_CANARY_HOLD',notify:false,writes:0,worktrees:0}
+      : runtime.tick(ctx, {
+          simulate: args.includes("--simulate"),
+          material_budget: Number(option("--budget", "1")),
+        });
+  } else {
+    throw Error('INVALID_ORCH_COMMAND');
+  }
   console.log(JSON.stringify(result));
 } catch (error) {
-  console.log(
-    JSON.stringify({
-      action: "NOOP",
-      protected: true,
-      reason: error.message,
-      notify: false,
-    }),
-  );
+  const reason = error instanceof Error ? error.message : 'UNKNOWN_LAUNCHER_ERROR';
+  console.log(JSON.stringify({
+    action: 'PROTECTED_STOP',
+    protected: true,
+    fatal: true,
+    reason,
+    error_fingerprint: createHash('sha256').update(reason).digest('hex'),
+    requires_attention: true,
+    // Failure may have occurred after a side effect. Never claim zero writes.
+    notify: false,
+    writes: null,
+    worktrees: null,
+  }));
   process.exitCode = 1;
 }
