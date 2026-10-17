@@ -213,6 +213,11 @@ export function plan(
   const candidate = decide(state.tasks, now, owner_id ?? 'planning-only',state.portfolio);
   const picked = candidate.kind === 'EXECUTE_ONE'
     ? state.tasks.find(t=>t.task_id===candidate.taskId) : null;
+  // Keep quiet NOOP semantics while exposing a blocked PR admission to diagnostics.
+  // A blocked task must never create a worktree, write the ledger or alert by itself.
+  const admissionBlocked = !picked && !probes.length &&
+    candidate.kind === 'PROTECTED_NOOP' &&
+    candidate.reason === 'pr-admission-gate-blocked';
   return {
     action:
       picked && material_budget > 0
@@ -224,7 +229,9 @@ export function plan(
     reason:
       picked && material_budget === 0
         ? "CYCLE_MATERIAL_BUDGET_CONSUMED"
-        : "NO_ELIGIBLE_CHANGE",
+        : admissionBlocked
+          ? "PR_ADMISSION_BLOCKED"
+          : "NO_ELIGIBLE_CHANGE",
     probes,
     notifications,
     writes: false,
