@@ -182,7 +182,7 @@ test('additive migration preserves unknown envelope, original evidence and is id
   }finally{f.cleanup();}
 });
 test('installed launcher canary and reversible hold: hashes/common-dir enforced before any write',()=>{
-  const f=fixture([make('human',{status:'WAIT_HUMAN'})]);
+  const f=fixture([make('human',{status:'WAIT_HUMAN'}),make('unobserved',{status:'WAIT_EXTERNAL'})]);
   try{
     const install=path.join(f.ctx.common,'installed'),modules=['comun-orch-launcher.mjs','comun-orch-runtime.mjs','comun-orch-v2.mjs','comun-orch-adapter.mjs','orch-v2-candidate.mjs','comun-orch-github-executor.mjs'];
     fs.mkdirSync(install);fs.mkdirSync(path.join(f.repo,'scripts/process'),{recursive:true});
@@ -194,6 +194,39 @@ test('installed launcher canary and reversible hold: hashes/common-dir enforced 
     r=run();assert.equal(r.status,0,r.stderr);const bytes=fs.readFileSync(f.ctx.ledger),mtime=fs.statSync(f.ctx.ledger).mtimeMs;
     for(let i=0;i<2;i++){r=run();assert.equal(r.status,0,r.stderr);const p=JSON.parse(r.stdout);assert.equal(p.action,'NOOP');assert.equal(p.writes,0);assert.equal(p.notify,false);}
     assert.deepEqual(fs.readFileSync(f.ctx.ledger),bytes);assert.equal(fs.statSync(f.ctx.ledger).mtimeMs,mtime);
+    const call=(command)=>spawnSync(process.execPath,[path.join(install,'comun-orch-launcher.mjs'),command,'--repo',f.repo],{encoding:'utf8'});
+    let diag=call('diagnose');
+    assert.equal(diag.status,0,diag.stderr);
+    let view=JSON.parse(diag.stdout);
+    assert.equal(view.action,'DIAGNOSE');
+    assert.equal(view.read_only,true);
+    assert.equal(view.would_action,'NOOP');
+    assert.equal(view.counts.WAIT_EXTERNAL,1);
+    assert.deepEqual(view.unobserved_wait_external,['unobserved']);
+    assert.equal(view.requires_reconciliation,true);
+    assert.equal(view.writes,0);
+    assert.equal(view.worktrees,0);
+    assert.equal(view.notify,false);
+    assert.deepEqual(fs.readFileSync(f.ctx.ledger),bytes);
+    const owned=acquireLock(f.ctx.common,'external-test-owner');
+    assert(owned);
+    diag=call('diagnose');view=JSON.parse(diag.stdout);
+    assert.equal(diag.status,0);
+    assert.equal(view.would_action,'PROTECTED_NOOP');
+    assert.equal(view.lock,'HELD_LIVE');
+    assert.equal(releaseLock(f.ctx.common,'external-test-owner'),true);
+    assert.deepEqual(fs.readFileSync(f.ctx.ledger),bytes);
+    const invalid=call('not-a-command');
+    assert.equal(invalid.status,1);
+    const stopped=JSON.parse(invalid.stdout);
+    assert.equal(stopped.action,'PROTECTED_STOP');
+    assert.equal(stopped.reason,'INVALID_ORCH_COMMAND');
+    assert.equal(stopped.requires_attention,true);
+    assert.match(stopped.error_fingerprint,/^[a-f0-9]{64}$/);
+    assert.equal(stopped.notify,false);
+    assert.equal(stopped.writes,null);
+    assert.equal(stopped.worktrees,null);
+    assert.deepEqual(fs.readFileSync(f.ctx.ledger),bytes);
     fs.writeFileSync(path.join(install,'manifest.json'),JSON.stringify({...manifest,common:path.join(f.repo,'other')}));
     assert.equal(JSON.parse(run().stdout).reason,'COMMON_DIR_CHANGED');
     fs.writeFileSync(path.join(install,'manifest.json'),JSON.stringify(manifest));fs.appendFileSync(path.join(install,'comun-orch-adapter.mjs'),'\n// drift');
