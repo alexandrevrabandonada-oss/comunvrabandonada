@@ -34,6 +34,8 @@ try {
     "comun-orch-github-executor.mjs",
     "comun-orch-reconcile.mjs",
     "comun-orch-memory.mjs",
+    "comun-orch-ci-diagnostics.mjs",
+    "comun-orch-health.mjs",
   ]) {
     const local = fs.readFileSync(path.join(directory, name));
     const canonical = execFileSync(
@@ -72,6 +74,10 @@ try {
     const lock = runtime.inspectLock(ctx.common);
     const planned = core.plan(state, {now: Date.now(), material_budget: 1});
     const observer = await import(pathToFileURL(path.join(directory,'comun-orch-reconcile.mjs')));
+    const health = await import(pathToFileURL(path.join(directory,'comun-orch-health.mjs')));
+    const memoryText=fs.existsSync(option('--memory',path.resolve(directory,'../../..','memory.md')))
+      ? fs.readFileSync(option('--memory',path.resolve(directory,'../../..','memory.md')),'utf8') : '';
+    const lastWake=memoryText.match(/\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+Z| UTC|Z)/)?.[0]??null;
     const counts = Object.fromEntries(core.STATES.map(status => [
       status, state.tasks.filter(t => t.status === status).length,
     ]));
@@ -94,6 +100,7 @@ try {
       observation_due: observer.nextObservation(state,Date.now(),observer_control)?.task_id ?? null,
       queue: observer.inventory(state,observer_control),
       no_new_prs: state.integration_debt?.no_new_prs === true,
+      health:health.healthSnapshot(state,{now:Date.now(),lock:lock.state,observer_control,last_wake:lastWake}),
       tasks: state.tasks.map(t => ({
         task_id: t.task_id, status: t.status,
         pr_effect: t.pr_effect ?? null, target_pr: t.target_pr ?? null,

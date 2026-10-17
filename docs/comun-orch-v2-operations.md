@@ -1,5 +1,59 @@
 # COMUN ORCH-V2 — resiliência, backstops e integração controlada
 
+## Diagnóstico tipado e revisão independente — candidato de 17/10
+
+`comun-orch-ci-diagnostics.mjs` classifica sintomas comprovados dos jobs falhos
+em CODE, INFRASTRUCTURE, EXTERNAL_DEPENDENCY, QUOTA e CONFIGURATION. Logs ausentes,
+parciais ou contraditórios ficam INSUFFICIENT_EVIDENCE/INDETERMINATE; sintomas
+múltiplos não viram uma causa raiz inventada. O run39032295155/ad6fb854 tem
+quota Docker e HTTP502 durante preparação Supabase; isso não é prova de falha
+de código nem de sucesso dos testes que não chegaram a executar.
+
+O reconciliador lê somente jobs de um workflow já rastreado no HEAD/attempt
+exatos, até100 jobs e seis jobs falhos, com logs limitados. Valida run/HEAD e
+relê o HEAD depois. Persiste identificadores de regras, passos e hashes; não
+persiste conteúdo bruto de logs. O diagnóstico do mesmo attempt é reutilizado.
+Enriquecer metadados não altera inputs, não limpa tentativas e não transforma
+SKIPPED/PENDING/NOT_RUN em PASS. Resultado operacional continua sob o único lock,
+owner e CAS; não há segundo escritor. Falha ao ler logs usa o mesmo circuit breaker
+da memória: duas falhas iguais, sondagem após24h e recuperação no mesmo HEAD,
+sem nova tentativa de execução. Causa inconclusiva com log completo aguarda input
+pertinente; não se repete a coleta do mesmo attempt para tentar outra conclusão.
+
+Recuperação é uma decisão condicionada: quota/infra/dependência com sintoma
+isolado admite apenas observação após24h; código/configuração propõe reparo na
+branch existente, a selecionar separadamente; causa indeterminada aguarda prova.
+Efeito incerto exige reconciliação e humano/protegido continua protegido. Nenhuma
+decisão autoriza rerun, dispatch, gasto, credencial ou terceiro build equivalente.
+O circuit breaker existente pode detectar recuperação do serviço com mesmo HEAD;
+não executa workflow para fabricar verde.
+
+`diagnose` acrescenta saúde: último wake registrado na memória (não inventa wake
+nativo), última transição, último push APPLIED conhecido, bloqueios/dependências,
+causas, próxima ação e motivo do NOOP. Falta de wake após dois intervalos é
+MISSED_WAKE;24h sem transição com trabalho elegível sem avanço, ou orçamento de
+ciclos sem progresso esgotado, é STALLED. Espera humana/protegida ou cooldown
+legítimo continua WAITING, com tempo sem progresso informado. Horário exato do progresso material que
+não esteja registrado é UNKNOWN, não substituído pelo horário de uma sondagem.
+`comun-orch-review-cli.mjs verify` recebe provas por stdin e verifica conclusão
+sem rede nem escrita. Exige SHA/fingerprint próprios, dependências próprias,
+snapshot completo e fresco, workflows/COST-02 e Preview Git exato. Checks
+ignorados por política versionada são exclusões documentadas, nunca PASS.
+Falha/pendência/Preview cancelado impede certificação; saída PENDING tem exit2.
+
+`portfolio` nesse CLI reavalia somente branches existentes de um inventário
+completo/fresco. A pilha511→515 exige deltas únicos e dependências, depois vêm
+falhas a diagnosticar e revisões. O resultado referencia o roadmap único; não
+adiciona tarefas automaticamente, não fecha PR por idade, não concede merge e
+mantém no_new_prs=true e tetos2 implementações/1 integração.
+
+Instalação não decorre de push: os dez módulos do manifesto precisam de hashes
+canônicos, CI/Preview próprios, canário instalado e readback do mesmo agendador.
+Enquanto gates do novo SHA estiverem pendentes, preservar a instalação ad6fb854,
+o intervalo40min e a ref operacional. Rollback continua por commit descendente
+sob owner/CAS e restauração do prompt pela ferramenta; nunca rebobinar ledger/V1.
+Provas desta missão: `reports/current/comun-orch-intelligence-20261017.json`.
+
 ## Reconciliação limitada de instalação — 17/10/2026
 
 O launcher instalado deve ser identificado pelo prompt da única automação e pelo

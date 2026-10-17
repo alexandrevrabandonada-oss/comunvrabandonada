@@ -1,5 +1,6 @@
 import {execFileSync} from 'node:child_process';
 import {hash, transition, PROTECTED} from './comun-orch-v2.mjs';
+import {diagnoseJob,recoveryDecision,summarizeFailures} from './comun-orch-ci-diagnostics.mjs';
 
 export const REPOSITORY = 'alexandrevrabandonada-oss/comunvrabandonada';
 export const DELAYS = [15, 60, 240, 720, 1440].map(m => m * 60000);
@@ -64,7 +65,9 @@ const api = route => JSON.parse(execFileSync('gh', ['api', route], {
   encoding: 'utf8', timeout: 30000, maxBuffer: 2 * 1024 * 1024,
   stdio: ['ignore','pipe','pipe'],
 }));
-export function readTracked(t, read = api) {
+const logRead = route => execFileSync('gh',['api',route],{
+  encoding:'utf8',timeout:30000,maxBuffer:2*1024*1024,stdio:['ignore','pipe','pipe']});
+export function readTracked(t, read = api, readLog = logRead) {
   const spec = watchSpec(t);
   if (!spec) throw Error('UNTRACKED_OBSERVATION');
   const p = read(`repos/${REPOSITORY}/pulls/${spec.pr}`);
@@ -81,6 +84,31 @@ export function readTracked(t, read = api) {
           !Number.isSafeInteger(r.run_attempt) || r.run_attempt < 1) throw Error('PROVIDER_RUN_SCOPE_CHANGED');
       source.run = {id:r.id, name:r.name, head_sha:r.head_sha, event:r.event,
         status:r.status, conclusion:r.conclusion, run_attempt:r.run_attempt};
+      if(r.status==='completed' && r.conclusion==='failure') {
+        const old=t.ci_diagnostics;
+        // Same failed attempt is diagnosed once. An enrichment does not grant
+        // execution retries; missing logs remain indeterminate until new input.
+        if(old?.complete===true&&old.head_sha===p.head.sha&&old.run_id===r.id&&old.run_attempt===r.run_attempt)source.diagnostics=old;
+        else {
+          const diagnostics={version:1,head_sha:p.head.sha,run_id:r.id,run_attempt:r.run_attempt,jobs:[],complete:false};
+          try {
+            const jobs=read(`repos/${REPOSITORY}/actions/runs/${r.id}/jobs?filter=latest&per_page=100`);
+            if(!Array.isArray(jobs.jobs)||jobs.total_count>100||jobs.total_count!==jobs.jobs.length)throw Error('INCOMPLETE_JOB_INVENTORY');
+            const failed=jobs.jobs.filter(j=>j.conclusion==='failure');
+            if(!failed.length||failed.length>6)throw Error('BOUNDED_FAILED_JOB_SCOPE_REQUIRED');
+            for(const j of failed){
+              if(j.run_id!==r.id||j.head_sha!==p.head.sha)throw Error('JOB_HEAD_MISMATCH');
+              let log=null;
+              try{log=readLog(`repos/${REPOSITORY}/actions/jobs/${j.id}/logs`);}catch(error){diagnostics.read_error=readFailure(error);}
+              diagnostics.jobs.push(diagnoseJob({head_sha:p.head.sha,run_id:r.id,run_attempt:r.run_attempt,job:j,log,
+                log_sha256:typeof log==='string'?hash(log):null,complete:typeof log==='string'}));
+            }
+            diagnostics.complete=diagnostics.jobs.every(j=>j.complete);
+          }catch(error){diagnostics.reason='FAILED_JOB_EVIDENCE_INCOMPLETE';diagnostics.complete=false;diagnostics.read_error=readFailure(error);}
+          diagnostics.summary=summarizeFailures(diagnostics.jobs);
+          source.diagnostics=diagnostics;
+        }
+      }
     } else source.run = null;
     // Head movement during the compound read is never a coherent observation.
     if (read(`repos/${REPOSITORY}/pulls/${spec.pr}`).head?.sha !== p.head.sha) throw Error('PROVIDER_HEAD_MOVED');
@@ -88,7 +116,7 @@ export function readTracked(t, read = api) {
   return source;
 }
 
-export function applyObservation(state, id, source, now) {
+function applyWorkflowObservation(state, id, source, now) {
   let next = state;
   const t = state.tasks.find(t => t.task_id === id), spec = t && watchSpec(t);
   if (!spec || source.repository !== REPOSITORY || source.pr !== spec.pr || source.kind !== spec.kind || !sha(source.sha))
@@ -141,6 +169,28 @@ export function applyObservation(state, id, source, now) {
   return next;
 }
 
+export function applyObservation(state,id,source,now) {
+  const {diagnostics,...identity}=source;
+  let next=applyWorkflowObservation(state,id,identity,now);
+  if(!diagnostics)return next;
+  if(diagnostics.head_sha!==source.sha||diagnostics.run_id!==source.run?.id||
+      diagnostics.run_attempt!==source.run?.run_attempt||!Array.isArray(diagnostics.jobs)||
+      diagnostics.jobs.some(d=>d.head_sha!==source.sha||d.run_id!==source.run.id||d.run_attempt!==source.run.run_attempt))
+    throw Error('DIAGNOSTIC_SCOPE_REQUIRED');
+  const t=next.tasks.find(t=>t.task_id===id);
+  if(hash(t.ci_diagnostics??null)===hash(diagnostics))return next;
+  // Enrichment is metadata under the same owner/CAS. It never transitions a
+  // result, reopens protected work or resets the existing failure budget.
+  next=structuredClone(next);const current=next.tasks.find(t=>t.task_id===id);
+  if(current.ci_diagnostics)current.ci_diagnosis_history=[...(current.ci_diagnosis_history??[]),current.ci_diagnostics];
+  current.ci_diagnostics=diagnostics;
+  current.recovery_decisions=diagnostics.jobs.map(d=>recoveryDecision(d,{now,
+    previous:t.ci_diagnostics?.jobs?.find(j=>j.job_id===d.job_id),protected_task:protectedTask(t),
+    uncertain:t.operations.some(o=>o.state==='UNCERTAIN')}));
+  next.revision++;
+  return next;
+}
+
 export function readFailure(error) {
   const text = `${error.message ?? ''} ${error.stderr?.toString() ?? ''}`;
   const code = text.match(/HTTP\s+(\d{3})/)?.[1] ??
@@ -154,7 +204,11 @@ export function readFailure(error) {
 export function reconcileOne(state, t, now, read = readTracked, control = state.observer) {
   const before = control?.cursors?.[t.task_id];
   let next = state, source, error;
-  try {source = read(t); next = applyObservation(state,t.task_id,source,now);}
+  try {source = read(t); next = applyObservation(state,t.task_id,source,now);
+    // Missing logs are an observation failure too: use the existing memory
+    // circuit, then recover on the same HEAD/attempt without another writer.
+    if(source.diagnostics?.read_error)error=source.diagnostics.read_error;
+  }
   catch (e) {error = readFailure(e);}
   const material = next !== state;
   const fingerprint = error ? hash(error) : hash(source);
@@ -173,7 +227,7 @@ export function reconcileOne(state, t, now, read = readTracked, control = state.
     error_fingerprint:error ? fingerprint : null,last_notified_fingerprint:error ? fingerprint : null};
   const observer_control = {...control,version:1,cursors:{...control?.cursors,[t.task_id]:cursor}};
   const notifications = error && before?.last_notified_fingerprint !== fingerprint
-    ? [{task_id:t.task_id,fingerprint,action:`Read of tracked PR${watchSpec(t).pr} failed: ${error.code}; two equivalent failures suspend reads until pertinent input changes`}] : [];
+    ? [{task_id:t.task_id,fingerprint,action:`Read of tracked PR${watchSpec(t).pr} failed: ${error.code}; two equivalent failures open a 24h read-only circuit; no workflow retry`}] : [];
   return {state:next,observer_control,material,source,error,notifications,
     observation:{task_id:t.task_id,changed:material,source_evidence_sha:source ? hash(source) : null,
       error_fingerprint:error ? fingerprint : null,next_probe_at:cursor.next_probe_at,suspended}};

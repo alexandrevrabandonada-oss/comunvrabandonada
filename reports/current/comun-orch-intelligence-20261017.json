@@ -1,0 +1,980 @@
+{
+  "version": 1,
+  "source_sha": "ad6fb8543150f9cabe855bebe472faa2d39d352b",
+  "installation": {
+    "verified": true,
+    "source_sha": "ad6fb8543150f9cabe855bebe472faa2d39d352b",
+    "canonical": "22d9ae4aade8b3180640dedb11ca330f5e42ce30",
+    "scheduler": "same automation, ACTIVE,40min; config hash 4fbd1d0b2a38789b9bbb648fcf6d23bff80a748ab18f009b14f83892a08aa02c"
+  },
+  "quality": {
+    "run": 39032295155,
+    "head_sha": "ad6fb8543150f9cabe855bebe472faa2d39d352b",
+    "diagnostics": [
+      {
+        "version": 1,
+        "head_sha": "ad6fb8543150f9cabe855bebe472faa2d39d352b",
+        "run_id": 39032295155,
+        "run_attempt": 1,
+        "job_id": 117395044304,
+        "job_name": "pr-lane",
+        "failed_steps": [
+          {
+            "number": 9,
+            "name": "Supabase descartável — reset local"
+          }
+        ],
+        "classification": "INSUFFICIENT_EVIDENCE",
+        "determination": "INDETERMINATE",
+        "signals": [
+          {
+            "category": "QUOTA",
+            "code": "DOCKER_RATE_LIMIT"
+          },
+          {
+            "category": "EXTERNAL_DEPENDENCY",
+            "code": "SUPABASE_PREPARATION_502"
+          }
+        ],
+        "complete": false,
+        "log_sha256": "62bc3eaccb00173d1d3c4b4d1f21c27b14e434ca1b6593ae9af30e595b5a7590",
+        "limitation": "Multiple symptom categories; causal chain not established",
+        "fingerprint": "88f1dc6902d844eb35dfc583de7b6196671ae66b334cc4d35a1ffb01adfb7389",
+        "evidence_sha": "4e480fb44bbc20c8681d32b12de4b3391b3d3c2ffa5d9fa123ac861e7d6aa66b"
+      },
+      {
+        "version": 1,
+        "head_sha": "ad6fb8543150f9cabe855bebe472faa2d39d352b",
+        "run_id": 39032295155,
+        "run_attempt": 1,
+        "job_id": 117395044329,
+        "job_name": "COMUN Territory / local-only contract",
+        "failed_steps": [
+          {
+            "number": 7,
+            "name": "Start disposable Supabase and apply territory extension explicitly"
+          }
+        ],
+        "classification": "INSUFFICIENT_EVIDENCE",
+        "determination": "INDETERMINATE",
+        "signals": [
+          {
+            "category": "QUOTA",
+            "code": "DOCKER_RATE_LIMIT"
+          },
+          {
+            "category": "EXTERNAL_DEPENDENCY",
+            "code": "SUPABASE_PREPARATION_502"
+          }
+        ],
+        "complete": false,
+        "log_sha256": "1ae58281a37b8b1ba4b95d72d0a6c00c3ed9309d1cebe8085d69bfac2c9c67f2",
+        "limitation": "Multiple symptom categories; causal chain not established",
+        "fingerprint": "b30e50b757cef04f2f896595a79097657e19e1fdb5d8fc572e67414ba8d6c653",
+        "evidence_sha": "baacde5492c731a54423dd9bf958569ba446207ac9a243bd531cec5ca898f54b"
+      }
+    ],
+    "recovery": [
+      {
+        "version": 1,
+        "head_sha": "ad6fb8543150f9cabe855bebe472faa2d39d352b",
+        "diagnosis_fingerprint": "88f1dc6902d844eb35dfc583de7b6196671ae66b334cc4d35a1ffb01adfb7389",
+        "action": "WAIT_EVIDENCE",
+        "reason": "INDETERMINATE_CAUSE",
+        "observed_categories": [
+          "QUOTA",
+          "EXTERNAL_DEPENDENCY"
+        ],
+        "repeated": false,
+        "notify": true,
+        "next_read_at": null,
+        "retry_authorized": false,
+        "rerun_authorized": false,
+        "dispatch_authorized": false,
+        "required_evidence": "Exact failed-step logs and independent cause evidence"
+      },
+      {
+        "version": 1,
+        "head_sha": "ad6fb8543150f9cabe855bebe472faa2d39d352b",
+        "diagnosis_fingerprint": "b30e50b757cef04f2f896595a79097657e19e1fdb5d8fc572e67414ba8d6c653",
+        "action": "WAIT_EVIDENCE",
+        "reason": "INDETERMINATE_CAUSE",
+        "observed_categories": [
+          "QUOTA",
+          "EXTERNAL_DEPENDENCY"
+        ],
+        "repeated": false,
+        "notify": true,
+        "next_read_at": null,
+        "retry_authorized": false,
+        "rerun_authorized": false,
+        "dispatch_authorized": false,
+        "required_evidence": "Exact failed-step logs and independent cause evidence"
+      }
+    ],
+    "observed_symptoms": [
+      "Docker toomanyrequests: Rate exceeded / Data limit exceeded",
+      "HTTP502 during disposable Supabase preparation"
+    ],
+    "cause": "INDETERMINATE: correlated symptoms do not establish a single root cause; no code failure proved"
+  },
+  "health": {
+    "version": 1,
+    "read_only": true,
+    "last_wake": "2026-10-17T21:41:13Z",
+    "last_wake_delay_ms": 798796,
+    "missed_wake": false,
+    "last_task_transition": "2026-10-17T21:40:52.713Z",
+    "last_material_progress": {
+      "task_id": "repair-pr512-export-propagation",
+      "sha": "c346b09b8478edbb127887cc632a2496b3c78abf",
+      "evidence_sha": "780d04359796c9aa7cedabe60618ed23e4d6c3349b70142bc8b6a63768264fe2",
+      "task_transition_at": "2026-10-17T03:13:21.998Z"
+    },
+    "material_progress_time": "UNKNOWN_UNLESS_RECORDED_BY_OPERATION",
+    "state": "ACTIONABLE",
+    "prolonged_no_progress": false,
+    "next_action": {
+      "kind": "READ_TRACKED_SOURCE",
+      "task_id": "pr556-contract"
+    },
+    "noop_reason": null,
+    "blockers": [
+      {
+        "task_id": "school-human-proof",
+        "status": "WAIT_HUMAN",
+        "sha": "6c52ec9cac39b7185ef3bbb0ba2201ce19053a98",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": "Responsável da Escola: Turnstile exclusivo do laboratório, CAPTCHA humano e cinco fluxos; sem credenciais no chat",
+        "diagnosis": null,
+        "recovery_decisions": []
+      },
+      {
+        "task_id": "school-protected-release",
+        "status": "BLOCKED_PROTECTED",
+        "sha": "6c52ec9cac39b7185ef3bbb0ba2201ce19053a98",
+        "dependencies": [
+          {
+            "task_id": "school-human-proof",
+            "status": "WAIT_HUMAN",
+            "sha": "6c52ec9cac39b7185ef3bbb0ba2201ce19053a98",
+            "reason": "DEPENDENCY_NOT_DONE"
+          }
+        ],
+        "eligible_dependencies": false,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": null,
+        "diagnosis": null,
+        "recovery_decisions": []
+      },
+      {
+        "task_id": "pr552-cost-publication",
+        "status": "WAIT_EXTERNAL",
+        "sha": "14596e7523715452816e28a6b3a514180735df95",
+        "dependencies": [
+          {
+            "task_id": "radio-publication-date",
+            "status": "DONE",
+            "sha": "14596e7523715452816e28a6b3a514180735df95",
+            "reason": null
+          }
+        ],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": "Own COST-02 job117036307632/run38919753803 plus normalized exact Git Preview on14596e75; aggregate success cannot satisfy it",
+        "diagnosis": null,
+        "recovery_decisions": []
+      },
+      {
+        "task_id": "pr554-domain",
+        "status": "WAIT_EXTERNAL",
+        "sha": "7ad06aaf1302454dd2fc32fa1ddc86efad6ab0b9",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": "Existing review-pr554 is complete; Home domain integration still requires preserved552/553 submitPublicSearch and550 Jogos decisions plus real human UX evidence; no authorization from a timer",
+        "diagnosis": null,
+        "recovery_decisions": []
+      },
+      {
+        "task_id": "candidate-integration",
+        "status": "BLOCKED_PROTECTED",
+        "sha": "8b0ba0d2c90295a6579e8e8808a9e765583e86c9",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": null,
+        "diagnosis": null,
+        "recovery_decisions": []
+      },
+      {
+        "task_id": "pr556-quality",
+        "status": "RETRY_BACKOFF",
+        "sha": "ad6fb8543150f9cabe855bebe472faa2d39d352b",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": {
+          "kind": "workflow",
+          "pr": 556,
+          "workflow": "COMUN Quality Performance Deliverability"
+        },
+        "next_probe_at": "2026-10-17T21:26:20.621Z",
+        "unblocking_evidence": "Current tracked PR head and exact named pull_request workflow id/attempt/status/conclusion; old proofs stay on their own SHA",
+        "diagnosis": null,
+        "recovery_decisions": []
+      }
+    ],
+    "recurring_failures": [],
+    "circuit_breakers": [],
+    "queue": [
+      {
+        "task_id": "pr553-domain",
+        "status": "DONE",
+        "sha": "bbb533ad787d27dea3cd9f10a03e4b1b7716dd3e",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "school-human-proof",
+        "status": "WAIT_HUMAN",
+        "sha": "6c52ec9cac39b7185ef3bbb0ba2201ce19053a98",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": "Responsável da Escola: Turnstile exclusivo do laboratório, CAPTCHA humano e cinco fluxos; sem credenciais no chat"
+      },
+      {
+        "task_id": "school-protected-release",
+        "status": "BLOCKED_PROTECTED",
+        "sha": "6c52ec9cac39b7185ef3bbb0ba2201ce19053a98",
+        "dependencies": [
+          "school-human-proof"
+        ],
+        "eligible_dependencies": false,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "pr552-quality",
+        "status": "DONE",
+        "sha": "b92bdf1c3484aaab0b7bbfa2dba835aef7571700",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "radio-publication-date",
+        "status": "DONE",
+        "sha": "14596e7523715452816e28a6b3a514180735df95",
+        "dependencies": [
+          "pr552-quality"
+        ],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "pr552-cost-publication",
+        "status": "WAIT_EXTERNAL",
+        "sha": "14596e7523715452816e28a6b3a514180735df95",
+        "dependencies": [
+          "radio-publication-date"
+        ],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": "Own COST-02 job117036307632/run38919753803 plus normalized exact Git Preview on14596e75; aggregate success cannot satisfy it"
+      },
+      {
+        "task_id": "pr554-domain",
+        "status": "WAIT_EXTERNAL",
+        "sha": "7ad06aaf1302454dd2fc32fa1ddc86efad6ab0b9",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": "Existing review-pr554 is complete; Home domain integration still requires preserved552/553 submitPublicSearch and550 Jogos decisions plus real human UX evidence; no authorization from a timer"
+      },
+      {
+        "task_id": "candidate-integration",
+        "status": "BLOCKED_PROTECTED",
+        "sha": "8b0ba0d2c90295a6579e8e8808a9e765583e86c9",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "orch-v2-integration-debt",
+        "status": "DONE",
+        "sha": "f865aa3c1ecbe9ca61a74374251586a3b027fef1",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "review-pr545",
+        "status": "DONE",
+        "sha": "0eb41ec40622b86a8a75ef95a4a37e470d0ea958",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": {
+          "kind": "review-head",
+          "pr": 545
+        },
+        "next_probe_at": "2026-10-17T14:31:39.199Z",
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "review-pr550",
+        "status": "DONE",
+        "sha": "021d4e29ab1de78038ee8ebda4a4c85ce44af180",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": {
+          "kind": "review-head",
+          "pr": 550
+        },
+        "next_probe_at": "2026-10-17T15:11:41.762Z",
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "review-pr554",
+        "status": "DONE",
+        "sha": "7ad06aaf1302454dd2fc32fa1ddc86efad6ab0b9",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": {
+          "kind": "review-head",
+          "pr": 554
+        },
+        "next_probe_at": "2026-10-17T15:51:45.574Z",
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "pr556-contract",
+        "status": "DONE",
+        "sha": "a2dbcd49f9d86eaf577b742e7ac05d32d61e5634",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": {
+          "kind": "workflow",
+          "pr": 556,
+          "workflow": "COMUN ORCH-V2 contract"
+        },
+        "next_probe_at": "2026-10-17T13:11:38.035Z",
+        "unblocking_evidence": "Current tracked PR head and exact named pull_request workflow id/attempt/status/conclusion; old proofs stay on their own SHA"
+      },
+      {
+        "task_id": "pr556-quality",
+        "status": "RETRY_BACKOFF",
+        "sha": "ad6fb8543150f9cabe855bebe472faa2d39d352b",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": {
+          "kind": "workflow",
+          "pr": 556,
+          "workflow": "COMUN Quality Performance Deliverability"
+        },
+        "next_probe_at": "2026-10-17T21:26:20.621Z",
+        "unblocking_evidence": "Current tracked PR head and exact named pull_request workflow id/attempt/status/conclusion; old proofs stay on their own SHA"
+      },
+      {
+        "task_id": "pr556-security",
+        "status": "DONE",
+        "sha": "ad6fb8543150f9cabe855bebe472faa2d39d352b",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": {
+          "kind": "workflow",
+          "pr": 556,
+          "workflow": "COMUN Security Resilience Deliverability"
+        },
+        "next_probe_at": "2026-10-17T21:55:52.713Z",
+        "unblocking_evidence": "Current tracked PR head and exact named pull_request workflow id/attempt/status/conclusion; old proofs stay on their own SHA"
+      },
+      {
+        "task_id": "review-pr556-certification",
+        "status": "DONE",
+        "sha": "a2dbcd49f9d86eaf577b742e7ac05d32d61e5634",
+        "dependencies": [
+          "pr556-contract",
+          "pr556-quality",
+          "pr556-security"
+        ],
+        "eligible_dependencies": false,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "review-pr511-stack",
+        "status": "DONE",
+        "sha": "ba0f4131783daa69f9a2a3e3c963878dd131318f",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": {
+          "kind": "review-head",
+          "pr": 511
+        },
+        "next_probe_at": "2026-10-17T16:31:45.804Z",
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "repair-orch-workflow-probes",
+        "status": "DONE",
+        "sha": "66a6130cb875696da09d52ff2d8e7ce82dde697a",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "repair-pr511-export",
+        "status": "DONE",
+        "sha": "ba0f4131783daa69f9a2a3e3c963878dd131318f",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "repair-pr515-review-expiry",
+        "status": "DONE",
+        "sha": "4023f4a6b22cdeee0d31689f023fb2ec9fb9ccf5",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "review-pr556-quality-failure",
+        "status": "DONE",
+        "sha": "66a6130cb875696da09d52ff2d8e7ce82dde697a",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "repair-orch-v2-recovery",
+        "status": "DONE",
+        "sha": "a2dbcd49f9d86eaf577b742e7ac05d32d61e5634",
+        "dependencies": [],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": null
+      },
+      {
+        "task_id": "repair-pr512-export-propagation",
+        "status": "DONE",
+        "sha": "c346b09b8478edbb127887cc632a2496b3c78abf",
+        "dependencies": [
+          "review-pr511-stack",
+          "repair-pr511-export"
+        ],
+        "eligible_dependencies": true,
+        "observer": null,
+        "next_probe_at": null,
+        "unblocking_evidence": null
+      }
+    ],
+    "notify": false,
+    "writes": 0,
+    "worktrees": 0
+  },
+  "portfolio": {
+    "repository": "alexandrevrabandonada-oss/comunvrabandonada",
+    "observed_at": "2026-10-17T21:48:53.101Z",
+    "open_count": 22,
+    "no_new_prs": true,
+    "mode": "INTEGRATION_DEBT",
+    "limits": {
+      "implementations": 2,
+      "integrations": 1
+    },
+    "reviews": [
+      {
+        "pr": 511,
+        "sha": "ba0f4131783daa69f9a2a3e3c963878dd131318f",
+        "branch": "codex/comun-49c3-competency-task-suggestions",
+        "base": "codex/comun-49c2-current-main",
+        "draft": false,
+        "priority": 0,
+        "decision": "REVIEW_UNIQUE_STACK_DELTAS",
+        "failed_checks": [],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 512,
+        "sha": "c346b09b8478edbb127887cc632a2496b3c78abf",
+        "branch": "codex/comun-49d1-factory-pilot-contract",
+        "base": "codex/comun-49c3-competency-task-suggestions",
+        "draft": false,
+        "priority": 0,
+        "decision": "REVIEW_UNIQUE_STACK_DELTAS",
+        "failed_checks": [],
+        "dependencies": [
+          511
+        ],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 513,
+        "sha": "52ba281c55a1c898a7e3ae0f485f503b68feefd4",
+        "branch": "codex/comun-49d1-pilot-playbook",
+        "base": "codex/comun-49d1-factory-pilot-contract",
+        "draft": false,
+        "priority": 0,
+        "decision": "REVIEW_UNIQUE_STACK_DELTAS",
+        "failed_checks": [],
+        "dependencies": [
+          511,
+          512
+        ],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 514,
+        "sha": "dbf70931d15903ab820de224a017c6f3689e2124",
+        "branch": "codex/comun-49d1-intake-routing",
+        "base": "codex/comun-49d1-pilot-playbook",
+        "draft": false,
+        "priority": 0,
+        "decision": "REVIEW_UNIQUE_STACK_DELTAS",
+        "failed_checks": [],
+        "dependencies": [
+          511,
+          512,
+          513
+        ],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 515,
+        "sha": "4023f4a6b22cdeee0d31689f023fb2ec9fb9ccf5",
+        "branch": "codex/comun-49d1-machine-authorization",
+        "base": "codex/comun-49d1-intake-routing",
+        "draft": false,
+        "priority": 0,
+        "decision": "REVIEW_UNIQUE_STACK_DELTAS",
+        "failed_checks": [],
+        "dependencies": [
+          511,
+          512,
+          513,
+          514
+        ],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 523,
+        "sha": "6c52ec9cac39b7185ef3bbb0ba2201ce19053a98",
+        "branch": "codex/comun-49-e3-contextual-guidance",
+        "base": "main",
+        "draft": true,
+        "priority": 1,
+        "decision": "DIAGNOSE_EXISTING_BRANCH",
+        "failed_checks": [
+          "remote-read-only-preflight",
+          "remote-read-only-preflight",
+          "remote-read-only-collective-actions-preflight",
+          "remote-read-only-cycle-memory-preflight",
+          "remote-read-only-organization-bridges-preflight",
+          "remote-metadata-only"
+        ],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 524,
+        "sha": "2f2d8a84f426b72add76c939b421d1a91a668953",
+        "branch": "codex/comun-editais-r0-intake-20261008",
+        "base": "main",
+        "draft": true,
+        "priority": 1,
+        "decision": "DIAGNOSE_EXISTING_BRANCH",
+        "failed_checks": [
+          "remote-metadata-only",
+          "remote-metadata-only",
+          "COST-02 / exact checkpoint Preview",
+          "CHECKPOINT / COMUN_CHECKPOINT_GREEN",
+          "Update COMUN CENTRAL after MICRO",
+          "CHECKPOINT / COMUN_CHECKPOINT_GREEN",
+          "Update COMUN CENTRAL after map MICRO",
+          "Update COMUN CENTRAL after map RELEASE/FULL",
+          "MICRO / COMUN_MICRO_GREEN",
+          "Update COMUN CENTRAL after RELEASE/FULL",
+          "Update COMUN CENTRAL after CHECKPOINT",
+          "Update COMUN CENTRAL after map CHECKPOINT",
+          "CHECKPOINT / COMUN_CHECKPOINT_GREEN"
+        ],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 539,
+        "sha": "0ac5293d31e8f1874d737fe22305f5a667bd45af",
+        "branch": "codex/v1-six-domain-closeout",
+        "base": "main",
+        "draft": true,
+        "priority": 1,
+        "decision": "DIAGNOSE_EXISTING_BRANCH",
+        "failed_checks": [
+          "Authenticated admin surfaces and accessibility",
+          "COST-02 / exact checkpoint Preview"
+        ],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 542,
+        "sha": "921351c36f0593c118508b66e108fb11ace0e2c7",
+        "branch": "codex/comun-execution-close-20261012",
+        "base": "main",
+        "draft": true,
+        "priority": 1,
+        "decision": "DIAGNOSE_EXISTING_BRANCH",
+        "failed_checks": [
+          "COST-02 / exact checkpoint Preview"
+        ],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 546,
+        "sha": "d39656f4732f4c873e2236186f7b5e6713f1c211",
+        "branch": "codex/comun-product-audit-20261014",
+        "base": "main",
+        "draft": true,
+        "priority": 1,
+        "decision": "DIAGNOSE_EXISTING_BRANCH",
+        "failed_checks": [
+          "remote-read-only-preflight",
+          "remote-read-only-collective-actions-preflight",
+          "remote-read-only-cycle-memory-preflight",
+          "remote-read-only-organization-bridges-preflight",
+          "remote-metadata-only"
+        ],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 549,
+        "sha": "24e486643eebf9c294b0b72cca7322da1d9c55bc",
+        "branch": "codex/comun-soc-d08-feirinha-20261014",
+        "base": "codex/comun-product-audit-20261014",
+        "draft": true,
+        "priority": 1,
+        "decision": "DIAGNOSE_EXISTING_BRANCH",
+        "failed_checks": [
+          "preflight"
+        ],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 551,
+        "sha": "3312236da046586e1ea6cd3b657ed5c274bb199e",
+        "branch": "codex/jogos-real-beta-entry-20261014",
+        "base": "main",
+        "draft": true,
+        "priority": 1,
+        "decision": "DIAGNOSE_EXISTING_BRANCH",
+        "failed_checks": [
+          "remote-read-only-preflight",
+          "Experience coherence / READY_FOR_USABILITY_REHEARSAL",
+          "COMUN Quality / isolated a11y",
+          "pr-lane"
+        ],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 552,
+        "sha": "14596e7523715452816e28a6b3a514180735df95",
+        "branch": "codex/comun-soc-d09-public-discovery-20261015",
+        "base": "main",
+        "draft": true,
+        "priority": 1,
+        "decision": "DIAGNOSE_EXISTING_BRANCH",
+        "failed_checks": [
+          "remote-read-only-preflight",
+          "remote-metadata-only",
+          "remote-metadata-only",
+          "remote-metadata-only",
+          "remote-metadata-only",
+          "remote-metadata-only",
+          "remote-metadata-only"
+        ],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 553,
+        "sha": "bbb533ad787d27dea3cd9f10a03e4b1b7716dd3e",
+        "branch": "codex/comun-search-context-20261015",
+        "base": "main",
+        "draft": true,
+        "priority": 1,
+        "decision": "DIAGNOSE_EXISTING_BRANCH",
+        "failed_checks": [
+          "remote-read-only-preflight",
+          "remote-metadata-only",
+          "remote-metadata-only",
+          "remote-metadata-only",
+          "remote-metadata-only",
+          "remote-metadata-only",
+          "remote-metadata-only"
+        ],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 556,
+        "sha": "ad6fb8543150f9cabe855bebe472faa2d39d352b",
+        "branch": "codex/comun-orch-v2-resilience-20261016",
+        "base": "main",
+        "draft": true,
+        "priority": 1,
+        "decision": "DIAGNOSE_EXISTING_BRANCH",
+        "failed_checks": [
+          "pr-lane",
+          "COMUN Territory / local-only contract"
+        ],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 434,
+        "sha": "820a2e75223fff45933caae6e27196123d13f45b",
+        "branch": "codex/sp-0-public-services-architecture-audit",
+        "base": "main",
+        "draft": false,
+        "priority": 2,
+        "decision": "REVIEW_EXISTING_PR",
+        "failed_checks": [],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 436,
+        "sha": "d222cace34e7d01bcfc13ecb2c06efa599b70eab",
+        "branch": "codex/radio-editorial-revision-identity",
+        "base": "main",
+        "draft": true,
+        "priority": 2,
+        "decision": "REVIEW_EXISTING_PR",
+        "failed_checks": [],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 516,
+        "sha": "5c658c5b2bd677fd6660d81698d7e6e395326624",
+        "branch": "codex/restore-cleanup-evidence",
+        "base": "main",
+        "draft": true,
+        "priority": 2,
+        "decision": "REVIEW_EXISTING_PR",
+        "failed_checks": [],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 517,
+        "sha": "357f010cdaa8e9d8414f2457d4827186b0cbcbb7",
+        "branch": "codex/radio-full-schema-proof",
+        "base": "main",
+        "draft": true,
+        "priority": 2,
+        "decision": "REVIEW_EXISTING_PR",
+        "failed_checks": [],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 545,
+        "sha": "0eb41ec40622b86a8a75ef95a4a37e470d0ea958",
+        "branch": "codex/comun-community-continuity-20261014",
+        "base": "main",
+        "draft": false,
+        "priority": 2,
+        "decision": "REVIEW_EXISTING_PR",
+        "failed_checks": [],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 550,
+        "sha": "021d4e29ab1de78038ee8ebda4a4c85ce44af180",
+        "branch": "codex/roadmap-jogos-comun-20261014",
+        "base": "main",
+        "draft": false,
+        "priority": 2,
+        "decision": "REVIEW_EXISTING_PR",
+        "failed_checks": [],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      },
+      {
+        "pr": 554,
+        "sha": "7ad06aaf1302454dd2fc32fa1ddc86efad6ab0b9",
+        "branch": "codex/comun-home-discovery-pilot-20261015",
+        "base": "main",
+        "draft": true,
+        "priority": 2,
+        "decision": "REVIEW_EXISTING_PR",
+        "failed_checks": [],
+        "dependencies": [],
+        "merge_authorized": false,
+        "close_authorized": false,
+        "new_pr_authorized": false
+      }
+    ],
+    "evidence_sha": "3e756e5f7e9f08f61786e402b73b49510ec0333997a6eb77389ce601169e0990",
+    "scope": "Review prioritization only; not integration or closure"
+  },
+  "independent_baseline_review": {
+    "status": "PENDING",
+    "head_sha": "ad6fb8543150f9cabe855bebe472faa2d39d352b",
+    "input_fingerprint": "0000000000000000000000000000000000000000000000000000000000000000",
+    "pending": [
+      "OWN_SHA_PROOF_MISSING",
+      "CHECK_UNSATISFIED:disposable-pre-post",
+      "CHECK_UNSATISFIED:SECURITY / changed SECURITY DEFINER migrations",
+      "CHECK_UNSATISFIED:production-capture",
+      "CHECK_UNSATISFIED:prepare-cron-dual-key",
+      "CHECK_UNSATISFIED:COMUN P4 / sidewalk Relata review E2E",
+      "CHECK_UNSATISFIED:post-merge",
+      "CHECK_UNSATISFIED:post-merge-production",
+      "CHECK_UNSATISFIED:disposable-proof",
+      "CHECK_UNSATISFIED:AUDIT / COMUN_V1_DELIVERABILITY",
+      "CHECK_UNSATISFIED:pr-lane",
+      "CHECK_UNSATISFIED:COMUN P3A / private attachments E2E",
+      "CHECK_UNSATISFIED:remote-full",
+      "CHECK_UNSATISFIED:COMUN Territory / local-only contract",
+      "CHECK_UNSATISFIED:COMUN P3B / private location E2E",
+      "CHECK_UNSATISFIED:COMUN R2A / production candidate topology",
+      "CHECK_UNSATISFIED:COMUN R2A / private runtime E2E",
+      "CHECK_UNSATISFIED:post-merge-impact",
+      "CHECK_UNSATISFIED:COMUN P2 / private textual Relata E2E",
+      "CHECK_UNSATISFIED:COMUN F2 M1 / semantic text absence E2E",
+      "CHECK_UNSATISFIED:COMUN F2 R1 / photo-first runtime E2E",
+      "CHECK_UNSATISFIED:COMUN F2 C1 / sidewalk progressive capture E2E",
+      "CHECK_UNSATISFIED:COMUN P1 / account and wallet runtime E2E",
+      "CHECK_UNSATISFIED:Active lane integrity / COMUN_ACTIVE_LANE_INTEGRITY_GREEN",
+      "CHECK_UNSATISFIED:MICRO / COMUN_MICRO_GREEN",
+      "CHECK_UNSATISFIED:Map lane integrity / COMUN_ACTIVE_LANE_INTEGRITY_GREEN",
+      "CHECK_UNSATISFIED:RELEASE/FULL / COMUN_CI_GREEN",
+      "CHECK_UNSATISFIED:Sidewalk readiness lane / COMUN_SIDEWALK_READINESS_LANE_GREEN",
+      "CHECK_UNSATISFIED:RELEASE / COMUN_RELEASE_REHEARSAL",
+      "CHECK_UNSATISFIED:COST-02 / exact checkpoint Preview",
+      "CHECK_UNSATISFIED:COMUN RETRO / unit",
+      "CHECK_UNSATISFIED:PROCESS / COMUN_PROCESS_CHECKPOINT_GREEN",
+      "CHECK_UNSATISFIED:Update COMUN CENTRAL after merge",
+      "CHECK_UNSATISFIED:COMUN RETRO / evaluate merged checkpoint",
+      "CHECK_UNSATISFIED:CHECKPOINT / COMUN_CHECKPOINT_GREEN",
+      "CHECK_UNSATISFIED:Update COMUN CENTRAL after MICRO",
+      "CHECK_UNSATISFIED:Update COMUN CENTRAL after map MICRO",
+      "CHECK_UNSATISFIED:Update COMUN CENTRAL after map RELEASE/FULL",
+      "CHECK_UNSATISFIED:Update COMUN CENTRAL after RELEASE/FULL",
+      "CHECK_UNSATISFIED:Update COMUN CENTRAL after CHECKPOINT",
+      "CHECK_UNSATISFIED:Update COMUN CENTRAL after map CHECKPOINT",
+      "CHECK_UNSATISFIED:central-after-sidewalk-micro",
+      "CHECK_UNSATISFIED:central-after-sidewalk-checkpoint",
+      "CHECK_UNSATISFIED:central-after-sidewalk-release",
+      "EXACT_GIT_PREVIEW_MISSING",
+      "CHECK_ROLLUP_COMPLETENESS_NOT_PROVEN"
+    ],
+    "evidence_sha": "abdf8756dfd9a3de8d97c095cff6152b7bc0b94e067467b3b64a4fe5ba4023c9",
+    "authorized_effects": [],
+    "scope": "Independent review of supplied own-SHA proofs; never merge, integration or Production"
+  },
+  "user_supplied_evidence": {
+    "sha": "ad6fb8543150f9cabe855bebe472faa2d39d352b",
+    "contract": "PASS reported; GitHub snapshot retained",
+    "security": "PASS reported; GitHub snapshot retained",
+    "cost02": "SUCCESS exact job117395043559 in snapshot",
+    "preview": "Git READY reported by human; normalized own-source evidence not supplied to verifier"
+  },
+  "candidate": {
+    "status": "IMPLEMENTED_PENDING_OWN_SHA_CERTIFICATION",
+    "tests": "See own candidate TAP evidence; no old-head PASS transfer",
+    "installation": "NOT_UPDATED; old runtime preserved pending exact candidate gates"
+  },
+  "limits": [
+    "No rerun/dispatch",
+    "No new PR/merge/Production",
+    "No remote migration/secrets/spend",
+    "No integration claimed from tests or commits"
+  ],
+  "next": "Publish one material change to existing556 after local tests; collect only its own CI/Preview; no activation while gates pending",
+  "review_source_limit": "PR rollup is triage input, not a paginated ALL-check certificate; exact candidate certification requires complete check-runs/status pages and HEAD readback"
+}
