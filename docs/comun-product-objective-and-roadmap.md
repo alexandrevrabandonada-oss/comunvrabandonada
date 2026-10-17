@@ -923,3 +923,16 @@ por este checkpoint; compreensão e atratividade humanas continuam pendentes.
 ### Regra antidesvio
 
 **Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.
+
+## ORCH-V2 — resiliência da execução do roadmap (16/10/2026)
+
+**Estado: CANDIDATO EM PR; não integrado à automação local, nem à produção.**
+Decisão: manter a única automação horária existente, preservando lock compartilhado, worktree isolado, `refs/comun/roadmap-execution` com CAS e limites de uma entrega/ciclo. Evoluir sua política de decisão, sem duplicar scheduler nem criar outro roadmap. Especificação: [Issue #555](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/issues/555); contrato detalhado em `docs/comun-orch-v2-operations.md`.
+
+Objetivo verificável: se #553 ou Escola estiverem bloqueados, selecionar outra tarefa realmente independente e autorizada; se nada mudar, `QUIET_NOOP` sem nova escrita, push, CI, build ou notificação. Impor retry/backoff por fingerprint material, alerta único por bloqueio e reconciliação de operações incertas antes de qualquer repetição. Lock sem owner verificável nunca será removido automaticamente. Não dispensar preflights nem converter `CANCELED` por ignore-build em Preview `READY`; equivalência de runtime é evidência distinta, sujeita ao contrato de SHA exato.
+
+Incremento proposto: motor puro com CLI sem efeitos externos e testes sintéticos em `scripts/roadmap/orch-v2*`. O launcher local ainda requer adaptador, ledger V1/V2 com CAS, provas em worktree descartável e readback da configuração **da mesma automação** antes de marcar `ATIVADO_LOCAL`. Nenhum controle de Production, migration, flags, segredos, custo ou merge é transferido ao motor. Após integração, acompanhar razão `entregas úteis / ciclos` e alertas duplicados evitados, sem gravar relatório por NOOP.
+
+### ORCH-V2 — limite de PRs e modo de dívida de integração (16/10/2026)
+
+**Estado: CANDIDATO EM PR #556, NÃO ATIVADO.** Inventário observado: 22 PRs abertos. Definir política de admissão por ciclo: acima de 5 PRs, proibir nova frente funcional em PR; preferir certificar, revisar, corrigir ou integrar PR existente, respeitando conflitos e dependências. Com fila em 5 ou menos, admitir novo PR somente com inventário recente, WIP abaixo do teto (2 implementações, 1 integração) e crédito verificável decorrente de integração ou encerramento justificado, sem fechamento por idade. Exceções de segurança urgente/reparo impossível no PR atual exigem aprovação humana e evidência. O planejador codificado em `scripts/roadmap/orch-v2.mjs` faz uma checagem pura; o launcher ainda deverá revalidar o inventário **imediatamente antes** de `CREATE_PR` e preservar CAS/idempotência. Ausência de classificação da intenção `prEffect` falha de maneira protegida. Não criar mais PR para fazer este controle. A documentação de operação fica em `docs/comun-orch-v2-operations.md`, e o Issue #555 mantém evidências; não substituir o roadmap único.

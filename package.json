@@ -6,6 +6,7 @@
     "node": ">=20.9.0"
   },
   "scripts": {
+    "test:orch-v2": "node --test scripts/roadmap/orch-v2.node-test.mjs",
     "dev": "next dev",
     "maps:build:volta-redonda": "node scripts/build-volta-redonda-map.mjs",
     "test:map-base": "node --test scripts/verify-volta-redonda-pmtiles.node-test.mjs",
