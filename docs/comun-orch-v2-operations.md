@@ -1,5 +1,55 @@
 # COMUN ORCH-V2 — resiliência, backstops e integração controlada
 
+## Reconciliação limitada de instalação — 17/10/2026
+
+O launcher instalado deve ser identificado pelo prompt da única automação e pelo
+manifesto; HEAD remoto da #556 não implica atualização local. `diagnose` só existe
+nas revisões posteriores a `976243dc`. Na versão antiga um comando desconhecido
+podia executar tick: nunca testar diagnose nela. Depois de verificar os blobs,
+`diagnose` mostra lock, revisão do ledger, fila, dependências, entrada que falta
+e próxima observação, sem rede, lock novo ou escrita. Erro fatal retorna
+`PROTECTED_STOP`, exit1 e `error_fingerprint`; o agente compara com a memória e
+alerta uma vez por fingerprint. Nunca comunicar esse erro como NOOP saudável.
+
+`comun-orch-reconcile.mjs` mantém um registro fechado dos workflows já rastreados
+da #556 (Contract, Quality, Security) e das revisões existentes #511/#545/#550/#554.
+Quando não há entrega elegível, tick lê no máximo uma observação pertinente.
+Uma observação de workflow inclui PR/HEAD, o run exato e readback do mesmo HEAD.
+Não faz inventário geral, dispatch, rerun, criação, fechamento, merge ou deploy.
+Ausência de workflow no HEAD novo significa espera, nunca PASS do HEAD anterior.
+Mudança comprovada de HEAD/run/attempt/conclusion preserva histórico, atualiza
+inputs por CAS e pode tornar elegível uma revisão independente. Dependências
+da mesma PR precisam do mesmo SHA antes de permitir certificação.
+
+O cursor `observer_control.cursors[task_id]` é controle da memória já obrigatória
+da automação, separado do ledger/provas/tarefas: backoff15min/1h/4h/12h/24h; duas falhas equivalentes de API
+suspendem a leitura até mudança pertinente de input. A sondagem é `OBSERVE`, não
+NOOP nem entrega material. Evidência igual não muda inputs, provas, ledger ou ref;
+somente devolve o próximo cursor ao agente. O agente conserva esse bloco no mesmo
+resumo de memória que a plataforma já exige escrever, sem arquivo/agendador extra.
+O launcher lê o bloco `ORCH_OBSERVER_CONTROL` antes de decidir; corrupção é erro
+protegido, nunca reset silencioso. Somente evidência nova usa lock/hash/ref CAS.
+Fora da janela, NOOP não escreve
+nem cria lock/worktree. Esse cursor não reabre humano, migration ou efeito incerto.
+Alertas de API são deduplicados no cursor da memória; erros de launcher e lock incerto são
+deduplicados pela memória da mesma automação, sem escrever em lock alheio.
+
+`pr552-cost-publication` exige COST-02 do job117036307632/run38919753803 **e**
+Preview Git exato normalizado em14596e75. Sem nova fonte exata não há consulta
+agregada capaz de satisfazer esse gate. `pr554-domain` não se torna integrado
+por temporizador: review-pr554 já concluiu triagem e a Home ainda exige preservar
+#552/#553 e Jogos/#550, além da evidência humana real pertinente. Sete preflights
+da Escola e todos os gates sensíveis permanecem intactos.
+
+`comun-orch-release.mjs` prepara os oito módulos e manifesto em diretório novo,
+consolida apenas caminhos de release na ref por CAS descendente e executa canário
+diagnose/hold. A ativação da mesma automação exige backup integral, readback e
+prova no computador. Em falha, restaura prompt anterior pela ferramenta e os
+blobs anteriores por **outro commit descendente**; jamais retrocede ref/checkpoint
+ou ledger. CAS concorrente preserva candidato e exige reconciliação. Repositórios
+descartáveis testam processos/Git reais, mas não substituem readback instalado e
+observação real de uma mudança externa. Disparo controlado não prova wake nativo.
+
 **Estado: candidato draft #556 com adaptador operacional versionado.** A ativação local anterior (`d36d0574`) está preservada; a instalação desta revisão exige provas próprias e readback. A ref local `refs/comun/roadmap-execution` mantém o histórico de ativação e inventário. Não confundir motor remoto com versão instalada nem ticks controlados com disparo nativo. Especificação: [Issue #555](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/issues/555). Este contrato é subordinado ao roadmap único em `docs/comun-product-objective-and-roadmap.md`.
 
 ## Escopo entregue

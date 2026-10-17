@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import {previewProof} from './comun-orch-adapter.mjs';
+import {nextObservation, reconcileOne, readTracked, watchSpec} from './comun-orch-reconcile.mjs';
 import {
   hash,
   plan,
@@ -287,6 +288,9 @@ export function tick(
     material_budget = 1,
     worktreeRoot = "E:/COMUN-ROADMAP-CYCLES",
     probe = probeRun,
+    observeExternal = readTracked,
+    reconcile = true,
+    observer_control = undefined,
   } = {},
 ) {
   const lock = inspectLock(ctx.common);
@@ -307,8 +311,16 @@ export function tick(
       writes: 0,
       worktrees: 0,
     };
-  const preplan=plan(initial,{now,material_budget});
-  if(fs.existsSync(ctx.ledger) && !preplan.probes.length && !preplan.notifications.length &&
+  const runtimePlan = state => {
+    const p = plan(state,{now,material_budget});
+    // Tracked reconciliation owns these reads, including suspended old run probes.
+    if (reconcile) p.probes = p.probes.filter(id => !watchSpec(state.tasks.find(t=>t.task_id===id)));
+    if (p.action === 'PROBE' && !p.probes.length) p.action = 'NOOP';
+    return p;
+  };
+  const preplan=runtimePlan(initial);
+  const observationTask = reconcile && preplan.action !== 'EXECUTE' ? nextObservation(initial,now,observer_control) : null;
+  if(fs.existsSync(ctx.ledger) && !observationTask && !preplan.probes.length && !preplan.notifications.length &&
     ['NOOP','RECONCILE'].includes(preplan.action))return {...preplan,owner_id:null,worktree:null,
       canonical:ctx.canonical,materialChanges:[],notify:false,writes:0,worktrees:0,next:null};
   const id = `orchv2-${randomUUID()}`;
@@ -325,12 +337,23 @@ export function tick(
       throw Error("LEDGER_CAS_CONFLICT");
     let state = loaded.state;
     const priorHash = hash(state);
-    const p = plan(state, { now, material_budget });
+    const p = runtimePlan(state);
     if (p.action === "RECONCILE")
       return { ...p, notify: false, writes: 0, worktrees: 0 };
     const materialChanges = [];
+    let observation = null, readNotifications = [];
+    if (observationTask) {
+      const observed = reconcileOne(state,state.tasks.find(t=>t.task_id===observationTask.task_id),now,observeExternal,observer_control);
+      observer_control = observed.observer_control;
+      state = observed.state;
+      observation = observed.observation;
+      readNotifications = observed.notifications;
+      if (observed.material) materialChanges.push({task_id:observation.task_id,
+        result:'EXTERNAL_INPUT_CHANGED',sha:state.tasks.find(t=>t.task_id===observation.task_id).inputs.sha,
+        source_evidence_sha:observation.source_evidence_sha});
+    }
     // At most one cheap due probe per wake; no heavy/unchanged service inventory.
-    if (p.probes.length) {
+    if (!observationTask && p.probes.length) {
       const t = state.tasks.find((t) => t.task_id === p.probes[0]);
       try {
         const result = probe(t);
@@ -368,7 +391,7 @@ export function tick(
         );
       }
     }
-    let decision = plan(state, { now, material_budget });
+    let decision = runtimePlan(state);
     const notifications = decision.notifications;
     for (const n of notifications)
       state = transition(
@@ -414,13 +437,18 @@ export function tick(
       saveState(ctx, state, expectedHash,id);
     return {
       ...decision,
+      action:decision.action === 'NOOP' && observation ? 'OBSERVE' : decision.action,
+      reason:decision.action === 'NOOP' && observation ?
+        (observation.error_fingerprint ? 'TRACKED_READ_FAILED' : 'TRACKED_OBSERVATION') : decision.reason,
       owner_id: worktree ? id : null,
       worktree,
       canonical: ctx.canonical,
-      notifications,
+      observation,
+      observer_control,
+      notifications:[...notifications,...readNotifications],
       materialChanges,
-      notify: notifications.length > 0 || materialChanges.length > 0,
-      writes: hash(state) !== priorHash ? 1 : 0,
+      notify: notifications.length > 0 || readNotifications.length > 0 || materialChanges.length > 0,
+      writes: hash(state) !== priorHash || expectedHash === null ? 1 : 0,
       worktrees: worktree ? 1 : 0,
       next: decision.selected,
     };
@@ -458,7 +486,7 @@ export function record(ctx, { owner_id, task_id, event, now = Date.now() }) {
     git(ctx.repo, "merge-base", "--is-ancestor", t.inputs.sha, event.sha);
   const state = transition(loaded.state, task_id, { ...event, owner_id }, now);
   if(event.type==='operation-intent')state.tasks.find(t=>t.task_id===task_id).operations.at(-1).cycle_id=t.lease.cycle_id;
-  saveState(ctx, state, loaded.expectedHash,owner_id);
+  if(state !== loaded.state)saveState(ctx, state, loaded.expectedHash,owner_id);
   if (state.tasks.find((t) => t.task_id === task_id).status !== "RUNNING")
     releaseLock(ctx.common, owner_id,t.lease?.owner_proof ?? ownerProof(ctx,owner_id));
   return {
@@ -558,6 +586,7 @@ if (
     const option = (name, fallback) =>
       args.includes(name) ? args[args.indexOf(name) + 1] : fallback;
     const ctx = context(path.resolve(option("--repo", process.cwd())));
+    if(args[0] && !['record','observe','tick'].includes(args[0]))throw Error('INVALID_ORCH_COMMAND');
     const result = ["record", "observe"].includes(args[0])
       ? (args[0] === "record" ? record : observe)(
           ctx,
@@ -571,9 +600,14 @@ if (
   } catch (error) {
     console.log(
       JSON.stringify({
-        action: "NOOP",
+        action: "PROTECTED_STOP",
         reason: error.message,
         protected: true,
+        fatal: true,
+        requires_attention: true,
+        error_fingerprint: hash(error.message),
+        writes: null,
+        worktrees: null,
         notify: false,
       }),
     );

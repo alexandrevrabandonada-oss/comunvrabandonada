@@ -32,6 +32,8 @@ try {
     "comun-orch-adapter.mjs",
     "orch-v2-candidate.mjs",
     "comun-orch-github-executor.mjs",
+    "comun-orch-reconcile.mjs",
+    "comun-orch-memory.mjs",
   ]) {
     const local = fs.readFileSync(path.join(directory, name));
     const canonical = execFileSync(
@@ -60,6 +62,8 @@ try {
     Number(args.includes('--budget')?args[args.indexOf('--budget')+1]:1)>1)throw Error('INVALID_MATERIAL_BUDGET');
   const option = (name, fallback) =>
     args.includes(name) ? args[args.indexOf(name) + 1] : fallback;
+  const memory = await import(pathToFileURL(path.join(directory,'comun-orch-memory.mjs')));
+  const observer_control = memory.readControl(option('--memory',path.resolve(directory,'../../..','memory.md')));
   let result;
   if (args[0] === 'diagnose') {
     // Read-only local recovery snapshot. Does not acquire locks or query providers.
@@ -67,6 +71,7 @@ try {
     const {state, expectedHash} = runtime.loadState(ctx);
     const lock = runtime.inspectLock(ctx.common);
     const planned = core.plan(state, {now: Date.now(), material_budget: 1});
+    const observer = await import(pathToFileURL(path.join(directory,'comun-orch-reconcile.mjs')));
     const counts = Object.fromEntries(core.STATES.map(status => [
       status, state.tasks.filter(t => t.status === status).length,
     ]));
@@ -86,6 +91,9 @@ try {
       due_probe_count: planned.probes.length,
       unobserved_wait_external: unobserved,
       requires_reconciliation: unobserved.length > 0,
+      observation_due: observer.nextObservation(state,Date.now(),observer_control)?.task_id ?? null,
+      queue: observer.inventory(state,observer_control),
+      no_new_prs: state.integration_debt?.no_new_prs === true,
       tasks: state.tasks.map(t => ({
         task_id: t.task_id, status: t.status,
         pr_effect: t.pr_effect ?? null, target_pr: t.target_pr ?? null,
@@ -104,6 +112,7 @@ try {
       : runtime.tick(ctx, {
           simulate: args.includes("--simulate"),
           material_budget: Number(option("--budget", "1")),
+          observer_control,
         });
   } else {
     throw Error('INVALID_ORCH_COMMAND');
@@ -118,6 +127,8 @@ try {
     reason,
     error_fingerprint: createHash('sha256').update(reason).digest('hex'),
     requires_attention: true,
+    notification_key: `launcher:${createHash('sha256').update(reason).digest('hex')}`,
+    notification_policy: 'Once per fingerprint in the existing automation memory',
     // Failure may have occurred after a side effect. Never claim zero writes.
     notify: false,
     writes: null,

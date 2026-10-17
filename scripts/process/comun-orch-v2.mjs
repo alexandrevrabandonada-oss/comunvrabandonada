@@ -210,7 +210,13 @@ export function plan(
       (a, b) => a.priority - b.priority || a.task_id.localeCompare(b.task_id),
     )
     .map((t) => t.task_id);
-  const candidate = decide(state.tasks, now, owner_id ?? 'planning-only',state.portfolio);
+  // Workflow proofs for a different head cannot unlock a dependent certificate.
+  // Preserve the tasks in the graph, but exclude stale READY candidates.
+  const admissible = state.tasks.map(t => t.status === 'READY' && t.dependencies.some(id => {
+    const d = state.tasks.find(x => x.task_id === id);
+    return t.pr_effect === 'EXISTING_PR' && d.target_pr === t.target_pr && d.inputs.sha !== t.inputs.sha;
+  }) ? {...t,authorized:false} : t);
+  const candidate = decide(admissible, now, owner_id ?? 'planning-only',state.portfolio);
   const picked = candidate.kind === 'EXECUTE_ONE'
     ? state.tasks.find(t=>t.task_id===candidate.taskId) : null;
   // Keep quiet NOOP semantics while exposing a blocked PR admission to diagnostics.
