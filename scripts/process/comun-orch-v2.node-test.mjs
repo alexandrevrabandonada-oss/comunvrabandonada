@@ -87,6 +87,51 @@ test("blocked priority never prevents an independent READY delivery; one selecte
   assert.equal(plan(s, { now }).selected, "independent");
   assert.equal(plan(s, { now }).action, "EXECUTE");
 });
+test("PR admission-blocked NOOP is distinguishable from a genuinely idle queue", () => {
+  const repair = t("repair", { action: "local-code", pr_effect: "EXISTING_PR" });
+  const blocked = make([repair]);
+  const result = plan(blocked, { now });
+  assert.equal(result.action, "NOOP");
+  assert.equal(result.reason, "PR_ADMISSION_BLOCKED");
+  assert.equal(result.selected, null);
+  assert.equal(result.writes, false);
+  assert.deepEqual(result.probes, []);
+  assert.deepEqual(result.notifications, []);
+
+  const idle = plan(make([t("waiting", { status: "WAIT_EXTERNAL" })]), { now });
+  assert.equal(idle.action, "NOOP");
+  assert.equal(idle.reason, "NO_ELIGIBLE_CHANGE");
+
+  const independent = plan(make([
+    repair,
+    t("independent", { action: "local-code", pr_effect: "NONE", priority: 2 }),
+  ]), { now });
+  assert.equal(independent.action, "EXECUTE");
+  assert.equal(independent.selected, "independent");
+
+  const f = fixture([repair]);
+  try {
+    tick(f.ctx, { now }); // One-time initialization of the additive ledger.
+    const before = fs.readFileSync(f.ctx.ledger);
+    const mtime = fs.statSync(f.ctx.ledger).mtimeMs;
+    const ref = f.git("rev-parse", REF);
+    const worktrees = f.git("worktree", "list", "--porcelain");
+    for (const at of [now + 3600000, now + 7200000]) {
+      const wake = tick(f.ctx, { now: at });
+      assert.equal(wake.action, "NOOP");
+      assert.equal(wake.reason, "PR_ADMISSION_BLOCKED");
+      assert.equal(wake.notify, false);
+      assert.equal(wake.writes, 0);
+      assert.equal(wake.worktrees, 0);
+    }
+    assert.deepEqual(fs.readFileSync(f.ctx.ledger), before);
+    assert.equal(fs.statSync(f.ctx.ledger).mtimeMs, mtime);
+    assert.equal(f.git("rev-parse", REF), ref);
+    assert.equal(f.git("worktree", "list", "--porcelain"), worktrees);
+  } finally {
+    f.cleanup();
+  }
+});
 test("two consecutive unchanged hours: NOOP, zero actions and repeated notifications", () => {
   let s = make([
     t("captcha", {
