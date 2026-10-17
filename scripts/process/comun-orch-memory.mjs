@@ -18,7 +18,9 @@ export function readControl(file) {
         !Number.isSafeInteger(c.no_change_count) || c.no_change_count<0 ||
         !Number.isSafeInteger(c.read_failures) || c.read_failures<0 || c.read_failures>2 ||
         typeof c.suspended!=='boolean' ||
-        (c.suspended ? c.next_probe_at!==null : !Number.isFinite(Date.parse(c.next_probe_at))))
+        // Accept old suspended/null cursors and new timed half-open cursors.
+        (!(c.suspended && c.next_probe_at===null) &&
+         !Number.isFinite(Date.parse(c.next_probe_at))))
       throw Error('OBSERVER_MEMORY_INVALID');
   }
   return control;

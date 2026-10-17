@@ -73,6 +73,8 @@ Os `inputFingerprint`s devem refletir alterações reais nas entradas pertinente
 
 ## Backstops obrigatórios
 
+**Circuit breaker de leitura remota:** duas falhas idênticas suspendem consultas frequentes. O observer conserva o fingerprint e agenda uma única sondagem *read-only* após 24 horas; falha persistente volta a esperar 24 horas sem repetir alertas nem gravar o ledger. Recuperação do serviço limpa o contador mesmo que o HEAD seja o mesmo. Cursor antigo com `suspended=true` e `next_probe_at=null` permite uma leitura de migração e passa a usar cooldown; o intervalo só existe na memória do observer, não aciona CI, build ou operações mutáveis.
+
 | Evento | Ação/garantia |
 | --- | --- |
 | Outro owner ativo ou lock órfão sem proveniência verificável | `PROTECTED_NOOP`; nunca remover lock apenas porque PID morreu |

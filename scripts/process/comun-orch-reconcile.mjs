@@ -50,8 +50,13 @@ export function nextObservation(state, now, control = state.observer) {
   return state.tasks.filter(t => watchSpec(t)).map(t => {
     const c = control?.cursors?.[t.task_id];
     const same = c?.input_fingerprint === t.input_fingerprint;
-    return {t, c: same ? c : null, due: same ? Date.parse(c.next_probe_at) : 0};
-  }).filter(x => !x.c?.suspended && x.due <= now)
+    // A legacy suspended cursor has no deadline: allow one half-open read,
+    // then persist a daily cooldown. Never spin on a broken provider.
+    const due = same
+      ? (c.suspended && c.next_probe_at === null ? 0 : Date.parse(c.next_probe_at))
+      : 0;
+    return {t, c: same ? c : null, due};
+  }).filter(x => Number.isFinite(x.due) && x.due <= now)
     .sort((a,b) => a.due - b.due || a.t.priority - b.t.priority || a.t.task_id.localeCompare(b.t.task_id))[0]?.t ?? null;
 }
 
@@ -155,12 +160,16 @@ export function reconcileOne(state, t, now, read = readTracked, control = state.
   const fingerprint = error ? hash(error) : hash(source);
   const same = before?.observation_fingerprint === fingerprint && before.input_fingerprint === t.input_fingerprint;
   const count = same ? (before.no_change_count ?? 0) + 1 : 0;
-  const failures = error ? (same ? (before.read_failures ?? 0) + 1 : 1) : 0;
+  // Circuit breaker remains bounded after its half-open recovery attempt.
+  const failures = error ? Math.min(2, same ? (before.read_failures ?? 0) + 1 : 1) : 0;
   const suspended = failures >= 2;
   const current = next.tasks.find(x => x.task_id === t.task_id);
   const cursor = {input_fingerprint:current.input_fingerprint,observation_fingerprint:fingerprint,
     no_change_count:count,read_failures:failures,suspended,
-    next_probe_at:suspended ? null : new Date(now + DELAYS[Math.min(count,DELAYS.length-1)]).toISOString(),
+    // Two identical errors stop hot retries, but never disable observation
+    // forever: one read-only half-open check per day can detect recovery.
+    next_probe_at:new Date(now + (suspended ? DELAYS[DELAYS.length-1] :
+      DELAYS[Math.min(count,DELAYS.length-1)])).toISOString(),
     error_fingerprint:error ? fingerprint : null,last_notified_fingerprint:error ? fingerprint : null};
   const observer_control = {...control,version:1,cursors:{...control?.cursors,[t.task_id]:cursor}};
   const notifications = error && before?.last_notified_fingerprint !== fingerprint

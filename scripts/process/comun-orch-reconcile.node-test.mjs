@@ -83,7 +83,28 @@ test('cursor backs off unchanged input; two equal API errors suspend with one al
     const t=nextObservation(s,now,control);const r=reconcileOne(s,t,now,()=>{calls++;throw Error('HTTP 502 transient provider');},control);
     alerts+=r.notifications.length;control=r.observer_control;s=r.state;now=Date.parse(r.observation.next_probe_at) || now+86400000;
   }
-  assert.equal(calls,2);assert.equal(alerts,1);assert.equal(nextObservation(s,NOW+365*86400000,control),null);
+  assert.equal(calls,2);assert.equal(alerts,1);
+  assert.equal(control.cursors['review-pr511-stack'].suspended,true);
+  assert.equal(nextObservation(s,now-1,control),null);
+  assert.equal(nextObservation(s,now,control)?.task_id,'review-pr511-stack');
+  // Persistent outage: one daily half-open check, without repeated alert
+  // or unbounded error counter, and without runtime-ledger mutation.
+  const retry=reconcileOne(s,s.tasks[0],now,()=>{calls++;throw Error('HTTP 502 transient provider');},control);
+  assert.equal(retry.material,false);assert.equal(retry.notifications.length,0);
+  assert.equal(retry.observer_control.cursors['review-pr511-stack'].read_failures,2);
+  assert.equal(nextObservation(s,now+86400000-1,retry.observer_control),null);
+  assert.equal(nextObservation(s,now+86400000,retry.observer_control)?.task_id,'review-pr511-stack');
+  // Provider recovery with unchanged head must reset the breaker.
+  const recovered=reconcileOne(s,s.tasks[0],now,t=>source(t,A),control);
+  assert.equal(recovered.material,false);
+  assert.equal(recovered.observer_control.cursors['review-pr511-stack'].read_failures,0);
+  assert.equal(recovered.observer_control.cursors['review-pr511-stack'].suspended,false);
+  assert.equal(recovered.notifications.length,0);
+  assert.equal(nextObservation(s,now+1,recovered.observer_control),null);
+  // Pre-upgrade permanent cursor is also eligible for one safe recovery read.
+  const legacy={...control,cursors:{...control.cursors,
+    'review-pr511-stack':{...control.cursors['review-pr511-stack'],next_probe_at:null}}};
+  assert.equal(nextObservation(s,now,legacy)?.task_id,'review-pr511-stack');
   s.tasks[0].inputs={sha:B,contract:'new verified input'};s.tasks[0].input_fingerprint=hash(s.tasks[0].inputs);
   assert.equal(nextObservation(s,NOW+365*86400000,control)?.task_id,'review-pr511-stack');
 });
@@ -105,6 +126,14 @@ test('platform memory cursor survives separate wakes without any runtime write o
     const bytes=fs.readFileSync(file),mtime=fs.statSync(file).mtimeMs,control=readControl(file);
     assert.equal(nextObservation(s,NOW+1,control),null);assert.equal(nextObservation(s,NOW+16*60000,control)?.task_id,'review-pr511-stack');
     assert.deepEqual(fs.readFileSync(file),bytes);assert.equal(fs.statSync(file).mtimeMs,mtime);
+    const timed={...control,cursors:{...control.cursors,
+      'review-pr511-stack':{...control.cursors['review-pr511-stack'],
+        suspended:true,read_failures:2,next_probe_at:new Date(NOW+86400000).toISOString()}}};
+    fs.writeFileSync(file,controlBlock(timed));
+    assert.deepEqual(readControl(file),timed);
+    const legacy={...timed,cursors:{...timed.cursors,
+      'review-pr511-stack':{...timed.cursors['review-pr511-stack'],next_probe_at:null}}};
+    fs.writeFileSync(file,controlBlock(legacy));assert.deepEqual(readControl(file),legacy);
     fs.writeFileSync(file,'<!-- ORCH_OBSERVER_CONTROL\ninvalid\nORCH_OBSERVER_CONTROL -->');
     assert.throws(()=>readControl(file),/MEMORY_INVALID/);
   }finally{assert(path.resolve(dir).startsWith(path.resolve(os.tmpdir())+path.sep));fs.rmSync(dir,{recursive:true});}
