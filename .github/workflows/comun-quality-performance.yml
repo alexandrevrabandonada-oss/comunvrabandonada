@@ -193,7 +193,24 @@ jobs:
       - name: Supabase descartável — start
         run: supabase start
       - name: Supabase descartável — reset local
-        run: supabase db reset --local --yes
+        shell: bash
+        run: |
+          set -euo pipefail
+          reset_output="$(mktemp)"
+          trap 'rm -f "$reset_output"' EXIT
+          set +e
+          supabase db reset --local --yes >"$reset_output" 2>&1
+          reset_status=$?
+          set -e
+          if ((reset_status != 0)); then
+            if grep -Fq 'Error status 502: An invalid response was received from the upstream server' "$reset_output"; then
+              echo COMUN_QUALITY_LOCAL_RESET_502_SINGLE_RETRY
+              supabase db reset --local --yes
+            else
+              cat "$reset_output"
+              exit "$reset_status"
+            fi
+          fi
       - name: Supabase descartável — health local
         run: node scripts/ci/read-supabase-local-env.mjs > /dev/null
       - name: Migration forward-only — ledger local
