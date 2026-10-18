@@ -190,6 +190,18 @@ test('bounded provider merge discovery checks exact CI/COST-02, diff and remote 
   const good=readMergeDiscovery(docsState(),null,read);
   assert.equal(good.candidate.pr,550);
   assert.equal(good.candidate.sha,A);
+  const unknownSkip=new Map(data);
+  unknownSkip.set('repos/'+REPOSITORY+'/actions/runs?head_sha='+A+'&event=pull_request&per_page=100',
+    {...runs,total_count:2,workflow_runs:[...runs.workflow_runs,
+      {id:14,name:'Some required workflow',event:'pull_request',head_sha:A,
+        status:'completed',conclusion:'skipped'}]});
+  assert.equal(readMergeDiscovery(docsState(),null,k=>unknownSkip.get(k)).candidate,null);
+  const allowedSkip=new Map(data);
+  allowedSkip.set('repos/'+REPOSITORY+'/actions/runs?head_sha='+A+'&event=pull_request&per_page=100',
+    {...runs,total_count:2,workflow_runs:[...runs.workflow_runs,
+      {id:15,name:'COMUN PR437 Promotion Fingerprint',event:'pull_request',head_sha:A,
+        status:'completed',conclusion:'skipped'}]});
+  assert.equal(readMergeDiscovery(docsState(),null,k=>allowedSkip.get(k)).candidate.pr,550);
   const unsafe=new Map(data);unsafe.set('repos/'+REPOSITORY+'/pulls/550/files?per_page=100',
     [{filename:'app/page.tsx',status:'modified'}]);
   assert.equal(readMergeDiscovery(docsState(),null,k=>unsafe.get(k)).candidate,null);
