@@ -33,7 +33,14 @@ test('real simultaneous child contenders: exactly one owner, loser never writes'
   const f=fixture([make('human',{status:'WAIT_HUMAN'})]);
   const code=`import {acquireLock,releaseLock} from ${JSON.stringify(runtime)};const id=String(process.pid);const o=acquireLock(${JSON.stringify(f.ctx.common)},id);console.log(JSON.stringify({owned:!!o,id}));if(o){process.stdin.resume();process.stdin.once('data',()=>{releaseLock(${JSON.stringify(f.ctx.common)},id);process.exit(0);});}`;
   const a=child(code),b=child(code);
-  try {await Promise.all([a.ready(),b.ready()]);a.p.stdin.write('release');b.p.stdin.write('release');
+  try {
+    const [first,second] = await Promise.all([a.ready(),b.ready()]);
+    const ready = [first,second].map(x=>JSON.parse(x.toString()));
+    assert.equal(ready.filter(x=>x.owned).length,1,'exactly one process must acquire the lock');
+    // The losing process has already exited: writing to its stdin causes EPIPE
+    // and masks the actual ownership assertion on fast CI runners.
+    const winner = ready[0].owned ? a : b;
+    winner.p.stdin.write('release');
     const results=await Promise.all([a.done,b.done]);
     assert(results.every(x=>x.code===0),JSON.stringify(results));
     assert.equal(results.filter(x=>JSON.parse(x.stdout).owned).length,1);
