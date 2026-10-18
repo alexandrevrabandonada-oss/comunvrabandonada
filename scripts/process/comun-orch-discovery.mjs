@@ -203,7 +203,9 @@ export function readMergeDiscovery(state,cursor,read=api) {
   if(!Array.isArray(files)||!files.length||files.length>=100||
     detail.changed_files!==files.length||
     files.some(f=>f.status==='removed'||f.status==='renamed'||
-      !/^docs\/[a-z0-9/_-]+\.(md|mdx)$/i.test(f.filename)))return source;
+      !/^docs\/[a-z0-9/_-]+\.(md|mdx)$/i.test(f.filename)||
+      /^docs\/(?:security|architecture)\//i.test(f.filename)||
+      /^docs\/comun-orch-v2-/i.test(f.filename)))return source;
   // Never assume any skipped workflow is PASS; only exact-head completed
   // success or specifically conditional SKIPPED is permitted at this intake.
   const page=read(root+'/actions/runs?head_sha='+p.head.sha+'&event=pull_request&per_page=100');
@@ -252,7 +254,9 @@ export function admitMergeDiscovery(state,source,now) {
     !digest(e.fingerprint)||e.mode!=='DOCS_ONLY'||
     !Number.isSafeInteger(e.ci_run)||!Number.isSafeInteger(e.cost_job)||
     !Array.isArray(e.paths)||!e.paths.length||e.paths.some(p=>
-      !/^docs\/[a-z0-9/_-]+\.(md|mdx)$/i.test(p))||
+      !/^docs\/[a-z0-9/_-]+\.(md|mdx)$/i.test(p)||
+      /^docs\/(?:security|architecture)\//i.test(p)||
+      /^docs\/comun-orch-v2-/i.test(p))||
     !source.inventory.some(p=>p.pr===e.pr&&p.sha===e.sha&&
       p.repository===REPOSITORY&&p.branch===e.branch&&p.base==='main')||
     protectedPr(state,e.pr))throw Error('MERGE_CANDIDATE_SCOPE');
