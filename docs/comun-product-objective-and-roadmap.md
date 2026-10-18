@@ -937,7 +937,6 @@ Incremento proposto: motor puro com CLI sem efeitos externos e testes sintético
 
 **Estado: CANDIDATO EM PR #556, NÃO ATIVADO.** Inventário observado: 22 PRs abertos. Definir política de admissão por ciclo: acima de 5 PRs, proibir nova frente funcional em PR; preferir certificar, revisar, corrigir ou integrar PR existente, respeitando conflitos e dependências. Com fila em 5 ou menos, admitir novo PR somente com inventário recente, WIP abaixo do teto (2 implementações, 1 integração) e crédito verificável decorrente de integração ou encerramento justificado, sem fechamento por idade. Exceções de segurança urgente/reparo impossível no PR atual exigem aprovação humana e evidência. O planejador codificado em `scripts/roadmap/orch-v2.mjs` faz uma checagem pura; o launcher ainda deverá revalidar o inventário **imediatamente antes** de `CREATE_PR` e preservar CAS/idempotência. Ausência de classificação da intenção `prEffect` falha de maneira protegida. Não criar mais PR para fazer este controle. A documentação de operação fica em `docs/comun-orch-v2-operations.md`, e o Issue #555 mantém evidências; não substituir o roadmap único.
 
-
 ### ORCH-V2 — decisão de execução material contínua (17/10/2026)
 
 **Estado: CANDIDATO EM PR #556; não instalado nem ativo no Windows.**
