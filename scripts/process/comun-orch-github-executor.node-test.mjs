@@ -125,6 +125,7 @@ test('docs merge executes once under owner/lease and reads back matching merged 
       merge:()=>{effects++;return {merged:true,sha:mergeSha};},
       readback:()=>({state:'closed',merged:true,merge_commit_sha:mergeSha,
         head:{sha:f.mergeRequest.expected_head_sha}}),
+      readMain:()=>({status:'identical',merge_base_commit:{sha:mergeSha},head_commit:{sha:mergeSha}}),
     });
     assert.equal(r.merged,true);assert.equal(effects,1);assert.equal(reads,2);
     const s=loadState(f.ctx).state.tasks[0];
@@ -191,6 +192,8 @@ test('merge result PASS requires same-cycle applied operation, not a guessed com
       merge:()=>({merged:true,sha:mergedSha}),
       readback:()=>({state:'closed',merged:true,merge_commit_sha:mergedSha,
         head:{sha:f.mergeRequest.expected_head_sha}}),
+      readMain:()=>({status:'ahead',merge_base_commit:{sha:mergedSha},
+        head_commit:{sha:'e'.repeat(40)}}),
     });
     const appliedBytes=fs.readFileSync(f.ctx.ledger);
     assert.throws(()=>record(f.ctx,{owner_id:f.id,task_id:'create',event:event('d'.repeat(40))}),
@@ -200,5 +203,21 @@ test('merge result PASS requires same-cycle applied operation, not a guessed com
     assert.equal(completed.status,'DONE');
     assert.equal(loadState(f.ctx).state.tasks[0].status,'DONE');
     assert.equal(loadState(f.ctx).state.delivery_metrics.merge_count,1);
+  }finally{f.cleanup();}
+});
+
+test('PR merged readback without main ancestry stays uncertain and never credits progress',()=>{
+  const f=mergeFixture(),mergedSha='c'.repeat(40);
+  try{
+    assert.throws(()=>mergeExistingPullRequest(f.ctx,f.mergeRequest,{
+      read:()=>f.evidence,merge:()=>({merged:true,sha:mergedSha}),
+      readback:()=>({state:'closed',merged:true,merge_commit_sha:mergedSha,
+        head:{sha:f.mergeRequest.expected_head_sha}}),
+      readMain:()=>({status:'diverged',merge_base_commit:{sha:'d'.repeat(40)},
+        head_commit:{sha:'e'.repeat(40)}}),
+    }),/MERGE_MAIN_ANCESTRY_UNCERTAIN/);
+    const s=loadState(f.ctx).state;
+    assert.equal(s.tasks[0].operations.at(-1).state,'UNCERTAIN');
+    assert.equal(s.delivery_metrics?.merge_count??0,0);
   }finally{f.cleanup();}
 });
