@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
-import {classifyPrAdmission,COMUN_REPOSITORY} from './orch-v2-candidate.mjs';
+import {classifyPrAdmission,COMUN_REPOSITORY,DOCS_MERGE_ALLOWED_SKIPPED_WORKFLOWS} from './orch-v2-candidate.mjs';
 import {loadState,saveState,ownerProof} from './comun-orch-runtime.mjs';
 import {hash} from './comun-orch-v2.mjs';
 
@@ -123,7 +123,8 @@ export function assessDocsMerge(e) {
   if(!runs||!Array.isArray(runs.workflow_runs)||!Number.isSafeInteger(runs.total_count)||
     runs.total_count!==runs.workflow_runs.length||runs.total_count===0||
     runs.workflow_runs.some(r=>r.head_sha!==p.head.sha||r.event!=='pull_request'||
-      r.status!=='completed'||!['success','skipped'].includes(r.conclusion)))
+      r.status!=='completed'||(r.conclusion!=='success'&&
+      !(r.conclusion==='skipped'&&DOCS_MERGE_ALLOWED_SKIPPED_WORKFLOWS.includes(r.name)))))
       throw Error('MERGE_WORKFLOWS_NOT_CERTIFIED');
   const ci=runs.workflow_runs.filter(r=>r.name==='COMUN CI'&&r.conclusion==='success');
   if(ci.length!==1)throw Error('MERGE_CI_EXACT_REQUIRED');
