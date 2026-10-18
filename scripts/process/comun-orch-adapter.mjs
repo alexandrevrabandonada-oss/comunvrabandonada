@@ -2,12 +2,20 @@
 import {planCycle, recordCycleResult, recordProbeObservation, classifyPreview,
   reconcileExternalOutcome} from './orch-v2-candidate.mjs';
 
-export function plannerTask(t, now) {
+export function plannerTask(t, now, mergePolicy = null) {
+  const docsMerge = t.action === 'integrate-existing-pr' &&
+    t.pr_effect === 'EXISTING_PR' && t.work_class === 'INTEGRATION' &&
+    Number.isSafeInteger(t.target_pr) && t.target_pr > 0 &&
+    mergePolicy?.enabled === true && mergePolicy.scope === 'DOCS_ONLY' &&
+    mergePolicy.source === 'human-message' &&
+    /^[a-f0-9]{64}$/.test(mergePolicy.evidence_sha ?? '') &&
+    t.merge_authorization?.scope === 'DOCS_ONLY' &&
+    t.merge_authorization.evidence_sha === mergePolicy.evidence_sha;
   return {
     taskId:t.task_id, status:t.status === 'RETRY_BACKOFF' && t.attempts_for_fingerprint < 2 &&
       Date.parse(t.next_probe_at) <= now ? (t.probe?'WAIT_CI':'READY') : t.status,
     priority:-t.priority, authorized:t.authorized !== false &&
-      (!t.action || ['local-code','read-only'].includes(t.action)) &&
+      (!t.action || ['local-code','read-only'].includes(t.action) || docsMerge) &&
       !t.operations.some(o=>o.state==='UNCERTAIN'),
     action:t.action, dependencies:t.dependencies, inputFingerprint:t.input_fingerprint,
     prEffect:t.pr_effect, targetPr:t.target_pr,
@@ -18,12 +26,12 @@ export function plannerTask(t, now) {
     probeNoChangeCount:t.probe_no_change_count, lastProbeId:t.last_probe_id,
   };
 }
-export function decide(tasks, now, ownerId='validated-planning-only',portfolio) {
+export function decide(tasks, now, ownerId='validated-planning-only',portfolio,mergePolicy=null) {
   const active=tasks.filter(t=>t.status==='RUNNING');
   const allowed=tasks.filter(t=>t.status!=='READY' ||
     active.filter(a=>(a.work_class??'IMPLEMENTATION')===(t.work_class??'IMPLEMENTATION')).length <
       (t.work_class==='INTEGRATION'?1:2));
-  return planCycle({tasks:allowed.map(t=>plannerTask(t,now)),now,portfolio,
+  return planCycle({tasks:allowed.map(t=>plannerTask(t,now,mergePolicy)),now,portfolio,
     lock:{status:'OWNED',ownerId,verified:true},checkpointValid:true});
 }
 export function cycleBackstop(t,event,now) {
