@@ -36,6 +36,7 @@ try {
     "comun-orch-memory.mjs",
     "comun-orch-ci-diagnostics.mjs",
     "comun-orch-health.mjs",
+    "comun-orch-discovery.mjs",
   ]) {
     const local = fs.readFileSync(path.join(directory, name));
     const canonical = execFileSync(

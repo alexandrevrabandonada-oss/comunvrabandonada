@@ -184,7 +184,7 @@ test('additive migration preserves unknown envelope, original evidence and is id
 test('installed launcher canary and reversible hold: hashes/common-dir enforced before any write',()=>{
   const f=fixture([make('human',{status:'WAIT_HUMAN'}),make('unobserved',{status:'WAIT_EXTERNAL'})]);
   try{
-    const install=path.join(f.ctx.common,'installed'),modules=['comun-orch-launcher.mjs','comun-orch-runtime.mjs','comun-orch-v2.mjs','comun-orch-adapter.mjs','orch-v2-candidate.mjs','comun-orch-github-executor.mjs','comun-orch-reconcile.mjs','comun-orch-memory.mjs','comun-orch-ci-diagnostics.mjs','comun-orch-health.mjs'];
+    const install=path.join(f.ctx.common,'installed'),modules=['comun-orch-launcher.mjs','comun-orch-runtime.mjs','comun-orch-v2.mjs','comun-orch-adapter.mjs','orch-v2-candidate.mjs','comun-orch-github-executor.mjs','comun-orch-reconcile.mjs','comun-orch-memory.mjs','comun-orch-ci-diagnostics.mjs','comun-orch-health.mjs','comun-orch-discovery.mjs'];
     fs.mkdirSync(install);fs.mkdirSync(path.join(f.repo,'scripts/process'),{recursive:true});
     const files={};for(const name of modules){const bytes=fs.readFileSync(fileURLToPath(new URL(name,import.meta.url)));files[name]=hash(bytes.toString());fs.writeFileSync(path.join(install,name),bytes);fs.writeFileSync(path.join(f.repo,'scripts/process',name),bytes);}
     f.git('config','core.autocrlf','false');f.git('add','scripts');f.git('commit','-m','installed fixture source');f.git('update-ref',REF,'HEAD',f.ctx.canonical);

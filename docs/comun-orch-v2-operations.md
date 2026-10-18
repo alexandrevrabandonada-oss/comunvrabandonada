@@ -1,5 +1,49 @@
 # COMUN ORCH-V2 — resiliência, backstops e integração controlada
 
+## Recuperação da fila vazia — 17/10/2026
+
+A instalação é identificada pelo manifesto e pelo prompt, nunca pelo HEAD da
+#556. O diagnóstico desta intervenção encontrou revisão106, 25 tarefas:
+0 READY, 19 DONE, 2 WAIT_EXTERNAL, 1 RETRY_BACKOFF, 1 WAIT_HUMAN e
+2 BLOCKED_PROTECTED. Sete observadores fechados não alimentavam a fila.
+
+`comun-orch-discovery.mjs` repõe no máximo uma tarefa quando não há EXECUTE
+elegível. A autorização humana desta intervenção fica no ledger, com hash da
+fonte e escopo `existing-pr-code-repair`; sua ausência impede descoberta.
+Uma página completa de até99 PRs abertas e a triagem de um único HEAD por
+ciclo limitam as consultas. A primeira triagem é #551; as demais rotacionam.
+Cooldown40min entre triagens, 4h ao completar a volta, duas falhas equivalentes
+de leitura abrem circuito de24h. Cursor, alertas deduplicados e métricas de
+ciclos ficam no mesmo `ORCH_OBSERVER_CONTROL`, sem outro arquivo/agendador.
+
+A primeira receita automática é `PRETTIER_TEST_ONLY`: workflow atual falho,
+job/attempt/log próprios, até três arquivos de teste não sensíveis e readback
+do HEAD. O executor deve reproduzir o erro, formatar somente esses arquivos,
+comparar tokens sem trivia e executar a verificação própria. Não mudar
+assertivas, gerar build/deploy ou declarar outras falhas resolvidas. Reparos
+fora dessa receita e consolidações com dependências precisam de evidência
+de escopo revisada; o motor não inventa integração segura a partir de CI vermelho.
+
+PR/SHA/receita/caminhos definem a deduplicação; nova consulta/run/log não
+renova tentativas. DONE não é reaberto pela descoberta. Gates humanos,
+protegidos, autorização falsa, forks e operação UNCERTAIN impedem admissão.
+A gravação conjunta de admissão e claim usa lock original, ledger-hash e ref
+CAS. A tarefa segue o EXECUTE comum, com lease25min e worktree detached no
+HEAD da PR existente. Mudança de HEAD durante fetch aborta; falha após
+persistir lease preserva lock e evidências para reconciliação.
+
+Antes de um push material, validar novamente HEAD remoto e o diff restrito
+aos caminhos admitidos. Testes são código material, formatação vazia não.
+Um push por lease, intenção UNCERTAIN antes do efeito e reconciliação APPLIED
+depois. Só APPLIED de normal-code-push conta em `delivery_metrics`, com
+instante/SHA/tarefa próprios. Observações, testes e transições de estado não
+são entregas; horários históricos desconhecidos continuam desconhecidos.
+
+Instalação exige módulos+manifesto verificados, consolidação descendente por
+CAS, canário diagnose/hold reversível e atualização/readback da mesma
+automação com40min preservados. Canário controlado não prova disparo nativo.
+Nenhuma nova PR, merge, Production ou permissão é autorizada.
+
 ## Diagnóstico tipado e revisão independente — candidato de 17/10
 
 `comun-orch-ci-diagnostics.mjs` classifica sintomas comprovados dos jobs falhos

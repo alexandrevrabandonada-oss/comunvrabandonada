@@ -6,6 +6,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import {previewProof} from './comun-orch-adapter.mjs';
 import {nextObservation, reconcileOne, readTracked, watchSpec} from './comun-orch-reconcile.mjs';
+import {discoveryDue, replenish, readDiscovery, permitted} from './comun-orch-discovery.mjs';
 import {
   hash,
   plan,
@@ -280,6 +281,12 @@ export function probeRun(t) {
     scope: `GitHub Actions run ${r.id}, ${r.html_url}; exact SHA only; not Production`,
   };
 }
+export function prepareExistingBase(ctx, claimed) {
+  git(ctx.repo, 'fetch', '--no-tags', 'origin', claimed.branch);
+  const base = git(ctx.repo, 'rev-parse', 'FETCH_HEAD');
+  if (base !== claimed.inputs.sha) throw Error('DISCOVERY_HEAD_MOVED');
+  return base;
+}
 export function tick(
   ctx,
   {
@@ -291,6 +298,8 @@ export function tick(
     observeExternal = readTracked,
     reconcile = true,
     observer_control = undefined,
+    discover = readDiscovery,
+    resolveExecutionBase = prepareExistingBase,
   } = {},
 ) {
   const lock = inspectLock(ctx.common);
@@ -319,10 +328,23 @@ export function tick(
     return p;
   };
   const preplan=runtimePlan(initial);
-  const observationTask = reconcile && preplan.action !== 'EXECUTE' ? nextObservation(initial,now,observer_control) : null;
-  if(fs.existsSync(ctx.ledger) && !observationTask && !preplan.probes.length && !preplan.notifications.length &&
+  let progress;
+  if (permitted(initial)) {
+    observer_control = structuredClone(observer_control ?? {version:1,cursors:{}});
+    const last = initial.delivery_metrics?.last_material_delivery_at ?? null;
+    const monitor = observer_control.delivery_monitor;
+    progress = {last_material_delivery_at:last,
+      last_material_delivery_sha:initial.delivery_metrics?.last_material_delivery_sha ?? null,
+      elapsed_ms:last ? now-Date.parse(last) : null,
+      cycles_since_delivery:last !== monitor?.last_material_delivery_at ? 1 : (monitor?.cycles_since_delivery ?? 0)+1,
+      history_start:'Explicit APPLIED normal-code-push only; older unknown timestamps are not inferred'};
+    observer_control.delivery_monitor = progress;
+  }
+  const discoverNow = material_budget > 0 && discoveryDue(initial,now,observer_control);
+  const observationTask = !discoverNow && reconcile && preplan.action !== 'EXECUTE' ? nextObservation(initial,now,observer_control) : null;
+  if(fs.existsSync(ctx.ledger) && !discoverNow && !observationTask && !preplan.probes.length && !preplan.notifications.length &&
     ['NOOP','RECONCILE'].includes(preplan.action))return {...preplan,owner_id:null,worktree:null,
-      canonical:ctx.canonical,materialChanges:[],notify:false,writes:0,worktrees:0,next:null};
+      canonical:ctx.canonical,materialChanges:[],observer_control,progress,notify:false,writes:0,worktrees:0,next:null};
   const id = `orchv2-${randomUUID()}`;
   if (!acquireLock(ctx.common, id))
     return { action: "NOOP", reason: "LOCK_RACE", writes: 0, worktrees: 0 };
@@ -341,7 +363,12 @@ export function tick(
     if (p.action === "RECONCILE")
       return { ...p, notify: false, writes: 0, worktrees: 0 };
     const materialChanges = [];
-    let observation = null, readNotifications = [];
+    let observation = null, discovery = null, readNotifications = [];
+    if (discoverNow) {
+      const found = replenish(state, {now, observer_control, read: discover});
+      state = found.state; observer_control = found.observer_control;
+      discovery = found.discovery; readNotifications = found.notifications;
+    }
     if (observationTask) {
       const observed = reconcileOne(state,state.tasks.find(t=>t.task_id===observationTask.task_id),now,observeExternal,observer_control);
       observer_control = observed.observer_control;
@@ -353,7 +380,7 @@ export function tick(
         source_evidence_sha:observation.source_evidence_sha});
     }
     // At most one cheap due probe per wake; no heavy/unchanged service inventory.
-    if (!observationTask && p.probes.length) {
+    if (!discoverNow && !observationTask && p.probes.length) {
       const t = state.tasks.find((t) => t.task_id === p.probes[0]);
       try {
         const result = probe(t);
@@ -409,16 +436,24 @@ export function tick(
         now,
       );
       const claimed=state.tasks.find(t=>t.task_id===decision.selected);
+      let baseSha = ctx.canonical;
+      if (claimed.execution_base === 'PR_HEAD') {
+        if (!claimed.discovery || !permitted(state) || claimed.authorized !== true)
+          throw Error('EXISTING_BRANCH_AUTHORIZATION_REQUIRED');
+        baseSha = resolveExecutionBase(ctx, claimed);
+        if (baseSha !== claimed.inputs.sha) throw Error('DISCOVERY_HEAD_MOVED');
+      }
       worktree = path.resolve(worktreeRoot,id);
       claimed.lease={owner_id:id,owner_proof:ownerProof(ctx,id),cycle_id:id,worktree,
-        started_at:new Date(now).toISOString(),deadline_at:new Date(now+25*60000).toISOString(),base_sha:ctx.canonical,
+        started_at:new Date(now).toISOString(),deadline_at:new Date(now+25*60000).toISOString(),base_sha:baseSha,
         before_evidence:hash({inputs:claimed.inputs,evidence:claimed.evidence,operations:claimed.operations})};
       // Persist intent/lease BEFORE worktree creation. On interruption, preserve and reconcile.
       saveState(ctx, state, expectedHash,id);
+      retainLock = true;
       worktree = path.resolve(worktreeRoot, id);
       if (worktree === path.resolve(ctx.repo) || fs.existsSync(worktree))
         throw Error("ISOLATION_PATH_INVALID");
-      git(ctx.repo, "worktree", "add", "--detach", worktree, ctx.canonical);
+      git(ctx.repo, "worktree", "add", "--detach", worktree, baseSha);
       if (
         git(worktree, "status", "--porcelain") ||
         path.resolve(
@@ -437,13 +472,16 @@ export function tick(
       saveState(ctx, state, expectedHash,id);
     return {
       ...decision,
-      action:decision.action === 'NOOP' && observation ? 'OBSERVE' : decision.action,
-      reason:decision.action === 'NOOP' && observation ?
+      action:discoverNow && decision.action !== 'EXECUTE' ? 'OBSERVE' : decision.action === 'NOOP' && observation ? 'OBSERVE' : decision.action,
+      reason:discoverNow && decision.action !== 'EXECUTE' ? 'QUEUE_DISCOVERY' : decision.action === 'NOOP' && observation ?
         (observation.error_fingerprint ? 'TRACKED_READ_FAILED' : 'TRACKED_OBSERVATION') : decision.reason,
       owner_id: worktree ? id : null,
       worktree,
       canonical: ctx.canonical,
       observation,
+      discovery,
+      progress,
+      task: decision.selected ? state.tasks.find(t=>t.task_id===decision.selected) : null,
       observer_control,
       notifications:[...notifications,...readNotifications],
       materialChanges,
@@ -477,7 +515,10 @@ export function record(ctx, { owner_id, task_id, event, now = Date.now() }) {
       path.resolve(git(t.lease.worktree,'rev-parse','--path-format=absolute','--git-common-dir'))!==path.resolve(ctx.common))
       throw Error('ISOLATED_CANDIDATE_REQUIRED');
     const files=git(ctx.repo,'diff','--name-only',t.lease.base_sha,event.expected_sha).split('\n');
-    if(!files.some(f=>/^(app|components|lib|scripts)\//.test(f)))throw Error('MATERIAL_CANDIDATE_REQUIRED');
+    if(!files.some(f=>/^(app|components|lib|scripts|tests)\//.test(f)))throw Error('MATERIAL_CANDIDATE_REQUIRED');
+    if(t.discovery && (files.some(f=>!t.discovery.paths.includes(f)) ||
+      git(ctx.repo,'ls-remote','--heads','origin',`refs/heads/${t.branch}`).split(/\s/)[0]!==t.lease.base_sha))
+      throw Error('DISCOVERY_SCOPE_OR_REMOTE_HEAD_CHANGED');
   }
   if(event.type==='cycle-complete')event={...event,cycle_id:t.lease?.cycle_id ?? event.cycle_id,
     before_evidence:t.lease?.before_evidence,
@@ -486,6 +527,14 @@ export function record(ctx, { owner_id, task_id, event, now = Date.now() }) {
     git(ctx.repo, "merge-base", "--is-ancestor", t.inputs.sha, event.sha);
   const state = transition(loaded.state, task_id, { ...event, owner_id }, now);
   if(event.type==='operation-intent')state.tasks.find(t=>t.task_id===task_id).operations.at(-1).cycle_id=t.lease.cycle_id;
+  if(event.type==='reconcile-operation' && event.result==='APPLIED' &&
+    t.operations.find(o=>o.operation_id===event.operation_id)?.state==='UNCERTAIN') {
+    const op=state.tasks.find(t=>t.task_id===task_id).operations.find(o=>o.operation_id===event.operation_id);
+    op.applied_at=new Date(now).toISOString();
+    if(op.action==='normal-code-push')state.delivery_metrics={...(state.delivery_metrics??{}),last_material_delivery_at:op.applied_at,
+      last_material_delivery_sha:op.expected_sha,last_material_delivery_task:task_id,
+      delivery_count:(state.delivery_metrics?.delivery_count??0)+1};
+  }
   if(state !== loaded.state)saveState(ctx, state, loaded.expectedHash,owner_id);
   if (state.tasks.find((t) => t.task_id === task_id).status !== "RUNNING")
     releaseLock(ctx.common, owner_id,t.lease?.owner_proof ?? ownerProof(ctx,owner_id));

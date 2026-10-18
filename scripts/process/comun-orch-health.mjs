@@ -53,6 +53,10 @@ export function healthSnapshot(state,{now=Date.now(),lock='FREE',observer_contro
   const prolonged=!!last&&now-Date.parse(last)>=no_progress_ms;
   const stalled=recurring.some(t=>t.no_progress_cycles>=2)||(prolonged&&next?.kind==='EXECUTE_ONE');
   return {version:1,read_only:true,last_wake,last_wake_delay_ms:wakeDelay,missed_wake:missedWake,last_task_transition:last,
+    delivery_metrics:{...(state.delivery_metrics??{}),
+      elapsed_ms:state.delivery_metrics?.last_material_delivery_at ? now-Date.parse(state.delivery_metrics.last_material_delivery_at) : null,
+      cycles_since_delivery:observer_control?.delivery_monitor?.cycles_since_delivery ?? null,
+      basis:'Only reconciled APPLIED normal-code-push; observations and task transitions are not deliveries'},
     last_material_progress:code.at(-1)??null,material_progress_time:'UNKNOWN_UNLESS_RECORDED_BY_OPERATION',
     state:lock!=='FREE'?'PROTECTED':missedWake?'MISSED_WAKE':p.action==='RECONCILE'?'RECOVERY_REQUIRED':stalled?'STALLED':!last?'UNKNOWN':next?'ACTIONABLE':'WAITING',
     prolonged_no_progress:prolonged,
