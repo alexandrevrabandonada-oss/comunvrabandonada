@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import {execFileSync,spawnSync} from 'node:child_process';
 import {hash,task,transition,plan} from './comun-orch-v2.mjs';
-import {admitDiscovery,readDiscovery,replenish,discoveryDue,mergeDiscoveryDue,readMergeDiscovery,admitMergeDiscovery,replenishMergeDiscovery,MERGE_DISCOVERY_ID} from './comun-orch-discovery.mjs';
+import {admitDiscovery,readDiscovery,replenish,discoveryDue,mergeDiscoveryDue,readMergeDiscovery,admitMergeDiscovery,replenishMergeDiscovery,MERGE_DISCOVERY_ID,chooseDiscoveryLane} from './comun-orch-discovery.mjs';
 import {context,tick,loadState,record,acquireLock,releaseLock,saveState,inspectLock,REMOTE,REF} from './comun-orch-runtime.mjs';
 import {REPOSITORY} from './comun-orch-reconcile.mjs';
 const NOW=Date.now(), A='a'.repeat(40), B='b'.repeat(40);
@@ -233,4 +233,26 @@ test('single locked tick turns verified docs intake into lease without a worktre
     assert.equal(inspectLock(f.ctx.common).state,'FREE');
     assert.equal(loadState(f.ctx).state.tasks.filter(t=>t.action==='integrate-existing-pr').length,1);
   }finally{f.cleanup();}
+});
+
+
+test('due intake arbitration never starves repair behind repetitive merge scans',()=>{
+  const s=docsState(), base={version:1,cursors:{}};
+  // First wake favors integration; its next scheduled window then releases the repair lane.
+  assert.equal(chooseDiscoveryLane(s,NOW,base,1),'merge');
+  const afterMerge={version:1,cursors:{
+    [MERGE_DISCOVERY_ID]:{next_probe_at:new Date(NOW+40*60000).toISOString()},
+  }};
+  assert.equal(chooseDiscoveryLane(s,NOW,afterMerge,1),'repair');
+  const dueBoth={version:1,cursors:{
+    [MERGE_DISCOVERY_ID]:{next_probe_at:new Date(NOW-60000).toISOString()},
+    'queue-discovery':{next_probe_at:new Date(NOW-120000).toISOString()},
+  }};
+  assert.equal(chooseDiscoveryLane(s,NOW,dueBoth,1),'repair');
+  dueBoth.cursors['queue-discovery'].next_probe_at=new Date(NOW-30000).toISOString();
+  assert.equal(chooseDiscoveryLane(s,NOW,dueBoth,1),'merge');
+  assert.equal(chooseDiscoveryLane(s,NOW,dueBoth,0),null);
+  const unpermitted={...s}; delete unpermitted.queue_discovery;
+  delete unpermitted.merge_policy;
+  assert.equal(chooseDiscoveryLane(unpermitted,NOW,base,1),null);
 });
