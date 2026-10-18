@@ -186,6 +186,33 @@ test('reader binds latest exact workflow/job/log and readback; older failure can
   assert.equal(readDiscovery(state(),null,route=>route.includes('/actions/runs?')?{total_count:2,workflow_runs:[r,{...r,id:23,conclusion:'success'}]}:read(route),log).candidate,null);
   assert.throws(()=>readDiscovery(state(),null,route=>route.endsWith('/pulls/551')?{...p,head:{...p.head,sha:B}}:read(route),log),/HEAD_MOVED/);
 });
+test('non-actionable failing workflow does not starve a scoped repair in the same HEAD',()=>{
+  const p={number:551,state:'open',base:{ref:'main',repo:{full_name:REPOSITORY}},head:{sha:A,ref:'existing',repo:{full_name:REPOSITORY}}};
+  const base={run_attempt:1,head_sha:A,event:'pull_request',repository:{full_name:REPOSITORY},status:'completed',conclusion:'failure'};
+  const infra={...base,id:31,workflow_id:1,name:'COMUN Experience Coherence'};
+  const format={...base,id:30,workflow_id:2,name:'COMUN Quality Performance Deliverability'};
+  const job=(run_id,name)=>({id:run_id+100,run_id,head_sha:A,conclusion:'failure',steps:[{name,conclusion:'failure'}]});
+  let jobReads=0,logReads=0;
+  const read=route=>{
+    if(route.includes('?state=open'))return [p];
+    if(route.includes('/actions/runs?'))return {total_count:2,workflow_runs:[infra,format]};
+    if(route.includes('/jobs?')){jobReads++;
+      return route.includes('/31/jobs?')?{total_count:1,jobs:[job(31,'Reset disposable Supabase stack')]}:
+        {total_count:1,jobs:[job(30,'Check formatted files')]};}
+    return p;
+  };
+  const out=readDiscovery(state(),null,read,()=>{logReads++;return '[warn] tests/experience-coherence/games-entry.spec.ts\n[warn] Code style issues found';});
+  assert.equal(out.candidate.run,30);assert.equal(out.candidate.recipe,'PRETTIER_TEST_ONLY');
+  assert.equal(out.failed_workflow.run,30);assert.equal(jobReads,2);assert.equal(logReads,1);
+  const extra=[infra,format,...[29,28,27].map((id,i)=>({...base,id,workflow_id:id,name:'Unrelated failure '+i}))];
+  let bounded=0;
+  const none=readDiscovery(state(),null,route=>{
+    if(route.includes('/actions/runs?'))return {total_count:extra.length,workflow_runs:extra};
+    if(route.includes('/jobs?')){bounded++;return {total_count:1,jobs:[job(31,'Supabase descartável — reset local')]};}
+    return read(route);
+  },()=>assert.fail('infra failures must not request logs'));
+  assert.equal(none.candidate,null);assert.equal(bounded,4);
+});
 test('runtime replenishment flows into isolated EXECUTE on actual PR base; interrupted second tick preserves lease and no duplicate admission',()=>{
   const f=fixture();let result;try{
     const real=f.git('rev-parse','HEAD');let reads=0;

@@ -153,8 +153,10 @@ export function readDiscovery(state, cursor, read = api, readLog = logRead) {
   }
   const runs = [...latest.values()].filter(r => r.status === 'completed' && r.conclusion === 'failure')
     .sort((a, b) => (a.name.includes('Experience Coherence') ? -1 : b.name.includes('Experience Coherence') ? 1 : b.id - a.id));
-  const r = runs[0];
-  if (!r) { source.reason = 'NO_CURRENT_FAILED_WORKFLOW'; return source; }
+  if (!runs.length) { source.reason = 'NO_CURRENT_FAILED_WORKFLOW'; return source; }
+  // Bound GitHub reads to four current-head failures; infrastructure-only
+  // failures must not hide a separate, safe repair in the same PR.
+  for (const r of runs.slice(0, 4)) {
   source.failed_workflow = {run:r.id,attempt:r.run_attempt,name:r.name,sha:r.head_sha};
   const jobs = read(`repos/${REPOSITORY}/actions/runs/${r.id}/jobs?filter=latest&per_page=100`);
   if (!Array.isArray(jobs.jobs) || jobs.total_count > 100) throw Error('DISCOVERY_JOBS_INCOMPLETE');
@@ -164,12 +166,12 @@ export function readDiscovery(state, cursor, read = api, readLog = logRead) {
     s.conclusion==='failure'&&re.test(s.name));
   const j=jobs.jobs.find(j=>failing(j,/format|prettier/i)) ??
     jobs.jobs.find(j=>failing(j,/type.?check|typescript|\btsc\b/i));
-  if (!j) return source;
+  if (!j) continue;
   if (j.head_sha !== p.head.sha || j.run_id !== r.id || !Number.isSafeInteger(j.id)) throw Error('DISCOVERY_JOB_SCOPE_CHANGED');
   // Avoid re-reading already admitted failed jobs, even after DONE or SHA advancement.
   if (state.tasks.some(t => t.discovery?.pr === p.number && t.discovery?.source_sha === p.head.sha &&
     t.discovery?.run === r.id && t.discovery?.attempt === r.run_attempt)) {
-    source.reason = 'ALREADY_ADMITTED'; return source;
+    source.reason = 'ALREADY_ADMITTED'; continue;
   }
   const log = readLog(`repos/${REPOSITORY}/actions/jobs/${j.id}/logs`);
   // Actual Actions log38745687823 colors "warn" *inside* brackets. Keep
@@ -186,7 +188,7 @@ export function readDiscovery(state, cursor, read = api, readLog = logRead) {
   const paths=recipe==='PRETTIER_TEST_ONLY'?formatPaths:tsPaths;
   if(!recipe||!paths.length||paths.length>3||
     paths.some(p=>p.includes('..')||/school|escola|auth|schema|migration|captcha|permission|secret|middleware|payment|admin|route\.ts/i.test(p))||
-    recipe==='PRETTIER_TEST_ONLY'&&!/Code style issues found/.test(plain))return source;
+    recipe==='PRETTIER_TEST_ONLY'&&!/Code style issues found/.test(plain))continue;
   const current = read(`repos/${REPOSITORY}/pulls/${p.number}`);
   if (current.state !== 'open' || current.head?.sha !== p.head.sha || current.head?.ref !== p.head.ref ||
     current.head?.repo?.full_name !== REPOSITORY) throw Error('DISCOVERY_HEAD_MOVED');
@@ -197,6 +199,8 @@ export function readDiscovery(state, cursor, read = api, readLog = logRead) {
       ? 'Formatting only; token equivalence required; other checks remain unverified'
       : 'Compiler TS errors in at most 3 safe source files; reproduce typecheck, preserve semantics, no test/assertion change; all other checks unverified' };
   source.candidate = evidence; source.reason = 'PROVEN_EXISTING_BRANCH_REPAIR';
+  return source;
+  }
   return source;
 }
 
