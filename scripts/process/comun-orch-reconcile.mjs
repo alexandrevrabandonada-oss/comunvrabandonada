@@ -16,7 +16,7 @@ const protectedTask = t => ['RUNNING', 'WAIT_HUMAN', 'BLOCKED_PROTECTED'].includ
 
 // Closed registry of already tracked work. Never discovers new PRs or permissions.
 export function watchSpec(t) {
-  if (protectedTask(t) || t.pr_effect !== 'EXISTING_PR') return null;
+  if (protectedTask(t) || t.remote_terminal || t.pr_effect !== 'EXISTING_PR') return null;
   if (WORKFLOWS[t.task_id] && t.target_pr === 556 && t.probe?.pr === 556 &&
       t.probe.kind === 'github-run' && !t.proof_contract &&
       t.inputs.contract === `${WORKFLOWS[t.task_id]}: aggregate workflow conclusion on exact head only`)
@@ -71,9 +71,22 @@ export function readTracked(t, read = api, readLog = logRead) {
   const spec = watchSpec(t);
   if (!spec) throw Error('UNTRACKED_OBSERVATION');
   const p = read(`repos/${REPOSITORY}/pulls/${spec.pr}`);
-  if (p.number !== spec.pr || p.state !== 'open' || p.base?.repo?.full_name !== REPOSITORY ||
-      p.head?.repo?.full_name !== REPOSITORY || !sha(p.head.sha)) throw Error('PROVIDER_PR_SCOPE_CHANGED');
+  const merged = p.state === 'closed' && p.merged === true &&
+    sha(p.merge_commit_sha) && Number.isFinite(Date.parse(p.merged_at));
+  const closedWithoutMerge = p.state === 'closed' && p.merged === false &&
+    Number.isFinite(Date.parse(p.closed_at));
+  if (p.number !== spec.pr || (p.state !== 'open' && !merged && !closedWithoutMerge) ||
+      p.base?.repo?.full_name !== REPOSITORY ||
+      (p.head?.repo?.full_name !== REPOSITORY && !(p.state === 'closed' && !p.head?.repo)) ||
+      !sha(p.head?.sha)) throw Error('PROVIDER_PR_SCOPE_CHANGED');
   const source = {repository: REPOSITORY, pr: p.number, sha: p.head.sha, branch: p.head.ref, kind: spec.kind};
+  if (merged || closedWithoutMerge) {
+    if (spec.kind !== 'review-head') throw Error('TERMINAL_WORKFLOW_REQUIRES_REVIEW');
+    source.terminal = merged
+      ? {kind:'MERGED', merge_commit_sha:p.merge_commit_sha, merged_at:p.merged_at}
+      : {kind:'CLOSED_UNMERGED', closed_at:p.closed_at};
+    return source;
+  }
   if (spec.kind === 'workflow') {
     const page = read(`repos/${REPOSITORY}/actions/runs?head_sha=${p.head.sha}&event=pull_request&per_page=100`);
     if (!Array.isArray(page.workflow_runs) || page.total_count > 100) throw Error('PROVIDER_RUNS_INCOMPLETE');
@@ -122,6 +135,22 @@ function applyWorkflowObservation(state, id, source, now) {
   if (!spec || source.repository !== REPOSITORY || source.pr !== spec.pr || source.kind !== spec.kind || !sha(source.sha))
     throw Error('OBSERVATION_SCOPE_REQUIRED');
   if (spec.kind === 'review-head') {
+    if (source.terminal) {
+      const terminal = source.terminal;
+      if (!((terminal.kind === 'MERGED' && sha(terminal.merge_commit_sha) &&
+          Number.isFinite(Date.parse(terminal.merged_at))) ||
+        (terminal.kind === 'CLOSED_UNMERGED' && Number.isFinite(Date.parse(terminal.closed_at)))))
+        throw Error('TERMINAL_REVIEW_PROOF_REQUIRED');
+      // A verified terminal PR is no longer an observation target. Retain the
+      // review status and historical proof; closing/merging is not own-SHA PASS.
+      next = structuredClone(state);
+      const reviewed = next.tasks.find(x => x.task_id === id);
+      reviewed.remote_terminal = {...terminal, observed_head_sha:source.sha,
+        review_head_matches_terminal:source.sha === t.inputs.sha,
+        source_evidence_sha:hash(source)};
+      next.revision++;
+      return next;
+    }
     if (source.sha === t.inputs.sha) return state;
     next = transition(state,id,{type:'inputs',inputs:{...t.inputs,sha:source.sha,source_evidence_sha:hash(source)}},now);
   } else {
