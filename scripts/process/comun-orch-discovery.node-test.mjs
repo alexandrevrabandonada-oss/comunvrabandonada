@@ -32,6 +32,16 @@ test('empty queue admits exactly one existing-PR task with own SHA/evidence/auth
   assert.equal(next.tasks[1].target_pr,551);assert.equal(next.tasks[1].status,'READY');assert.equal(next.tasks[1].execution_base,'PR_HEAD');
   assert.deepEqual(next.tasks[1].discovery.authorization,authorization);assert.equal(next.tasks[1].inputs.sha,A);
 });
+test('classifier upgrade re-triages first candidate once; unchanged contract retains rotation and retry budgets',()=>{
+  const s=state([make('WAIT_EXTERNAL',{attempts_for_fingerprint:2})]);
+  const empty={...source(),candidate:null};
+  const prior={version:1,cursors:{'queue-discovery':{input_fingerprint:hash('old classifier'),scan_index:1,observation_fingerprint:hash('old'),no_change_count:1,read_failures:0}}};
+  let cursor='not called';
+  const first=replenish(s,{now:NOW,observer_control:prior,read:(_s,c)=>{cursor=c;return empty;}});
+  assert.equal(cursor,undefined);assert.equal(first.state.tasks[0].attempts_for_fingerprint,2);
+  const next=replenish(s,{now:NOW+1,observer_control:first.observer_control,read:(_s,c)=>{cursor=c;return empty;}});
+  assert.equal(cursor.scan_index,1);assert.equal(next.state.tasks[0].status,'WAIT_EXTERNAL');
+});
 test('dedup ignores changed run, timestamp and logs for same PR/SHA/path finding, including DONE',()=>{
   let s=admitDiscovery(state(),source(),NOW),t=s.tasks[0];
   s=transition(s,t.task_id,{type:'result',sha:A,input_fingerprint:t.input_fingerprint,result:'PASS',scope:'format only',evidence_sha:hash('own proof')},NOW);

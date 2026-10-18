@@ -13,7 +13,7 @@ const logRead = route => execFileSync('gh', ['api', route], {
   stdio: ['ignore', 'pipe', 'pipe'],
 });
 export const DISCOVERY_ID = 'queue-discovery';
-const discoveryInput = state => hash({authorization:state.queue_discovery?.authorization,contract:'EXISTING_PR_REPAIR_DISCOVERY_V2_ANSI'});
+const discoveryInput = state => hash({authorization:state.queue_discovery?.authorization,contract:'EXISTING_PR_REPAIR_DISCOVERY_V3_CURSOR_UPGRADE'});
 export function permitted(state) {
   const a = state.queue_discovery?.authorization;
   return a?.source === 'human-message' && a.scope === 'existing-pr-code-repair' &&
@@ -127,7 +127,10 @@ export function replenish(state, { now, observer_control, read = readDiscovery }
   const control = structuredClone(observer_control ?? { version: 1, cursors: {} });
   const old = control.cursors[DISCOVERY_ID];
   let source, next = state, error = null;
-  try { source = read(state, old); next = admitDiscovery(state, source, now); }
+  // A changed classifier contract must re-evaluate the first candidate, rather
+  // than continue past the finding that the previous classifier could not parse.
+  // This grants one read migration; it never changes task retry budgets/gates.
+  try { source = read(state, old?.input_fingerprint === discoveryInput(state) ? old : undefined); next = admitDiscovery(state, source, now); }
   catch (e) { error = /AUTHORIZATION|PROTECTED|SCOPE|INCOMPLETE|HEAD_MOVED/.test(e.message) ? e.message : 'DISCOVERY_READ_FAILED'; }
   const fp = hash(error ? { error } : { inventory: source.inventory, candidate: source.candidate, reason: source.reason });
   const failures = error ? Math.min(2, (old?.error_fingerprint === fp ? old.read_failures : 0) + 1) : 0;
