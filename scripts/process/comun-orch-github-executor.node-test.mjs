@@ -123,6 +123,8 @@ test('docs merge executes once under owner/lease and reads back matching merged 
     const s=loadState(f.ctx).state.tasks[0];
     assert.equal(s.operations.at(-1).state,'APPLIED');
     assert.equal(s.operations.at(-1).merge_commit_sha,mergeSha);
+    assert.equal(loadState(f.ctx).state.delivery_metrics.merge_count,1);
+    assert.equal(loadState(f.ctx).state.delivery_metrics.last_material_delivery_sha,mergeSha);
     assert.throws(()=>mergeExistingPullRequest(f.ctx,{...f.mergeRequest,operation_id:'other'},{
       read:()=>assert.fail('must not read'),merge:()=>assert.fail('must not merge')}),
       /RECONCILE_MERGE_BEFORE_REPEAT/);
