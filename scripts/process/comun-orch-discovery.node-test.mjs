@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import {execFileSync,spawnSync} from 'node:child_process';
-import {hash,task,transition} from './comun-orch-v2.mjs';
+import {hash,task,transition,plan} from './comun-orch-v2.mjs';
 import {admitDiscovery,readDiscovery,replenish,discoveryDue,mergeDiscoveryDue,readMergeDiscovery,admitMergeDiscovery,replenishMergeDiscovery,MERGE_DISCOVERY_ID} from './comun-orch-discovery.mjs';
 import {context,tick,loadState,record,acquireLock,releaseLock,saveState,inspectLock,REMOTE,REF} from './comun-orch-runtime.mjs';
 import {REPOSITORY} from './comun-orch-reconcile.mjs';
@@ -160,6 +160,13 @@ test('bounded merge inventory admits one exact-head docs task, not a second task
   const blocked=structuredClone(s);delete blocked.merge_policy;
   assert.equal(mergeDiscoveryDue(blocked,NOW),false);
   assert.throws(()=>admitMergeDiscovery(blocked,docsMergeSource(),NOW),/AUTHORIZATION/);
+  // Revoking the human policy must disable an already admitted READY merge.
+  const revoked=structuredClone(next);delete revoked.merge_policy;
+  assert.equal(mergeDiscoveryDue(revoked,NOW),false);
+  assert.notEqual(next.tasks[1].authorized,false);
+  assert.notEqual(revoked.tasks[1].authorized,false);
+  assert.equal(plan(next,{now:NOW}).selected,next.tasks[1].task_id);
+  assert.notEqual(plan(revoked,{now:NOW}).action,'EXECUTE');
 });
 test('bounded provider merge discovery checks exact CI/COST-02, diff and remote head',()=>{
   const pr={number:550,state:'open',draft:false,mergeable:true,changed_files:1,
