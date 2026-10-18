@@ -172,6 +172,25 @@ export function mergeDiscoveryDue(state,now,control) {
   return !c||c.input_fingerprint!==mergeInput(state)||
     Number.isFinite(Date.parse(c.next_probe_at))&&Date.parse(c.next_probe_at)<=now;
 }
+// Fairly arbitrate two due intake lanes. The older due cursor runs first, so
+// a constantly due merge scan cannot starve code repair discovery (or vice
+// versa). This chooses a read-only intake, not an authorized remote effect.
+export function chooseDiscoveryLane(state,now,control,materialBudget=1) {
+  if(!Number.isFinite(now)||!Number.isInteger(materialBudget)||materialBudget<=0)return null;
+  const dueMerge=mergeDiscoveryDue(state,now,control);
+  const dueRepair=discoveryDue(state,now,control);
+  if(!dueMerge&&!dueRepair)return null;
+  if(!dueMerge)return 'repair';
+  if(!dueRepair)return 'merge';
+  const scheduled=id=>{
+    const raw=control?.cursors?.[id]?.next_probe_at;
+    if(!raw)return Number.NEGATIVE_INFINITY; // never run: oldest
+    const due=Date.parse(raw);
+    return Number.isFinite(due)?due:Number.NEGATIVE_INFINITY;
+  };
+  return scheduled(DISCOVERY_ID)<scheduled(MERGE_DISCOVERY_ID)?'repair':'merge';
+}
+
 export function readMergeDiscovery(state,cursor,read=api) {
   const prs=read('repos/'+REPOSITORY+'/pulls?state=open&per_page=100&sort=updated&direction=desc');
   if(!Array.isArray(prs)||prs.length>=100||new Set(prs.map(x=>x.number)).size!==prs.length||
