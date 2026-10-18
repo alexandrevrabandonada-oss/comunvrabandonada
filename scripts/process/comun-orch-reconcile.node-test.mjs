@@ -39,6 +39,40 @@ test('old WAIT_EXTERNAL without a probe is observable; changed tracked head reac
   assert.equal(applyObservation(next,t.task_id,source(t),NOW+1),next);
 });
 
+test('verified merge terminates observation without promoting review to DONE',()=>{
+  const t=task({task_id:'review-pr550',priority:4,status:'WAIT_EXTERNAL',
+    inputs:{sha:A,contract:'Existing review of PR 550'},action:'read-only',pr_effect:'EXISTING_PR',target_pr:550});
+  const merged={number:550,state:'closed',merged:true,merged_at:'2026-10-16T20:00:00Z',
+    merge_commit_sha:B,base:{repo:{full_name:REPOSITORY}},
+    head:{sha:A,ref:'previous',repo:{full_name:REPOSITORY}}};
+  let reads=0;
+  const verified=readTracked(t,()=>{reads++;return merged;});
+  assert.equal(reads,1);
+  assert.deepEqual(verified.terminal,{kind:'MERGED',merge_commit_sha:B,merged_at:merged.merged_at});
+  const before=state([t]),after=applyObservation(before,t.task_id,verified,NOW);
+  assert.equal(before.tasks[0].remote_terminal,undefined);
+  assert.equal(after.tasks[0].status,'WAIT_EXTERNAL');
+  assert.equal(after.tasks[0].evidence.length,0);
+  assert.equal(after.tasks[0].input_fingerprint,t.input_fingerprint);
+  assert.equal(after.tasks[0].remote_terminal.kind,'MERGED');
+  assert.equal(after.tasks[0].remote_terminal.review_head_matches_terminal,true);
+  assert.equal(watchSpec(after.tasks[0]),null);
+  assert.equal(nextObservation(after,NOW),null);
+});
+test('verified closed-unmerged review also retires; forged terminal PR fails closed',()=>{
+  const t=task({task_id:'review-pr550',priority:4,status:'WAIT_EXTERNAL',
+    inputs:{sha:A},action:'read-only',pr_effect:'EXISTING_PR',target_pr:550});
+  const closed={number:550,state:'closed',merged:false,closed_at:'2026-10-16T20:00:00Z',
+    base:{repo:{full_name:REPOSITORY}},head:{sha:A,ref:'previous',repo:{full_name:REPOSITORY}}};
+  const terminal=readTracked(t,()=>closed);
+  const after=applyObservation(state([t]),t.task_id,terminal,NOW);
+  assert.equal(after.tasks[0].remote_terminal.kind,'CLOSED_UNMERGED');
+  assert.equal(after.tasks[0].status,t.status);
+  assert.equal(nextObservation(after,NOW),null);
+  assert.throws(()=>readTracked(t,()=>({...closed,merged:true,merge_commit_sha:null})),/PROVIDER_PR_SCOPE_CHANGED/);
+  assert.throws(()=>readTracked(t,()=>({...closed,base:{repo:{full_name:'wrong/repo'}}})),/PROVIDER_PR_SCOPE_CHANGED/);
+});
+
 test('new workflow source resets only pertinent retries, with exact-head scope and retained historical proof',()=>{
   const t=workflow();t.evidence=[{sha:A,result:'PASS',scope:'historical',input_fingerprint:t.input_fingerprint}];
   const next=applyObservation(state([t]),t.task_id,runSource(t),NOW),n=next.tasks[0];
