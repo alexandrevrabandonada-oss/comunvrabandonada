@@ -50,6 +50,9 @@ for (const experience of ["", "?experiencia=legacy"]) {
           document.documentElement.clientWidth,
       ),
     ).toBe(true);
+    // Next.js can stream route metadata after client-side navigation.
+    // Require the exact title before auditing, rather than masking Axe findings.
+    await expect(page).toHaveTitle("Do assunto à primeira ação | COMUN");
     const audit = await new AxeBuilder({ page }).analyze();
     expect(
       audit.violations.filter((violation) =>
