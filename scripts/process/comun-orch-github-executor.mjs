@@ -190,8 +190,16 @@ export function mergeExistingPullRequest(ctx,{owner_id,task_id,operation_id,pr_n
     verified.merge_commit_sha!==result.sha||verified.head?.sha!==expected_head_sha)
     throw Error('MERGE_READBACK_UNCERTAIN');
   const applied=structuredClone(intended.state);
+  const appliedAt=new Date(now).toISOString();
   Object.assign(applied.tasks.find(x=>x.task_id===task_id).operations.at(-1),
-    {state:'APPLIED',merge_commit_sha:result.sha,evidence_sha:hash({before,sha:result.sha})});
+    {state:'APPLIED',applied_at:appliedAt,merge_commit_sha:result.sha,
+      evidence_sha:hash({before,sha:result.sha})});
+  applied.delivery_metrics={...(applied.delivery_metrics??{}),
+    last_material_delivery_at:appliedAt,last_material_delivery_sha:result.sha,
+    last_material_delivery_task:task_id,
+    delivery_count:(applied.delivery_metrics?.delivery_count??0)+1,
+    merge_count:(applied.delivery_metrics?.merge_count??0)+1,
+    last_merge_pr:pr_number};
   applied.revision++;saveState(ctx,applied,intended.expectedHash,owner_id);
   return {merged:true,pr:pr_number,sha:result.sha,head:expected_head_sha,scope:'DOCS_ONLY'};
 }
