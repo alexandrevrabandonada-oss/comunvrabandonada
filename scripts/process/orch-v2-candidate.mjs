@@ -42,6 +42,12 @@ function requireTask(task) {
 function copyTask(task) { return {...task, dependencies: [...(task.dependencies || [])]}; }
 /** PR creation admission is only advisory until the executor rechecks GitHub. */
 export const COMUN_REPOSITORY = 'alexandrevrabandonada-oss/comunvrabandonada';
+// A conditional SKIPPED is not a PASS. Only explicitly non-applicable
+// workflows may be skipped in the initial docs-only merge lane.
+export const DOCS_MERGE_ALLOWED_SKIPPED_WORKFLOWS = Object.freeze([
+  'COMUN PR437 Promotion Fingerprint',
+  'COMUN 49.2 private release Production-like disposable proof',
+]);
 export const PR_BACKLOG_THRESHOLD = 5;
 const PR_EFFECTS = new Set(['NONE', 'EXISTING_PR', 'NEW_PR']);
 const NEW_PR_ACTIONS = new Set(['CREATE_PR', 'NEW_FEATURE_PR', 'OPEN_PULL_REQUEST']);
