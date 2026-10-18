@@ -66,8 +66,12 @@ export function readDiscovery(state, cursor, read = api, readLog = logRead) {
   source.failed_workflow = {run:r.id,attempt:r.run_attempt,name:r.name,sha:r.head_sha};
   const jobs = read(`repos/${REPOSITORY}/actions/runs/${r.id}/jobs?filter=latest&per_page=100`);
   if (!Array.isArray(jobs.jobs) || jobs.total_count > 100) throw Error('DISCOVERY_JOBS_INCOMPLETE');
-  const j = jobs.jobs.find(j => j.conclusion === 'failure' && j.steps?.some(s =>
-    s.conclusion === 'failure' && /format|prettier/i.test(s.name)));
+  // Prefer a non-semantic format repair; otherwise admit only an exact,
+  // path-scoped TypeScript compiler error, never arbitrary failed CI logs.
+  const failing=(job,re)=>job.conclusion==='failure'&&job.steps?.some(s=>
+    s.conclusion==='failure'&&re.test(s.name));
+  const j=jobs.jobs.find(j=>failing(j,/format|prettier/i)) ??
+    jobs.jobs.find(j=>failing(j,/type.?check|typescript|\\btsc\\b/i));
   if (!j) return source;
   if (j.head_sha !== p.head.sha || j.run_id !== r.id || !Number.isSafeInteger(j.id)) throw Error('DISCOVERY_JOB_SCOPE_CHANGED');
   // Avoid re-reading already admitted failed jobs, even after DONE or SHA advancement.
@@ -79,16 +83,27 @@ export function readDiscovery(state, cursor, read = api, readLog = logRead) {
   // Actual Actions log38745687823 colors "warn" *inside* brackets. Keep
   // the raw bytes hashed, but parse text after removing terminal CSI codes.
   const plain = log.replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, '');
-  const paths = [...new Set([...plain.matchAll(/\[warn\]\s+(tests\/[a-zA-Z0-9_./-]+\.(?:ts|tsx|js|mjs))(?=\s|$)/g)].map(m => m[1]))];
-  if (!paths.length || paths.length > 3 || paths.some(p => p.includes('..') || /school|escola|auth|schema|migration|captcha|permission|secret/i.test(p)) ||
-    !/Code style issues found/.test(plain)) return source;
+  const failedStep=j.steps.find(s=>s.conclusion==='failure')?.name??'';
+  const format=/format|prettier/i.test(failedStep);
+  const typecheck=/type.?check|typescript|\\btsc\\b/i.test(failedStep);
+  const formatPaths=[...new Set([...plain.matchAll(/\[warn\]\s+(tests\/[a-zA-Z0-9_./-]+\.(?:ts|tsx|js|mjs))(?=\s|$)/g)].map(m=>m[1]))];
+  // Compiler-style diagnostics only, anchored to the exact failing command:
+  // no stack traces, instructions embedded in logs or guessed edit targets.
+  const tsPaths=[...new Set([...plain.matchAll(/^(?:\d{4}-\d\d-\d\dT\S+Z\s+)?(?:\.\/)?((?:app|components|lib)\/[A-Za-z0-9_./-]+\.tsx?)\(\d+,\d+\): error TS\d{4}:/gm)].map(m=>m[1]))];
+  const recipe=format?'PRETTIER_TEST_ONLY':typecheck?'TSC_SCOPED_FIX':null;
+  const paths=recipe==='PRETTIER_TEST_ONLY'?formatPaths:tsPaths;
+  if(!recipe||!paths.length||paths.length>3||
+    paths.some(p=>p.includes('..')||/school|escola|auth|schema|migration|captcha|permission|secret|middleware|payment|admin|route\\.ts/i.test(p))||
+    recipe==='PRETTIER_TEST_ONLY'&&!/Code style issues found/.test(plain))return source;
   const current = read(`repos/${REPOSITORY}/pulls/${p.number}`);
   if (current.state !== 'open' || current.head?.sha !== p.head.sha || current.head?.ref !== p.head.ref ||
     current.head?.repo?.full_name !== REPOSITORY) throw Error('DISCOVERY_HEAD_MOVED');
   const evidence = { repository: REPOSITORY, pr: p.number, sha: p.head.sha, branch: p.head.ref,
     run: r.id, attempt: r.run_attempt, workflow: r.name, job: j.id, log_sha: hash(log),
-    failed_step: j.steps.find(s => s.conclusion === 'failure').name, paths,
-    recipe: 'PRETTIER_TEST_ONLY', scope: 'Formatting only; token equivalence required; other checks remain unverified' };
+    failed_step: failedStep, paths, recipe,
+    scope: recipe==='PRETTIER_TEST_ONLY'
+      ? 'Formatting only; token equivalence required; other checks remain unverified'
+      : 'Compiler TS errors in at most 3 safe source files; reproduce typecheck, preserve semantics, no test/assertion change; all other checks unverified' };
   source.candidate = evidence; source.reason = 'PROVEN_EXISTING_BRANCH_REPAIR';
   return source;
 }
@@ -107,9 +122,15 @@ export function admitDiscovery(state, source, now) {
     !source.inventory.some(p => p.pr === e.pr && p.sha === e.sha && p.branch === e.branch && p.repository === REPOSITORY) ||
     !/^[a-zA-Z0-9][a-zA-Z0-9_./-]*$/.test(e.branch ?? '') || e.branch.includes('..') || /^(main|master|production)$/.test(e.branch) ||
     !Number.isSafeInteger(e.run) || !Number.isSafeInteger(e.job) || !Number.isSafeInteger(e.attempt) ||
-    !digest(e.log_sha) || e.recipe !== 'PRETTIER_TEST_ONLY' || !Array.isArray(e.paths) || !e.paths.length || e.paths.length > 3 ||
-    e.paths.some(p => !/^tests\/[a-zA-Z0-9_./-]+\.(ts|tsx|js|mjs)$/.test(p) || p.includes('..') ||
-      /school|escola|auth|schema|migration|captcha|permission|secret/i.test(p))) throw Error('DISCOVERY_EVIDENCE_SCOPE');
+    !digest(e.log_sha) || !['PRETTIER_TEST_ONLY','TSC_SCOPED_FIX'].includes(e.recipe) ||
+    !Array.isArray(e.paths) || !e.paths.length || e.paths.length > 3 ||
+    e.paths.some(p => p.includes('..') ||
+      (e.recipe==='PRETTIER_TEST_ONLY'
+        ? !/^tests\/[a-zA-Z0-9_./-]+\.(ts|tsx|js|mjs)$/.test(p)
+        : !/^(?:app|components|lib)\/[a-zA-Z0-9_./-]+\.tsx?$/.test(p)) ||
+      /school|escola|auth|schema|migration|captcha|permission|secret|middleware|payment|admin|route\\.ts/i.test(p)) ||
+    e.recipe==='TSC_SCOPED_FIX'&&!/type.?check|typescript|\\btsc\\b/i.test(e.failed_step??''))
+    throw Error('DISCOVERY_EVIDENCE_SCOPE');
   const finding = hash({ pr: e.pr, sha: e.sha, recipe: e.recipe, paths: [...e.paths].sort() });
   if (state.tasks.some(t => t.discovery?.finding === finding)) return state;
   // Same finding at the same head cannot buy more attempts through another run/ID.
