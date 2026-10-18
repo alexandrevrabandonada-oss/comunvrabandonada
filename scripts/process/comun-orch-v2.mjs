@@ -216,7 +216,7 @@ export function plan(
     const d = state.tasks.find(x => x.task_id === id);
     return t.pr_effect === 'EXISTING_PR' && d.target_pr === t.target_pr && d.inputs.sha !== t.inputs.sha;
   }) ? {...t,authorized:false} : t);
-  const candidate = decide(admissible, now, owner_id ?? 'planning-only',state.portfolio);
+  const candidate = decide(admissible, now, owner_id ?? 'planning-only',state.portfolio,state.merge_policy);
   const picked = candidate.kind === 'EXECUTE_ONE'
     ? state.tasks.find(t=>t.task_id===candidate.taskId) : null;
   // Keep quiet NOOP semantics while exposing a blocked PR admission to diagnostics.
