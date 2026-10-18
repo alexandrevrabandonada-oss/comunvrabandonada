@@ -71,7 +71,7 @@ export function readDiscovery(state, cursor, read = api, readLog = logRead) {
   const failing=(job,re)=>job.conclusion==='failure'&&job.steps?.some(s=>
     s.conclusion==='failure'&&re.test(s.name));
   const j=jobs.jobs.find(j=>failing(j,/format|prettier/i)) ??
-    jobs.jobs.find(j=>failing(j,/type.?check|typescript|\\btsc\\b/i));
+    jobs.jobs.find(j=>failing(j,/type.?check|typescript|\btsc\b/i));
   if (!j) return source;
   if (j.head_sha !== p.head.sha || j.run_id !== r.id || !Number.isSafeInteger(j.id)) throw Error('DISCOVERY_JOB_SCOPE_CHANGED');
   // Avoid re-reading already admitted failed jobs, even after DONE or SHA advancement.
@@ -85,7 +85,7 @@ export function readDiscovery(state, cursor, read = api, readLog = logRead) {
   const plain = log.replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, '');
   const failedStep=j.steps.find(s=>s.conclusion==='failure')?.name??'';
   const format=/format|prettier/i.test(failedStep);
-  const typecheck=/type.?check|typescript|\\btsc\\b/i.test(failedStep);
+  const typecheck=/type.?check|typescript|\btsc\b/i.test(failedStep);
   const formatPaths=[...new Set([...plain.matchAll(/\[warn\]\s+(tests\/[a-zA-Z0-9_./-]+\.(?:ts|tsx|js|mjs))(?=\s|$)/g)].map(m=>m[1]))];
   // Compiler-style diagnostics only, anchored to the exact failing command:
   // no stack traces, instructions embedded in logs or guessed edit targets.
@@ -93,7 +93,7 @@ export function readDiscovery(state, cursor, read = api, readLog = logRead) {
   const recipe=format?'PRETTIER_TEST_ONLY':typecheck?'TSC_SCOPED_FIX':null;
   const paths=recipe==='PRETTIER_TEST_ONLY'?formatPaths:tsPaths;
   if(!recipe||!paths.length||paths.length>3||
-    paths.some(p=>p.includes('..')||/school|escola|auth|schema|migration|captcha|permission|secret|middleware|payment|admin|route\\.ts/i.test(p))||
+    paths.some(p=>p.includes('..')||/school|escola|auth|schema|migration|captcha|permission|secret|middleware|payment|admin|route\.ts/i.test(p))||
     recipe==='PRETTIER_TEST_ONLY'&&!/Code style issues found/.test(plain))return source;
   const current = read(`repos/${REPOSITORY}/pulls/${p.number}`);
   if (current.state !== 'open' || current.head?.sha !== p.head.sha || current.head?.ref !== p.head.ref ||
@@ -128,8 +128,8 @@ export function admitDiscovery(state, source, now) {
       (e.recipe==='PRETTIER_TEST_ONLY'
         ? !/^tests\/[a-zA-Z0-9_./-]+\.(ts|tsx|js|mjs)$/.test(p)
         : !/^(?:app|components|lib)\/[a-zA-Z0-9_./-]+\.tsx?$/.test(p)) ||
-      /school|escola|auth|schema|migration|captcha|permission|secret|middleware|payment|admin|route\\.ts/i.test(p)) ||
-    e.recipe==='TSC_SCOPED_FIX'&&!/type.?check|typescript|\\btsc\\b/i.test(e.failed_step??''))
+      /school|escola|auth|schema|migration|captcha|permission|secret|middleware|payment|admin|route\.ts/i.test(p)) ||
+    e.recipe==='TSC_SCOPED_FIX'&&!/type.?check|typescript|\btsc\b/i.test(e.failed_step??''))
     throw Error('DISCOVERY_EVIDENCE_SCOPE');
   const finding = hash({ pr: e.pr, sha: e.sha, recipe: e.recipe, paths: [...e.paths].sort() });
   if (state.tasks.some(t => t.discovery?.finding === finding)) return state;
