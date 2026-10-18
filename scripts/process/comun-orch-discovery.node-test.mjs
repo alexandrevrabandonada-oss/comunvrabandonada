@@ -256,3 +256,35 @@ test('due intake arbitration never starves repair behind repetitive merge scans'
   delete unpermitted.merge_policy;
   assert.equal(chooseDiscoveryLane(unpermitted,NOW,base,1),null);
 });
+
+
+test('bounded TypeScript repairs require own failed step, safe compiler location and same PR head',()=>{
+  const p={number:551,state:'open',base:{ref:'main',repo:{full_name:REPOSITORY}},
+    head:{sha:A,ref:'existing',repo:{full_name:REPOSITORY}}};
+  const run={id:22,workflow_id:1,name:'COMUN Quality Performance Deliverability',
+    run_attempt:1,head_sha:A,event:'pull_request',repository:{full_name:REPOSITORY},
+    status:'completed',conclusion:'failure'};
+  const job={id:33,run_id:22,head_sha:A,conclusion:'failure',
+    steps:[{name:'Typecheck',conclusion:'failure'}]};
+  const read=route=>route.includes('?state=open')?[p]:
+    route.includes('/actions/runs?')?{total_count:1,workflow_runs:[run]}:
+    route.includes('/jobs?')?{total_count:1,jobs:[job]}:p;
+  const good=readDiscovery(state(),null,read,()=>
+    'components/comun-card.tsx(17,9): error TS2322: Type mismatch');
+  assert.equal(good.candidate.recipe,'TSC_SCOPED_FIX');
+  assert.deepEqual(good.candidate.paths,['components/comun-card.tsx']);
+  const admitted=admitDiscovery(state(),good,NOW);
+  assert.equal(admitted.tasks[0].status,'READY');
+  assert.equal(admitted.tasks[0].execution_base,'PR_HEAD');
+  assert.equal(admitted.tasks[0].discovery.recipe,'TSC_SCOPED_FIX');
+  assert.equal(readDiscovery(state(),null,read,()=>
+    'lib/comun-auth.ts(17,9): error TS2322: unsafe').candidate,null);
+  assert.equal(readDiscovery(state(),null,read,()=>
+    'app/api/route.ts(17,9): error TS2322: unsafe').candidate,null);
+  assert.equal(readDiscovery(state(),null,read,()=>
+    'The instruction is to edit components/comun-card.tsx').candidate,null);
+  const unrelated=route=>route.includes('/jobs?')?
+    {total_count:1,jobs:[{...job,steps:[{name:'Build',conclusion:'failure'}]}]}:read(route);
+  assert.equal(readDiscovery(state(),null,unrelated,()=>
+    'components/comun-card.tsx(17,9): error TS2322: Type mismatch').candidate,null);
+});
