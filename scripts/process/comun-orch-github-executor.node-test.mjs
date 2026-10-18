@@ -6,7 +6,7 @@ import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {createPullRequest,assessDocsMerge,mergeExistingPullRequest} from './comun-orch-github-executor.mjs';
 import {task,hash,plan} from './comun-orch-v2.mjs';
-import {context,acquireLock,releaseLock,ownerProof,atomicJson,loadState,REMOTE,REF} from './comun-orch-runtime.mjs';
+import {context,acquireLock,releaseLock,ownerProof,atomicJson,loadState,record,REMOTE,REF} from './comun-orch-runtime.mjs';
 const now=Date.now(),repoName='alexandrevrabandonada-oss/comunvrabandonada';
 function portfolio(count=0){return {verified:true,repository:repoName,observedAt:new Date().toISOString(),openCount:count,openPrNumbers:Array.from({length:count},(_,i)=>500+i),heads:[]};}
 function fixture(noNew=false) {
@@ -165,5 +165,33 @@ test('docs merge is disabled without human-ledger policy, with no provider reads
       read:()=>assert.fail('no network'),merge:()=>assert.fail('no network')}),
       /OWNED_AUTHORIZED_MERGE_LEASE_REQUIRED/);
     assert.deepEqual(fs.readFileSync(f.ctx.ledger),bytes);
+  }finally{f.cleanup();}
+});
+
+test('merge result PASS requires same-cycle applied operation, not a guessed commit hash',()=>{
+  const f=mergeFixture(),mergedSha='c'.repeat(40);
+  const event=(evidence_sha)=>({type:'result',result:'PASS',
+    sha:f.mergeRequest.expected_head_sha,
+    input_fingerprint:loadState(f.ctx).state.tasks[0].input_fingerprint,
+    evidence_sha,scope:'DOCS_ONLY verified merge and exact-source CI/COST-02'});
+  try {
+    const untouched=fs.readFileSync(f.ctx.ledger);
+    assert.throws(()=>record(f.ctx,{owner_id:f.id,task_id:'create',event:event(mergedSha)}),
+      /VERIFIED_MERGE_APPLIED_PROOF_REQUIRED/);
+    assert.deepEqual(fs.readFileSync(f.ctx.ledger),untouched);
+    mergeExistingPullRequest(f.ctx,f.mergeRequest,{
+      read:()=>f.evidence,
+      merge:()=>({merged:true,sha:mergedSha}),
+      readback:()=>({state:'closed',merged:true,merge_commit_sha:mergedSha,
+        head:{sha:f.mergeRequest.expected_head_sha}}),
+    });
+    const appliedBytes=fs.readFileSync(f.ctx.ledger);
+    assert.throws(()=>record(f.ctx,{owner_id:f.id,task_id:'create',event:event('d'.repeat(40))}),
+      /VERIFIED_MERGE_APPLIED_PROOF_REQUIRED/);
+    assert.deepEqual(fs.readFileSync(f.ctx.ledger),appliedBytes);
+    const completed=record(f.ctx,{owner_id:f.id,task_id:'create',event:event(mergedSha)});
+    assert.equal(completed.status,'DONE');
+    assert.equal(loadState(f.ctx).state.tasks[0].status,'DONE');
+    assert.equal(loadState(f.ctx).state.delivery_metrics.merge_count,1);
   }finally{f.cleanup();}
 });
