@@ -109,9 +109,12 @@ try {
       })),
       notify: false, writes: 0, worktrees: 0,
     };
-  } else if (args[0] === 'create-pr') {
+  } else if (args[0] === 'create-pr' || args[0] === 'merge-pr') {
     const executor=await import(pathToFileURL(path.join(directory,'comun-orch-github-executor.mjs')));
-    result=executor.createPullRequest(ctx,JSON.parse(fs.readFileSync(option('--event'),'utf8')));
+    const event=JSON.parse(fs.readFileSync(option('--event'),'utf8'));
+    result=args[0] === 'merge-pr'
+      ? executor.mergeExistingPullRequest(ctx,event)
+      : executor.createPullRequest(ctx,event);
   } else if (["record", "observe"].includes(args[0])) {
     result = runtime[args[0]](ctx, JSON.parse(fs.readFileSync(option("--event"), "utf8")));
   } else if (args[0] === 'tick' || args.length === 0) {
