@@ -141,3 +141,25 @@ test("A7 psql steps use the pinned public CA with verified TLS and read-only def
   );
   assert.doesNotMatch(planStep.run, /migrationCount=0/);
 });
+
+
+test("48.2-A: use the pinned CA and strict read-only TLS only for the remote metadata step", () => {
+  const w = load(read(".github/workflows/comun-48-2-a-remote-preflight.yml"));
+  const job = w.jobs["remote-read-only-preflight"];
+  const remote = job.steps.find(
+    (s) => s.name === "Reconcile remote migration metadata in a read-only transaction",
+  );
+  assert.ok(remote);
+  assert.equal(w.env?.PGSSLROOTCERT, undefined);
+  assert.equal(job.env?.PGSSLROOTCERT, undefined);
+  assert.equal(remote.env.PGSSLROOTCERT, extraCa);
+  assert.equal(remote.env.PGSSLMODE, "verify-full");
+  assert.equal(remote.env.PGOPTIONS, "-c default_transaction_read_only=on");
+  assert.equal(remote.env.NODE_TLS_REJECT_UNAUTHORIZED, undefined);
+  for (const step of job.steps.filter((s) => s !== remote)) {
+    assert.equal(step.env?.PGSSLROOTCERT, undefined);
+  }
+  assert.equal((remote.run.match(/begin read only;/g) ?? []).length, 3);
+  assert.equal((remote.run.match(/rollback;/g) ?? []).length, 3);
+  assert.doesNotMatch(remote.run, /sslmode=(disable|allow|prefer|require)/);
+});
