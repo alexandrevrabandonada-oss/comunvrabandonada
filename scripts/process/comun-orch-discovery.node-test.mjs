@@ -78,6 +78,10 @@ test('reader binds latest exact workflow/job/log and readback; older failure can
     route.includes('/jobs?')?{total_count:1,jobs:[j]}:p;
   const log=()=> '[warn] tests/experience-coherence/games-entry.spec.ts\n[warn] Code style issues found';
   assert.equal(readDiscovery(state(),null,read,log).candidate.sha,A);
+  const colored=()=> '2026-10-15T13:49:42Z [\x1b[33mwarn\x1b[39m] tests/experience-coherence/games-entry.spec.ts\x1b[0m\n[\x1b[33mwarn\x1b[39m] Code style issues found';
+  const real=readDiscovery(state(),null,read,colored);
+  assert.deepEqual(real.candidate.paths,['tests/experience-coherence/games-entry.spec.ts']);
+  assert.equal(real.candidate.log_sha,hash(colored()));
   assert.equal(readDiscovery(state(),null,route=>route.includes('/actions/runs?')?{total_count:2,workflow_runs:[r,{...r,id:23,conclusion:'success'}]}:read(route),log).candidate,null);
   assert.throws(()=>readDiscovery(state(),null,route=>route.endsWith('/pulls/551')?{...p,head:{...p.head,sha:B}}:read(route),log),/HEAD_MOVED/);
 });

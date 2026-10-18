@@ -13,6 +13,7 @@ const logRead = route => execFileSync('gh', ['api', route], {
   stdio: ['ignore', 'pipe', 'pipe'],
 });
 export const DISCOVERY_ID = 'queue-discovery';
+const discoveryInput = state => hash({authorization:state.queue_discovery?.authorization,contract:'EXISTING_PR_REPAIR_DISCOVERY_V2_ANSI'});
 export function permitted(state) {
   const a = state.queue_discovery?.authorization;
   return a?.source === 'human-message' && a.scope === 'existing-pr-code-repair' &&
@@ -22,7 +23,7 @@ export function discoveryDue(state, now, control) {
   if (!permitted(state) || plan(state, { now }).action === 'EXECUTE' ||
     state.tasks.some(t => t.status === 'RUNNING' || t.operations.some(o => o.state === 'UNCERTAIN'))) return false;
   const c = control?.cursors?.[DISCOVERY_ID];
-  return !c || (c.suspended && c.next_probe_at === null) || Date.parse(c.next_probe_at) <= now;
+  return !c || c.input_fingerprint !== discoveryInput(state) || (c.suspended && c.next_probe_at === null) || Date.parse(c.next_probe_at) <= now;
 }
 const protectedPr = (state, pr) => state.tasks.some(t => t.target_pr === pr &&
   (['WAIT_HUMAN', 'BLOCKED_PROTECTED', 'RUNNING'].includes(t.status) ||
@@ -74,9 +75,12 @@ export function readDiscovery(state, cursor, read = api, readLog = logRead) {
     source.reason = 'ALREADY_ADMITTED'; return source;
   }
   const log = readLog(`repos/${REPOSITORY}/actions/jobs/${j.id}/logs`);
-  const paths = [...new Set([...log.matchAll(/\[warn\]\s+(tests\/[a-zA-Z0-9_./-]+\.(?:ts|tsx|js|mjs))(?=\s|$)/g)].map(m => m[1]))];
+  // Actual Actions log38745687823 colors "warn" *inside* brackets. Keep
+  // the raw bytes hashed, but parse text after removing terminal CSI codes.
+  const plain = log.replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, '');
+  const paths = [...new Set([...plain.matchAll(/\[warn\]\s+(tests\/[a-zA-Z0-9_./-]+\.(?:ts|tsx|js|mjs))(?=\s|$)/g)].map(m => m[1]))];
   if (!paths.length || paths.length > 3 || paths.some(p => p.includes('..') || /school|escola|auth|schema|migration|captcha|permission|secret/i.test(p)) ||
-    !/Code style issues found/.test(log)) return source;
+    !/Code style issues found/.test(plain)) return source;
   const current = read(`repos/${REPOSITORY}/pulls/${p.number}`);
   if (current.state !== 'open' || current.head?.sha !== p.head.sha || current.head?.ref !== p.head.ref ||
     current.head?.repo?.full_name !== REPOSITORY) throw Error('DISCOVERY_HEAD_MOVED');
@@ -132,7 +136,7 @@ export function replenish(state, { now, observer_control, read = readDiscovery }
   const notified = [...new Set([...(old?.notified_fingerprints ?? []), ...(old?.last_notified_fingerprint ? [old.last_notified_fingerprint] : [])])];
   const notify = !admitted && !notified.includes(blocker);
   if (notify) notified.push(blocker);
-  control.cursors[DISCOVERY_ID] = { input_fingerprint: hash(state.queue_discovery.authorization), observation_fingerprint: fp,
+  control.cursors[DISCOVERY_ID] = { input_fingerprint: discoveryInput(state), observation_fingerprint: fp,
     no_change_count: admitted ? 0 : (old?.observation_fingerprint === fp ? old.no_change_count : 0) + 1,
     read_failures: failures, suspended: failures >= 2, next_probe_at: new Date(now + (failures >= 2 ? 86400000 : source?.scan_complete ? 4 * 3600000 : 40 * 60000)).toISOString(),
     error_fingerprint: error ? fp : null, last_notified_fingerprint: notify ? blocker : old?.last_notified_fingerprint ?? null,
