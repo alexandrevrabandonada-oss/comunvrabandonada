@@ -104,6 +104,14 @@ test('locked runtime admits canonical roadmap criteria into one owned worktree a
     assert.equal(result.task.lease.base_sha,base);
     const again=tick(ctx,{now:NOW+1,reconcile:false});
     assert.equal(again.reason,'HELD_LIVE');assert.equal(again.worktrees,0);
+    const loaded=loadState(ctx),revoked=structuredClone(loaded.state);
+    revoked.roadmap_discovery.enabled=false;
+    saveState(ctx,revoked,loaded.expectedHash,result.owner_id);
+    const beforeIntent=fs.readFileSync(ctx.ledger);
+    assert.throws(()=>record(ctx,{owner_id:result.owner_id,task_id:r.item.task_id,
+      event:{type:'operation-intent',operation_id:'must-not-push',
+        expected_sha:base,action:'normal-code-push'},now:NOW+2}),/ROADMAP_AUTHORIZATION_REVOKED/);
+    assert.deepEqual(fs.readFileSync(ctx.ledger),beforeIntent);
     record(ctx,{owner_id:result.owner_id,task_id:r.item.task_id,event:{type:'cycle-complete'},now:NOW+2});
     f.git('worktree','remove',result.worktree);
   }finally{f.cleanup();}

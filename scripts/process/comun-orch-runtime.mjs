@@ -21,6 +21,14 @@ export const REF = "refs/comun/roadmap-execution";
 const CHECKPOINT = "reports/current/comun-execution-checkpoint.json";
 const REPOSITORY = "alexandrevrabandonada-oss/comunvrabandonada";
 const lockProofs=new Map();
+function roadmapAuthorized(state,t) {
+  const policy=state.roadmap_discovery;
+  return policy?.enabled===true && policy.source==='human-message' &&
+    policy.scope==='EXISTING_PR_ROADMAP' && policy.evidence_sha===t.discovery?.policy_sha &&
+    policy.grants?.some(g=>g.revoked!==true && g.source==='human-message' &&
+      hash(g)===hash(t.discovery.authorization) && g.task_id===t.task_id &&
+      g.criteria_sha===t.inputs.finding);
+}
 const read = (p) => fs.readFileSync(p, "utf8").replace(/^\uFEFF/, "");
 const git = (repo, ...args) =>
   execFileSync("git", ["-C", repo, ...args], {
@@ -456,14 +464,7 @@ export function tick(
       let baseSha = ctx.canonical;
       if (claimed.execution_base === 'PR_HEAD') {
         const roadmapBuild = claimed.discovery?.recipe === 'ROADMAP_SCOPED_BUILD';
-        const policy = state.roadmap_discovery;
-        const allowed = roadmapBuild ? policy?.enabled === true &&
-          policy.source === 'human-message' && policy.scope === 'EXISTING_PR_ROADMAP' &&
-          policy.evidence_sha === claimed.discovery.policy_sha &&
-          policy.grants?.some(g => g.revoked !== true && g.source === 'human-message' &&
-            hash(g) === hash(claimed.discovery.authorization) &&
-            g.task_id === claimed.task_id && g.criteria_sha === claimed.inputs.finding)
-          : permitted(state);
+        const allowed = roadmapBuild ? roadmapAuthorized(state,claimed) : permitted(state);
         if (!claimed.discovery || !allowed || claimed.authorized !== true)
           throw Error('EXISTING_BRANCH_AUTHORIZATION_REQUIRED');
         baseSha = resolveExecutionBase(ctx, claimed);
@@ -542,6 +543,8 @@ export function record(ctx, { owner_id, task_id, event, now = Date.now() }) {
       throw Error('VERIFIED_MERGE_APPLIED_PROOF_REQUIRED');
   }
   if(event.type==='operation-intent') {
+    if(t.discovery?.recipe==='ROADMAP_SCOPED_BUILD' && !roadmapAuthorized(loaded.state,t))
+      throw Error('ROADMAP_AUTHORIZATION_REVOKED');
     if(!t.lease || now>Date.parse(t.lease.deadline_at))throw Error('CYCLE_BUDGET_EXHAUSTED');
     if(t.operations.some(o=>o.cycle_id===t.lease.cycle_id))throw Error('ONE_PUSH_PER_CYCLE');
     if(event.expected_sha!==t.inputs.sha || !/^[0-9a-f]{40}$/.test(event.expected_sha) ||
