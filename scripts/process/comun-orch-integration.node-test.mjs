@@ -27,7 +27,7 @@ function child(code) {
   const p=spawn(process.execPath,['--input-type=module','-e',code],{stdio:['pipe','pipe','pipe']});
   let stdout='',stderr='';p.stdout.on('data',x=>stdout+=x);p.stderr.on('data',x=>stderr+=x);
   const done=new Promise((resolve,reject)=>{p.on('error',reject);p.on('exit',(code,signal)=>resolve({code,signal,stdout,stderr}));});
-  return {p,done,ready:()=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error(`child readiness timeout: ${stderr}`)),10000);p.stdout.once('data',()=>{clearTimeout(timer);resolve();});})};
+  return {p,done,ready:()=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error(`child readiness timeout: ${stderr}`)),10000);p.stdout.once('data',chunk=>{clearTimeout(timer);resolve(chunk);});})};
 }
 test('real simultaneous child contenders: exactly one owner, loser never writes',async()=>{
   const f=fixture([make('human',{status:'WAIT_HUMAN'})]);
