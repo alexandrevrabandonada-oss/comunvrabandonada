@@ -246,6 +246,9 @@ export function admitMergeDiscovery(state,source,now) {
     throw Error('MERGE_INVENTORY_REQUIRED');
   const e=source.candidate;
   if(!e)return state;
+  // Exact previously admitted PR is idempotent even while its integration
+  // task is READY; no second task or proof is created by re-observation.
+  if(state.tasks.some(t=>t.target_pr===e.pr&&t.action==='integrate-existing-pr'))return state;
   if(plan(state,{now}).action==='EXECUTE'||state.tasks.some(t=>
     t.status==='RUNNING'||t.operations.some(o=>o.state==='UNCERTAIN')||
     t.action==='integrate-existing-pr'&&t.status==='READY'))
