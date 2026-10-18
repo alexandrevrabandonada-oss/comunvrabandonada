@@ -115,7 +115,9 @@ export function assessDocsMerge(e) {
   const files=e.files;
   if(!Array.isArray(files)||!files.length||files.length>=100||p.changed_files!==files.length||
     files.some(f=>f.status==='removed'||f.status==='renamed'||
-      !/^docs\/[a-z0-9/_-]+\.(?:md|mdx)$/i.test(f.filename)))
+      !/^docs\/[a-z0-9/_-]+\.(?:md|mdx)$/i.test(f.filename)||
+      /^docs\/(?:security|architecture)\//i.test(f.filename)||
+      /^docs\/comun-orch-v2-/i.test(f.filename)))
       throw Error('MERGE_NON_DOCS_OR_INCOMPLETE_DIFF');
   const runs=e.runs;
   if(!runs||!Array.isArray(runs.workflow_runs)||!Number.isSafeInteger(runs.total_count)||
@@ -161,6 +163,7 @@ export function mergeExistingPullRequest(ctx,{owner_id,task_id,operation_id,pr_n
     t.merge_authorization?.evidence_sha!==policy.evidence_sha)
       throw Error('OWNED_AUTHORIZED_MERGE_LEASE_REQUIRED');
   if(!operation_id||t.operations.some(o=>o.state==='UNCERTAIN'||o.operation_id===operation_id||
+    o.cycle_id===t.lease.cycle_id||
     o.action==='merge-pr'&&o.state==='APPLIED'))
       throw Error('RECONCILE_MERGE_BEFORE_REPEAT');
   const before=assessDocsMerge(read(pr_number));
