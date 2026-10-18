@@ -102,6 +102,8 @@ test('docs merge classification requires exact green CI/COST and excludes runtim
     x=>x.pr.changed_files=2,x=>x.runs.total_count=2,
     x=>x.runs.workflow_runs[0].status='in_progress',
     x=>x.runs.workflow_runs[0].conclusion='failure',
+    x=>{x.runs.total_count=2;x.runs.workflow_runs.push({id:21,name:'Unknown required check',
+      head_sha:x.pr.head.sha,event:'pull_request',status:'completed',conclusion:'skipped'});},
     x=>x.jobs.jobs[0].conclusion='failure',
     x=>x.reviews.push({state:'CHANGES_REQUESTED'}),
     x=>x.comments.push({body:'unresolved thread'})];
@@ -109,6 +111,11 @@ test('docs merge classification requires exact green CI/COST and excludes runtim
     const b=structuredClone(a);mutate(b);
     assert.throws(()=>assessDocsMerge(b),/MERGE_/);
   }
+  const conditional=structuredClone(a);
+  conditional.runs.total_count=2;
+  conditional.runs.workflow_runs.push({id:22,name:'COMUN PR437 Promotion Fingerprint',
+    head_sha:a.pr.head.sha,event:'pull_request',status:'completed',conclusion:'skipped'});
+  assert.equal(assessDocsMerge(conditional).mode,'DOCS_ONLY');
 });
 test('docs merge executes once under owner/lease and reads back matching merged SHA',()=>{
   const f=mergeFixture(),mergeSha='c'.repeat(40);let effects=0,reads=0;
