@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import {previewProof} from './comun-orch-adapter.mjs';
 import {nextObservation, reconcileOne, readTracked, watchSpec} from './comun-orch-reconcile.mjs';
-import {discoveryDue, replenish, readDiscovery, permitted, mergeDiscoveryDue, replenishMergeDiscovery, readMergeDiscovery, mergePermitted} from './comun-orch-discovery.mjs';
+import {chooseDiscoveryLane, replenish, readDiscovery, permitted, replenishMergeDiscovery, readMergeDiscovery, mergePermitted} from './comun-orch-discovery.mjs';
 import {
   hash,
   plan,
@@ -341,8 +341,11 @@ export function tick(
       history_start:'Explicit APPLIED normal-code-push only; older unknown timestamps are not inferred'};
     observer_control.delivery_monitor = progress;
   }
-  const mergeNow = material_budget > 0 && mergeDiscoveryDue(initial,now,observer_control);
-  const discoverNow = !mergeNow && material_budget > 0 && discoveryDue(initial,now,observer_control);
+  // Do not starve a repair intake while the docs merge intake polls every wake.
+  // Both lanes remain gated by their individual authorization and cooldown.
+  const dueLane = chooseDiscoveryLane(initial,now,observer_control,material_budget);
+  const mergeNow = dueLane === 'merge';
+  const discoverNow = dueLane === 'repair';
   const observationTask = !mergeNow && !discoverNow && reconcile && preplan.action !== 'EXECUTE' ? nextObservation(initial,now,observer_control) : null;
   if(fs.existsSync(ctx.ledger) && !mergeNow && !discoverNow && !observationTask && !preplan.probes.length && !preplan.notifications.length &&
     ['NOOP','RECONCILE'].includes(preplan.action))return {...preplan,owner_id:null,worktree:null,
