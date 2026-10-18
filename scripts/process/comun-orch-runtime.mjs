@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import {previewProof} from './comun-orch-adapter.mjs';
 import {nextObservation, reconcileOne, readTracked, watchSpec} from './comun-orch-reconcile.mjs';
-import {chooseDiscoveryLane, replenish, readDiscovery, permitted, replenishMergeDiscovery, readMergeDiscovery, mergePermitted} from './comun-orch-discovery.mjs';
+import {chooseDiscoveryLane, replenish, readDiscovery, permitted, replenishMergeDiscovery, readMergeDiscovery, mergePermitted, readRoadmapDiscovery, admitRoadmapDiscovery} from './comun-orch-discovery.mjs';
 import {
   hash,
   plan,
@@ -346,8 +346,10 @@ export function tick(
   const dueLane = chooseDiscoveryLane(initial,now,observer_control,material_budget);
   const mergeNow = dueLane === 'merge';
   const discoverNow = dueLane === 'repair';
+  const roadmapNow = initial.roadmap_discovery?.enabled === true && material_budget > 0 &&
+    !['EXECUTE', 'RECONCILE'].includes(preplan.action);
   const observationTask = !mergeNow && !discoverNow && reconcile && preplan.action !== 'EXECUTE' ? nextObservation(initial,now,observer_control) : null;
-  if(fs.existsSync(ctx.ledger) && !mergeNow && !discoverNow && !observationTask && !preplan.probes.length && !preplan.notifications.length &&
+  if(fs.existsSync(ctx.ledger) && !mergeNow && !discoverNow && !roadmapNow && !observationTask && !preplan.probes.length && !preplan.notifications.length &&
     ['NOOP','RECONCILE'].includes(preplan.action))return {...preplan,owner_id:null,worktree:null,
       canonical:ctx.canonical,materialChanges:[],observer_control,progress,notify:false,writes:0,worktrees:0,next:null};
   const id = `orchv2-${randomUUID()}`;
@@ -368,7 +370,7 @@ export function tick(
     if (p.action === "RECONCILE")
       return { ...p, notify: false, writes: 0, worktrees: 0 };
     const materialChanges = [];
-    let observation = null, discovery = null, mergeDiscovery = null, readNotifications = [];
+    let observation = null, discovery = null, mergeDiscovery = null, roadmapDiscovery = null, readNotifications = [];
     if (mergeNow) {
       const found = replenishMergeDiscovery(state,{now,observer_control,read:discoverMerge});
       state=found.state; observer_control=found.observer_control;
@@ -377,6 +379,12 @@ export function tick(
       const found = replenish(state, {now, observer_control, read: discover});
       state = found.state; observer_control = found.observer_control;
       discovery = found.discovery; readNotifications = found.notifications;
+    }
+    if (roadmapNow && runtimePlan(state).action !== 'EXECUTE') {
+      const source = readRoadmapDiscovery(ctx, state);
+      state = admitRoadmapDiscovery(state, source);
+      roadmapDiscovery = {reason: source.reason,
+        admitted: source.candidate?.item.task_id ?? null, evidence_sha: hash(source)};
     }
     if (observationTask) {
       const observed = reconcileOne(state,state.tasks.find(t=>t.task_id===observationTask.task_id),now,observeExternal,observer_control);
@@ -447,7 +455,16 @@ export function tick(
       const claimed=state.tasks.find(t=>t.task_id===decision.selected);
       let baseSha = ctx.canonical;
       if (claimed.execution_base === 'PR_HEAD') {
-        if (!claimed.discovery || !permitted(state) || claimed.authorized !== true)
+        const roadmapBuild = claimed.discovery?.recipe === 'ROADMAP_SCOPED_BUILD';
+        const policy = state.roadmap_discovery;
+        const allowed = roadmapBuild ? policy?.enabled === true &&
+          policy.source === 'human-message' && policy.scope === 'EXISTING_PR_ROADMAP' &&
+          policy.evidence_sha === claimed.discovery.policy_sha &&
+          policy.grants?.some(g => g.revoked !== true && g.source === 'human-message' &&
+            hash(g) === hash(claimed.discovery.authorization) &&
+            g.task_id === claimed.task_id && g.criteria_sha === claimed.inputs.finding)
+          : permitted(state);
+        if (!claimed.discovery || !allowed || claimed.authorized !== true)
           throw Error('EXISTING_BRANCH_AUTHORIZATION_REQUIRED');
         baseSha = resolveExecutionBase(ctx, claimed);
         if (baseSha !== claimed.inputs.sha) throw Error('DISCOVERY_HEAD_MOVED');
@@ -486,6 +503,7 @@ export function tick(
       observation,
       discovery,
       merge_discovery:mergeDiscovery,
+      roadmap_discovery:roadmapDiscovery,
       progress,
       task: decision.selected ? state.tasks.find(t=>t.task_id===decision.selected) : null,
       observer_control,

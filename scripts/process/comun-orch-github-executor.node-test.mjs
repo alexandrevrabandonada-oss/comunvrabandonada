@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
-import {createPullRequest,assessDocsMerge,mergeExistingPullRequest} from './comun-orch-github-executor.mjs';
+import {createPullRequest,assessDocsMerge,assessLowRiskMerge,mergeExistingPullRequest} from './comun-orch-github-executor.mjs';
 import {task,hash,plan} from './comun-orch-v2.mjs';
 import {context,acquireLock,releaseLock,ownerProof,atomicJson,loadState,record,REMOTE,REF} from './comun-orch-runtime.mjs';
 const now=Date.now(),repoName='alexandrevrabandonada-oss/comunvrabandonada';
@@ -76,7 +76,7 @@ function mergeEvidence(sha) {
   return {pr:{number:550,state:'open',draft:false,merged:false,mergeable:true,
       changed_files:1,base:{ref:'main',sha:base,repo:{full_name:repoName}},
       head:{sha,repo:{full_name:repoName}}},
-    files:[{filename:'docs/comun-product-objective-and-roadmap.md',status:'modified'}],
+    files:[{filename:'docs/comun-search-usage.md',status:'modified'}],
     runs:{total_count:1,workflow_runs:[{id:17,name:'COMUN CI',head_sha:sha,
       event:'pull_request',status:'completed',conclusion:'success'}]},
     jobs:{total_count:1,jobs:[{id:19,name:'COST-02 / exact checkpoint Preview',
@@ -89,7 +89,8 @@ function mergeFixture() {
   const t=envelope.state.tasks[0];
   Object.assign(t,{pr_effect:'EXISTING_PR',target_pr:550,work_class:'INTEGRATION',
     action:'integrate-existing-pr',merge_authorization:{scope:'DOCS_ONLY',evidence_sha:'human-proof'}});
-  envelope.state.merge_policy={enabled:true,scope:'DOCS_ONLY',source:'human-message',evidence_sha:'human-proof'};
+  envelope.state.merge_policy={enabled:true,scope:'DOCS_ONLY',source:'human-message',evidence_sha:'human-proof',
+    production_effect:{result:'NO_PRODUCTION',base_sha:'b'.repeat(40),evidence_sha:hash('fixture deployment configuration')}};
   fs.writeFileSync(f.ctx.ledger,JSON.stringify(envelope));
   return {...f,evidence:mergeEvidence(sha),mergeRequest:{owner_id:f.id,task_id:'create',
     operation_id:'merge-one',pr_number:550,expected_head_sha:sha}};
@@ -100,6 +101,9 @@ test('docs merge classification requires exact green CI/COST and excludes runtim
   const invalid=[x=>x.pr.draft=true,x=>x.pr.base.ref='other',
     x=>x.pr.mergeable=false,x=>x.files[0].filename='app/page.tsx',
     x=>x.pr.changed_files=2,x=>x.runs.total_count=2,
+    x=>x.files[0].filename='docs/comun-product-objective-and-roadmap.md',
+    x=>x.files[0].filename='docs/comun-roadmap-hourly-automation.md',
+    x=>x.files[0].filename='docs/comun-escola-recovery.md',
     x=>x.runs.workflow_runs[0].status='in_progress',
     x=>x.runs.workflow_runs[0].conclusion='failure',
     x=>{x.runs.total_count=2;x.runs.workflow_runs.push({id:21,name:'Unknown required check',
@@ -220,4 +224,74 @@ test('PR merged readback without main ancestry stays uncertain and never credits
     assert.equal(s.tasks[0].operations.at(-1).state,'UNCERTAIN');
     assert.equal(s.delivery_metrics?.merge_count??0,0);
   }finally{f.cleanup();}
+});
+
+test('docs merge requires verified Production effect at exact main before intent or PUT',()=>{
+  for(const safety of [undefined,{result:'UNKNOWN'},
+    {result:'NO_PRODUCTION',base_sha:'d'.repeat(40),evidence_sha:hash('different main')}]) {
+    const f=mergeFixture();
+    try {
+      const envelope=JSON.parse(fs.readFileSync(f.ctx.ledger,'utf8'));
+      envelope.state.merge_policy.production_effect=safety;
+      fs.writeFileSync(f.ctx.ledger,JSON.stringify(envelope));
+      const before=fs.readFileSync(f.ctx.ledger);
+      assert.throws(()=>mergeExistingPullRequest(f.ctx,f.mergeRequest,{
+        read:()=>f.evidence,merge:()=>assert.fail('Production effect not cleared')}),
+        /MERGE_PRODUCTION_/);
+      assert.deepEqual(fs.readFileSync(f.ctx.ledger),before);
+    }finally{f.cleanup();}
+  }
+});
+
+function lowRiskEvidence() {
+  const e=mergeEvidence('a'.repeat(40));
+  e.observed_at=new Date(now).toISOString();
+  e.pr.head.ref='existing-code-pr';
+  e.files=[{filename:'lib/search/labels.ts',status:'modified',additions:2,deletions:1,
+    patch:'@@ -1 +1,2 @@\n-old\n+new\n+label'}];
+  e.diff={complete:true,head_sha:e.pr.head.sha,base_sha:e.pr.base.sha,files_sha:hash(e.files)};
+  e.checks={complete:true,sha:e.pr.head.sha,required:['quality','security'],
+    items:['quality','security'].map(name=>({name,sha:e.pr.head.sha,status:'completed',conclusion:'success'}))};
+  e.preview={id:'exact-preview',sha:e.pr.head.sha,state:'READY',source:'git',
+    target:'preview',branch:e.pr.head.ref,project:'comun'};
+  e.contracts={sha:e.pr.head.sha,diff_sha:hash(e.files),policy_version:1,
+    focal_tests:'PASS',quality:'PASS',sensitive_behavior_unchanged:true,evidence_sha:hash('own focal proofs')};
+  e.production_effect={base_sha:e.pr.base.sha,result:'NO_PRODUCTION',evidence_sha:hash('fixture production configuration')};
+  return e;
+}
+const lowRiskPolicy=()=>({enabled:true,version:1,scope:'LOW_RISK_CODE',source:'human-message',
+  evidence_sha:hash('specific fixture Tier L authorization'),preview_project:'comun',allowed_paths:['lib/search/labels.ts']});
+
+test('Tier L defaults OFF and certified admission never enables a mutation endpoint',()=>{
+  assert.throws(()=>assessLowRiskMerge(lowRiskEvidence()),/LOW_RISK_POLICY_REQUIRED/);
+  assert.throws(()=>assessLowRiskMerge(lowRiskEvidence(),{...lowRiskPolicy(),enabled:false},now),/POLICY/);
+  const result=assessLowRiskMerge(lowRiskEvidence(),lowRiskPolicy(),now);
+  assert.equal(result.mode,'LOW_RISK_CODE');assert.equal(result.mutation_enabled,false);
+  assert.throws(()=>assessDocsMerge(lowRiskEvidence()),/MERGE_NON_DOCS/);
+});
+
+test('Tier L rejects incomplete checks, stale/ancestral Preview, unsafe or oversized diffs and unproven behavior',()=>{
+  const mutations=[e=>e.pr.draft=true,e=>e.pr.head.repo.full_name='fork/repo',
+    e=>e.pr.base.ref='other',e=>e.pr.mergeable=false,
+    e=>e.observed_at=new Date(now-6*60000).toISOString(),
+    e=>e.observed_at=new Date(now+1).toISOString(),
+    e=>e.files[0].filename='lib/auth/session.ts',e=>e.files[0].filename='lib/../secrets.ts',
+    e=>e.files[0].filename='lib/search/other.ts',e=>e.files[0].status='renamed',
+    e=>e.files[0].additions=101,e=>delete e.files[0].patch,e=>e.diff.complete=false,
+    e=>e.diff.base_sha='c'.repeat(40),e=>e.diff.head_sha='c'.repeat(40),
+    e=>e.checks.complete=false,e=>e.checks.required.push('missing'),
+    e=>e.checks.items[0].sha='c'.repeat(40),e=>e.checks.items[0].conclusion='skipped',
+    e=>e.checks.items[0].status='queued',e=>e.checks.items.push({...e.checks.items[0]}),
+    e=>e.jobs.jobs[0].conclusion='failure',e=>e.preview.sha='c'.repeat(40),
+    e=>e.preview.state='CANCELED',e=>e.preview.source='cli',e=>e.preview.target='production',
+    e=>e.preview.branch='other',e=>e.preview.project='other',e=>delete e.preview.id,
+    e=>e.contracts.focal_tests='NOT_RUN',e=>e.contracts.quality='PENDING',
+    e=>e.contracts.sha='c'.repeat(40),e=>e.contracts.diff_sha=hash('other diff'),
+    e=>e.contracts.sensitive_behavior_unchanged=false,
+    e=>e.production_effect.result='UNKNOWN',e=>e.production_effect.base_sha='d'.repeat(40),
+    e=>e.comments.push({body:'unresolved'}),e=>e.reviews.push({state:'CHANGES_REQUESTED'})];
+  for(const mutate of mutations) {
+    const e=lowRiskEvidence();mutate(e);
+    assert.throws(()=>assessLowRiskMerge(e,lowRiskPolicy(),now),/LOW_RISK_|MERGE_/);
+  }
 });

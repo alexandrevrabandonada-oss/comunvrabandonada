@@ -1,5 +1,36 @@
 # COMUN ORCH-V2 — resiliência, backstops e integração controlada
 
+## Contratos adicionais de ativação — candidato de 17/10/2026
+
+Tier L tem avaliação pura `assessLowRiskMerge`, OFF sem política humana específica.
+Mesmo uma admissão válida retorna `mutation_enabled=false`: o endpoint real
+continua exclusivo Tier D. A avaliação exige diff completo de até três arquivos
+explicitamente permitidos, até100 linhas, todos os checks próprios, COST-02,
+Preview Git READY exato, contratos focais/qualidade e prova do efeito em Production.
+Paths sensíveis, grants genéricos e Preview ancestral/cancelado são recusados.
+
+Tier D exclui também roadmap canônico, instruções da automação e Escola.
+Antes de qualquer intenção/PUT, `merge_policy.production_effect` precisa provar
+`NO_PRODUCTION`, hash da evidência e `base_sha` idêntico ao main observado.
+Um diff documental não prova que um merge deixa de acionar Production. Ausência
+dessa prova é bloqueio específico; nenhuma configuração de deploy é alterada.
+
+A descoberta BUILD lê `roadmap_backlog.items` do **mesmo checkpoint canônico** e
+confere a seção real em `docs/comun-product-objective-and-roadmap.md`. Não existe
+arquivo de backlog paralelo. Cada item READY precisa de task_id, prioridade,
+PR/branch/SHA existentes, até três paths seguros, test_criteria e dependências.
+O ledger vivo precisa conter `roadmap_discovery` humano, enabled, com escopo
+`EXISTING_PR_ROADMAP`, evidence_sha e grants por task_id/criteria_sha. criteria_sha
+é o hash do item integral; documentação nova ou critérios alterados não concedem
+permissão. Grants revogados são recusados tanto na admissão quanto no claim.
+Dependência só satisfaz com PASS no SHA/fingerprint próprio. Outra frente
+independente pode avançar. Sem critérios estruturados ou grant, informar a razão
+tipada e não inventar uma entrega. A tarefa usa PR_HEAD, lease, candidate, intent,
+push normal restrito aos paths e reconciliação APPLIED existentes.
+
+Estes contratos não demonstram instalação. CI no SHA exato, canário, readback do
+scheduler original e os dois wakes reais do protocolo continuam obrigatórios.
+
 ## Recuperação da fila vazia — 17/10/2026
 
 A instalação é identificada pelo manifesto e pelo prompt, nunca pelo HEAD da

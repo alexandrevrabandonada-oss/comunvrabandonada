@@ -30,6 +30,98 @@ const protectedPr = (state, pr) => state.tasks.some(t => t.target_pr === pr &&
   (['WAIT_HUMAN', 'BLOCKED_PROTECTED', 'RUNNING'].includes(t.status) ||
     PROTECTED.includes(t.action) || t.authorized === false || t.operations.some(o => o.state === 'UNCERTAIN')));
 
+// Product work is referenced in the SAME canonical checkpoint/roadmap. A new
+// Markdown paragraph cannot authorize code: each machine-readable entry also
+// needs a matching human-sourced grant already installed in the live ledger.
+export function readRoadmapDiscovery(ctx, state, readGit = args => execFileSync('git',
+  ['-C', ctx.repo, ...args], { encoding: 'utf8', timeout: 30000,
+    maxBuffer: 4 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] })) {
+  const policy = state.roadmap_discovery;
+  if (policy?.enabled !== true || policy.source !== 'human-message' ||
+      policy.scope !== 'EXISTING_PR_ROADMAP' || !digest(policy.evidence_sha) ||
+      !Array.isArray(policy.grants))
+    return { reason: 'ROADMAP_HUMAN_POLICY_REQUIRED', candidate: null };
+  if (state.tasks.some(t => t.status === 'RUNNING' || t.operations.some(o => o.state === 'UNCERTAIN')) ||
+      plan(state, { now: Date.now() }).action === 'EXECUTE')
+    return { reason: 'ROADMAP_INTAKE_BUSY', candidate: null };
+  const current = readGit(['rev-parse', 'refs/comun/roadmap-execution']).trim();
+  if (current !== ctx.canonical) throw Error('ROADMAP_CANONICAL_CHANGED');
+  const checkpointPath = 'reports/current/comun-execution-checkpoint.json';
+  const roadmapPath = 'docs/comun-product-objective-and-roadmap.md';
+  const checkpointBytes = readGit(['show', `${current}:${checkpointPath}`]);
+  const roadmapBytes = readGit(['show', `${current}:${roadmapPath}`]);
+  const checkpoint = JSON.parse(checkpointBytes);
+  const items = checkpoint.roadmap_backlog?.items;
+  const source = { reason: 'ROADMAP_NO_AUTHORIZED_READY', candidate: null,
+    canonical: current, checkpoint_sha: hash(checkpointBytes), roadmap_sha: hash(roadmapBytes) };
+  if (items === undefined) return { ...source, reason: 'ROADMAP_STRUCTURED_CRITERIA_REQUIRED' };
+  if (!Array.isArray(items) || items.length > 100 ||
+      new Set(items.map(i => i.task_id)).size !== items.length)
+    throw Error('ROADMAP_BACKLOG_INCOMPLETE');
+  const eligible = items.filter(i => i.status === 'READY' &&
+    !state.tasks.some(t => t.task_id === i.task_id || t.roadmap_item === i.task_id))
+    .sort((a, b) => a.priority - b.priority || String(a.task_id).localeCompare(String(b.task_id)));
+  for (const item of eligible) {
+    const grant = policy.grants.find(g => g.task_id === item.task_id);
+    if (!grant || grant.source !== 'human-message' || !digest(grant.evidence_sha) ||
+        grant.criteria_sha !== hash(item) || grant.revoked === true) continue;
+    if (!/^[a-z0-9-]+$/.test(item.task_id) || !Number.isFinite(item.priority) ||
+        !Number.isSafeInteger(item.target_pr) || item.target_pr < 1 ||
+        !sha(item.sha) || !/^[a-zA-Z0-9][a-zA-Z0-9_./-]*$/.test(item.branch ?? '') ||
+        item.branch.includes('..') || /^(main|master|production)$/i.test(item.branch) ||
+        !/^## .+$/m.test(item.roadmap_heading ?? '') ||
+        item.roadmap_heading.includes('\n') || !roadmapBytes.split(/\r?\n/).includes(item.roadmap_heading) ||
+        !Array.isArray(item.paths) || !item.paths.length || item.paths.length > 3 ||
+        item.paths.some(p => !/^(components|lib)\/[a-zA-Z0-9_/-]+\.(ts|tsx)$/.test(p) ||
+          /auth|school|escola|schema|migration|rls|permission|payment|secret|admin|captcha|env|release/i.test(p)) ||
+        !Array.isArray(item.test_criteria) || !item.test_criteria.length ||
+        item.test_criteria.some(c => typeof c !== 'string' || !c.trim()) ||
+        !Array.isArray(item.dependencies) || protectedPr(state, item.target_pr)) continue;
+    // Dependencies are operational proofs of their OWN SHA, never inherited
+    // from a checkpoint snapshot or another PR's green workflow.
+    if (item.dependencies.some(id => {
+      const dependency = state.tasks.find(t => t.task_id === id);
+      return !dependency || dependency.status !== 'DONE' ||
+        !dependency.evidence.some(e => e.result === 'PASS' && e.sha === dependency.inputs.sha &&
+          e.input_fingerprint === dependency.input_fingerprint);
+    })) continue;
+    source.candidate = { item, grant, policy_sha: policy.evidence_sha };
+    source.reason = 'AUTHORIZED_CANONICAL_ROADMAP_ITEM';
+    break;
+  }
+  if (readGit(['rev-parse', 'refs/comun/roadmap-execution']).trim() !== current)
+    throw Error('ROADMAP_CANONICAL_CHANGED');
+  return source;
+}
+
+export function admitRoadmapDiscovery(state, source) {
+  if (!source.candidate) return state;
+  const { item, grant, policy_sha } = source.candidate;
+  // Recheck live authorization after the source read, before the runtime's
+  // owner/hash/ref CAS. Caller-supplied evidence cannot install its own grant.
+  const policy = state.roadmap_discovery;
+  if (policy?.enabled !== true || policy.source !== 'human-message' ||
+      policy.scope !== 'EXISTING_PR_ROADMAP' || policy.evidence_sha !== policy_sha ||
+      !policy.grants?.some(g => hash(g) === hash(grant) && g.revoked !== true &&
+        g.source === 'human-message' && digest(g.evidence_sha) &&
+        g.task_id === item.task_id && g.criteria_sha === hash(item)))
+    throw Error('ROADMAP_LIVE_AUTHORIZATION_REQUIRED');
+  if (state.tasks.some(t => t.task_id === item.task_id)) return state;
+  const next = structuredClone(state);
+  next.tasks.push(task({ task_id: item.task_id, priority: item.priority,
+    dependencies: item.dependencies, inputs: { sha: item.sha,
+      contract: item.test_criteria, finding: hash(item) }, action: 'local-code', authorized: true,
+    pr_effect: 'EXISTING_PR', target_pr: item.target_pr, work_class: 'IMPLEMENTATION',
+    execution_base: 'PR_HEAD', branch: item.branch, roadmap_item: item.task_id,
+    source: 'docs/comun-product-objective-and-roadmap.md',
+    discovery: { pr: item.target_pr, sha: item.sha, paths: item.paths,
+      recipe: 'ROADMAP_SCOPED_BUILD', criteria: item.test_criteria,
+      source_sha: item.sha, evidence_sha: hash(source), policy_sha,
+      authorization: grant } }));
+  next.revision++;
+  return validate(next);
+}
+
 // Read one complete bounded PR inventory, then triage at most ONE existing head.
 // Only a known, non-semantic repair recipe is automatically admitted. Other
 // failures require scoped diagnosis/repair evidence, never a guessed CI fix.
@@ -246,7 +338,7 @@ export function readMergeDiscovery(state,cursor,read=api) {
     files.some(f=>f.status==='removed'||f.status==='renamed'||
       !/^docs\/[a-z0-9/_-]+\.(md|mdx)$/i.test(f.filename)||
       /^docs\/(?:security|architecture)\//i.test(f.filename)||
-      /^docs\/comun-orch-v2-/i.test(f.filename)))return source;
+      /^docs\/comun-(?:orch-v2-|product-objective-and-roadmap\.|roadmap-hourly-automation\.|escola)/i.test(f.filename)))return source;
   // Never assume any skipped workflow is PASS; only exact-head completed
   // success or specifically conditional SKIPPED is permitted at this intake.
   const page=read(root+'/actions/runs?head_sha='+p.head.sha+'&event=pull_request&per_page=100');
@@ -301,7 +393,7 @@ export function admitMergeDiscovery(state,source,now) {
     !Array.isArray(e.paths)||!e.paths.length||e.paths.some(p=>
       !/^docs\/[a-z0-9/_-]+\.(md|mdx)$/i.test(p)||
       /^docs\/(?:security|architecture)\//i.test(p)||
-      /^docs\/comun-orch-v2-/i.test(p))||
+      /^docs\/comun-(?:orch-v2-|product-objective-and-roadmap\.|roadmap-hourly-automation\.|escola)/i.test(p))||
     !source.inventory.some(p=>p.pr===e.pr&&p.sha===e.sha&&
       p.repository===REPOSITORY&&p.branch===e.branch&&p.base==='main')||
     protectedPr(state,e.pr))throw Error('MERGE_CANDIDATE_SCOPE');

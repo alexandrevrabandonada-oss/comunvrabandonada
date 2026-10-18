@@ -117,7 +117,7 @@ export function assessDocsMerge(e) {
     files.some(f=>f.status==='removed'||f.status==='renamed'||
       !/^docs\/[a-z0-9/_-]+\.(?:md|mdx)$/i.test(f.filename)||
       /^docs\/(?:security|architecture)\//i.test(f.filename)||
-      /^docs\/comun-orch-v2-/i.test(f.filename)))
+      /^docs\/comun-(?:orch-v2-|product-objective-and-roadmap\.|roadmap-hourly-automation\.|escola)/i.test(f.filename)))
       throw Error('MERGE_NON_DOCS_OR_INCOMPLETE_DIFF');
   const runs=e.runs;
   if(!runs||!Array.isArray(runs.workflow_runs)||!Number.isSafeInteger(runs.total_count)||
@@ -149,6 +149,70 @@ export function assessDocsMerge(e) {
   return {pr:p.number,head_sha:p.head.sha,base_sha:p.base.sha,mode:'DOCS_ONLY',
     fingerprint:hash(evidence),files:evidence.files.length,ci_run:ci[0].id};
 }
+
+// Tier L is an admission contract, never an alternate mutation endpoint. The
+// installed merge boundary remains DOCS_ONLY until a separate activation can
+// prove the complete policy, provider evidence and main/Production behavior.
+export function assessLowRiskMerge(e, policy, now = Date.now()) {
+  const digest = value => /^[a-f0-9]{64}$/.test(value ?? '');
+  const p = e?.pr;
+  if (policy?.enabled !== true || policy.version !== 1 ||
+      policy.scope !== 'LOW_RISK_CODE' || policy.source !== 'human-message' ||
+      !digest(policy.evidence_sha) || !Array.isArray(policy.allowed_paths) ||
+      !policy.allowed_paths.length) throw Error('LOW_RISK_POLICY_REQUIRED');
+  if (!Number.isFinite(now) || !Number.isFinite(Date.parse(e?.observed_at)) ||
+      Date.parse(e.observed_at) > now || now - Date.parse(e.observed_at) > 5 * 60000)
+    throw Error('LOW_RISK_FRESH_EVIDENCE_REQUIRED');
+  const safePath = value => typeof value === 'string' &&
+    /^(?:components|lib)\/[a-zA-Z0-9_/-]+\.(?:ts|tsx)$/.test(value) &&
+    !/auth|school|escola|permission|payment|billing|personal|migration|schema|rls|secret|env|release|captcha|admin|middleware|production/i.test(value);
+  if (policy.allowed_paths.some(value => !safePath(value)))
+    throw Error('LOW_RISK_POLICY_PATH_DENIED');
+  const files = e?.files;
+  if (!Array.isArray(files) || !files.length || files.length > 3 ||
+      files.some(f => f.status !== 'modified' || !safePath(f.filename) ||
+        !policy.allowed_paths.includes(f.filename) || typeof f.patch !== 'string' ||
+        !Number.isSafeInteger(f.additions) || f.additions < 0 ||
+        !Number.isSafeInteger(f.deletions) || f.deletions < 0) ||
+      new Set(files.map(f => f.filename)).size !== files.length ||
+      files.reduce((n, f) => n + f.additions + f.deletions, 0) > 100)
+    throw Error('LOW_RISK_COMPLETE_SMALL_DIFF_REQUIRED');
+  if (e.diff?.complete !== true || e.diff.head_sha !== p?.head?.sha ||
+      e.diff.base_sha !== p?.base?.sha || e.diff.files_sha !== hash(files))
+    throw Error('LOW_RISK_COMPLETE_SMALL_DIFF_REQUIRED');
+  // Reuse the existing exact-head CI/COST/review contract without allowing a
+  // code path through assessDocsMerge or the real DOCS_ONLY PUT boundary.
+  const docsView = structuredClone(e);
+  docsView.files = files.map((_, i) => ({ filename: `docs/tier-l-proof-${i}.md`, status: 'modified' }));
+  const baseline = assessDocsMerge(docsView);
+  const checks = e.checks;
+  if (!checks || checks.complete !== true || checks.sha !== p.head.sha ||
+      !Array.isArray(checks.required) || !checks.required.length ||
+      new Set(checks.required).size !== checks.required.length ||
+      !Array.isArray(checks.items) || !checks.items.length ||
+      checks.items.some(c => c.sha !== p.head.sha || c.status !== 'completed' ||
+        c.conclusion !== 'success') || checks.required.some(name =>
+        checks.items.filter(c => c.name === name).length !== 1))
+    throw Error('LOW_RISK_ALL_CHECKS_REQUIRED');
+  const preview = e.preview;
+  if (preview?.sha !== p.head.sha || preview.state !== 'READY' ||
+      preview.source !== 'git' || preview.target !== 'preview' ||
+      preview.branch !== p.head.ref || preview.project !== policy.preview_project ||
+      typeof preview.id !== 'string' || !preview.id || !policy.preview_project)
+    throw Error('LOW_RISK_EXACT_PREVIEW_REQUIRED');
+  const contracts = e.contracts;
+  if (!contracts || contracts.sha !== p.head.sha || contracts.diff_sha !== hash(files) ||
+      contracts.policy_version !== policy.version ||
+      contracts.focal_tests !== 'PASS' || contracts.quality !== 'PASS' ||
+      contracts.sensitive_behavior_unchanged !== true || !digest(contracts.evidence_sha))
+    throw Error('LOW_RISK_OWN_CONTRACTS_REQUIRED');
+  if (e.production_effect?.base_sha !== p.base.sha ||
+      e.production_effect?.result !== 'NO_PRODUCTION' ||
+      !digest(e.production_effect?.evidence_sha))
+    throw Error('LOW_RISK_PRODUCTION_EFFECT_UNVERIFIED');
+  return { ...baseline, mode: 'LOW_RISK_CODE',
+    fingerprint: hash({ evidence: e, policy }), mutation_enabled: false };
+}
 export function mergeExistingPullRequest(ctx,{owner_id,task_id,operation_id,pr_number,expected_head_sha},
   {read=readMergeEvidence,merge=mergeOnGitHub,
    readback=n=>mergeReadJSON('repos/'+COMUN_REPOSITORY+'/pulls/'+n),
@@ -169,8 +233,17 @@ export function mergeExistingPullRequest(ctx,{owner_id,task_id,operation_id,pr_n
     o.cycle_id===t.lease.cycle_id||
     o.action==='merge-pr'&&o.state==='APPLIED'))
       throw Error('RECONCILE_MERGE_BEFORE_REPEAT');
+  // A docs-only diff does not prove that merging main cannot deploy Production.
+  // Keep the effect closed until the human-sourced activation has recorded an
+  // independently verified deployment configuration at this exact main SHA.
+  if(policy.production_effect?.result!=='NO_PRODUCTION' ||
+    !/^[a-f0-9]{64}$/.test(policy.production_effect?.evidence_sha??'') ||
+    !MERGE_SHA.test(policy.production_effect?.base_sha??''))
+    throw Error('MERGE_PRODUCTION_EFFECT_UNVERIFIED');
   const before=assessDocsMerge(read(pr_number));
   if(before.pr!==pr_number||before.head_sha!==expected_head_sha)throw Error('MERGE_HEAD_CHANGED');
+  if(before.base_sha!==policy.production_effect.base_sha)
+    throw Error('MERGE_PRODUCTION_BASE_CHANGED');
   const state=structuredClone(loaded.state);
   state.tasks.find(x=>x.task_id===task_id).operations.push({
     operation_id,action:'merge-pr',state:'UNCERTAIN',expected_sha:expected_head_sha,

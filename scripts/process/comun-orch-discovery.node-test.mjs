@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import {execFileSync,spawnSync} from 'node:child_process';
 import {hash,task,transition,plan} from './comun-orch-v2.mjs';
-import {admitDiscovery,readDiscovery,replenish,discoveryDue,mergeDiscoveryDue,readMergeDiscovery,admitMergeDiscovery,replenishMergeDiscovery,MERGE_DISCOVERY_ID,chooseDiscoveryLane} from './comun-orch-discovery.mjs';
+import {admitDiscovery,readDiscovery,replenish,discoveryDue,mergeDiscoveryDue,readMergeDiscovery,admitMergeDiscovery,replenishMergeDiscovery,MERGE_DISCOVERY_ID,chooseDiscoveryLane,readRoadmapDiscovery,admitRoadmapDiscovery} from './comun-orch-discovery.mjs';
 import {context,tick,loadState,record,acquireLock,releaseLock,saveState,inspectLock,REMOTE,REF} from './comun-orch-runtime.mjs';
 import {REPOSITORY} from './comun-orch-reconcile.mjs';
 const NOW=Date.now(), A='a'.repeat(40), B='b'.repeat(40);
@@ -15,6 +15,64 @@ const evidence=(sha=A)=>({repository:REPOSITORY,pr:551,sha,branch:'existing',run
   paths:['tests/experience-coherence/games-entry.spec.ts'],log_sha:hash('failed format log'),recipe:'PRETTIER_TEST_ONLY',scope:'Formatting only; other checks unverified'});
 const source=(sha=A)=>({repository:REPOSITORY,complete:true,observed_at:new Date(NOW).toISOString(),inventory:[{pr:551,sha,branch:'existing',repository:REPOSITORY}],candidate:evidence(sha),reason:'PROVEN_EXISTING_BRANCH_REPAIR',scan_index:1});
 const make=(status='WAIT_HUMAN',more={})=>task({task_id:'protected',priority:1,status,inputs:{sha:A},...more});
+
+function roadmapFixture() {
+  const item={task_id:'roadmap-search-labels',priority:5,status:'READY',target_pr:554,
+    sha:A,branch:'existing-search',roadmap_heading:'## Search labels',
+    paths:['lib/search/labels.ts'],test_criteria:['Preserve query and submit behavior'],dependencies:[]};
+  const grant={task_id:item.task_id,source:'human-message',evidence_sha:hash('specific human grant'),criteria_sha:hash(item)};
+  const s=state();s.roadmap_discovery={enabled:true,scope:'EXISTING_PR_ROADMAP',
+    source:'human-message',evidence_sha:hash('human intake policy'),grants:[grant]};
+  const checkpoint={roadmap_backlog:{items:[item]}};
+  const ctx={repo:'fixture',canonical:B};
+  const read=args=>args[0]==='rev-parse'?B:args[1].endsWith('.json')?
+    JSON.stringify(checkpoint):'# Canonical roadmap\n## Search labels\n';
+  return {s,item,grant,checkpoint,ctx,read};
+}
+
+test('roadmap intake references canonical source and exact human criteria, never creates a PR',()=>{
+  const f=roadmapFixture(),source=readRoadmapDiscovery(f.ctx,f.s,f.read);
+  assert.equal(source.reason,'AUTHORIZED_CANONICAL_ROADMAP_ITEM');
+  const next=admitRoadmapDiscovery(f.s,source),t=next.tasks[0];
+  assert.equal(t.pr_effect,'EXISTING_PR');assert.equal(t.target_pr,554);
+  assert.equal(t.execution_base,'PR_HEAD');assert.equal(t.discovery.recipe,'ROADMAP_SCOPED_BUILD');
+  assert.deepEqual(t.inputs.contract,f.item.test_criteria);
+  assert.equal(admitRoadmapDiscovery(next,source),next);
+  assert.equal(readRoadmapDiscovery(f.ctx,next,f.read).candidate,null);
+});
+
+test('roadmap documentation alone, changed criteria and revoked grants authorize nothing',()=>{
+  const f=roadmapFixture();delete f.s.roadmap_discovery;
+  assert.equal(readRoadmapDiscovery(f.ctx,f.s,()=>assert.fail('no Git reads')).reason,'ROADMAP_HUMAN_POLICY_REQUIRED');
+  for(const change of [f=>f.grant.revoked=true,f=>f.item.test_criteria=['changed scope'],
+    f=>f.item.paths=['lib/auth/session.ts'],f=>f.item.branch='main',f=>f.item.sha='bad',
+    f=>f.item.roadmap_heading='## Invented heading',f=>f.item.dependencies=['missing']]) {
+    const g=roadmapFixture();change(g);
+    // Scope tests use an exact grant as well: an authorization still cannot
+    // override protected paths, branch restrictions or unresolved dependencies.
+    if(!g.grant.revoked && g.item.test_criteria[0]!=='changed scope')g.grant.criteria_sha=hash(g.item);
+    assert.equal(readRoadmapDiscovery(g.ctx,g.s,g.read).candidate,null);
+  }
+});
+
+test('roadmap admission detects live revocation and canonical CAS changes without modifying state',()=>{
+  const f=roadmapFixture(),source=readRoadmapDiscovery(f.ctx,f.s,f.read);
+  f.grant.revoked=true;
+  const before=structuredClone(f.s);
+  assert.throws(()=>admitRoadmapDiscovery(f.s,source),/ROADMAP_LIVE_AUTHORIZATION/);
+  assert.deepEqual(f.s,before);
+  assert.throws(()=>readRoadmapDiscovery(f.ctx,roadmapFixture().s,args=>
+    args[0]==='rev-parse'?A:f.read(args)),/ROADMAP_CANONICAL_CHANGED/);
+});
+
+test('roadmap blocked dependency does not starve a different authorized existing PR',()=>{
+  const f=roadmapFixture(),other={...f.item,task_id:'roadmap-independent',target_pr:550};
+  f.item.dependencies=['blocked'];f.grant.criteria_sha=hash(f.item);
+  f.checkpoint.roadmap_backlog.items.push(other);
+  f.s.roadmap_discovery.grants.push({...f.grant,task_id:other.task_id,criteria_sha:hash(other)});
+  f.s.tasks.push(make('WAIT_HUMAN',{task_id:'blocked'}));
+  assert.equal(readRoadmapDiscovery(f.ctx,f.s,f.read).candidate.item.task_id,other.task_id);
+});
 function fixture(){
   const repo=fs.mkdtempSync(path.join(os.tmpdir(),'comun-discovery-'));
   const git=(...args)=>execFileSync('git',['-C',repo,...args],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
@@ -25,6 +83,31 @@ function fixture(){
   const ctx=context(repo);
   return {repo,ctx,git,cleanup(){assert(path.resolve(repo).startsWith(path.resolve(os.tmpdir())+path.sep));fs.rmSync(repo,{recursive:true});}};
 }
+
+test('locked runtime admits canonical roadmap criteria into one owned worktree after repair intake is empty',()=>{
+  const f=fixture(),r=roadmapFixture();
+  try {
+    const base=f.git('rev-parse','HEAD');r.item.sha=base;r.grant.criteria_sha=hash(r.item);
+    fs.mkdirSync(path.join(f.repo,'docs'),{recursive:true});
+    fs.writeFileSync(path.join(f.repo,'docs/comun-product-objective-and-roadmap.md'),'# Roadmap\n## Search labels\n');
+    fs.writeFileSync(path.join(f.repo,'reports/current/comun-execution-checkpoint.json'),
+      JSON.stringify({legacy:{keep:true},orchV2:r.s,roadmap_backlog:{items:[r.item]}}));
+    f.git('add','.');f.git('commit','-m','canonical authorized criteria');f.git('update-ref',REF,'HEAD');
+    const ctx=context(f.repo);
+    const result=tick(ctx,{now:NOW,worktreeRoot:path.join(f.repo,'cycles'),reconcile:false,
+      discover:()=>({repository:REPOSITORY,complete:true,observed_at:new Date(NOW).toISOString(),
+        inventory:[],candidate:null,reason:'NO_SUPPORTED_REPAIR_EVIDENCE',scan_index:1}),
+      resolveExecutionBase:()=>base});
+    assert.equal(result.action,'EXECUTE');assert.equal(result.task.task_id,r.item.task_id);
+    assert.equal(result.roadmap_discovery.admitted,r.item.task_id);
+    assert.equal(result.worktrees,1);assert.equal(loadState(ctx).state.tasks.length,1);
+    assert.equal(result.task.lease.base_sha,base);
+    const again=tick(ctx,{now:NOW+1,reconcile:false});
+    assert.equal(again.reason,'HELD_LIVE');assert.equal(again.worktrees,0);
+    record(ctx,{owner_id:result.owner_id,task_id:r.item.task_id,event:{type:'cycle-complete'},now:NOW+2});
+    f.git('worktree','remove',result.worktree);
+  }finally{f.cleanup();}
+});
 test('empty queue admits exactly one existing-PR task with own SHA/evidence/authorization; never reopens DONE',()=>{
   const done=transition(state([task({task_id:'old',priority:1,inputs:{sha:A}})]),'old',
     {type:'result',sha:A,input_fingerprint:hash({sha:A}),result:'PASS',scope:'old',evidence_sha:hash('old')},NOW);
