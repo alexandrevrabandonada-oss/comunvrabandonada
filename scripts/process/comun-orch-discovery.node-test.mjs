@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import {execFileSync,spawnSync} from 'node:child_process';
 import {hash,task,transition} from './comun-orch-v2.mjs';
-import {admitDiscovery,readDiscovery,replenish,discoveryDue} from './comun-orch-discovery.mjs';
+import {admitDiscovery,readDiscovery,replenish,discoveryDue,mergeDiscoveryDue,readMergeDiscovery,admitMergeDiscovery,replenishMergeDiscovery,MERGE_DISCOVERY_ID} from './comun-orch-discovery.mjs';
 import {context,tick,loadState,record,acquireLock,releaseLock,saveState,inspectLock,REMOTE,REF} from './comun-orch-runtime.mjs';
 import {REPOSITORY} from './comun-orch-reconcile.mjs';
 const NOW=Date.now(), A='a'.repeat(40), B='b'.repeat(40);
@@ -136,5 +136,82 @@ test('interruption after admission persistence leaves one owned RUNNING lease an
     assert.notEqual(child.status,0);assert.match(child.stderr,/ISOLATION_PATH_INVALID/);
     assert.equal(loadState(f.ctx).state.tasks.filter(t=>t.status==='RUNNING').length,1);
     assert.equal(tick(f.ctx).reason,'ORPHAN_UNKNOWN');
+  }finally{f.cleanup();}
+});
+
+const docsAuthorization={enabled:true,source:'human-message',scope:'DOCS_ONLY',
+  evidence_sha:hash('human permission for docs-only fixture')};
+const docsState=()=>({...state([make()]),merge_policy:docsAuthorization});
+const docsMergeSource=()=>({repository:REPOSITORY,complete:true,observed_at:new Date(NOW).toISOString(),
+  inventory:[{pr:550,sha:A,branch:'docs-pr',repository:REPOSITORY,base:'main'}],
+  candidate:{pr:550,sha:A,base_sha:B,branch:'docs-pr',ci_run:11,cost_job:12,
+    paths:['docs/product.md'],mode:'DOCS_ONLY',fingerprint:hash('verified docs evidence')},
+  reason:'CERTIFIED_DOCUMENTAL_MERGE_CANDIDATE',scan_index:1,scan_complete:true});
+test('bounded merge inventory admits one exact-head docs task, not a second task for same PR',()=>{
+  const s=docsState(),next=admitMergeDiscovery(s,docsMergeSource(),NOW);
+  assert.equal(s.tasks.length,1);
+  assert.equal(next.tasks.length,2);
+  assert.equal(next.tasks[1].action,'integrate-existing-pr');
+  assert.equal(next.tasks[1].status,'READY');
+  assert.equal(next.tasks[1].target_pr,550);
+  assert.deepEqual(next.tasks[1].merge_authorization,
+    {scope:'DOCS_ONLY',evidence_sha:docsAuthorization.evidence_sha});
+  assert.equal(admitMergeDiscovery(next,docsMergeSource(),NOW).tasks.length,2);
+  const blocked=structuredClone(s);delete blocked.merge_policy;
+  assert.equal(mergeDiscoveryDue(blocked,NOW),false);
+  assert.throws(()=>admitMergeDiscovery(blocked,docsMergeSource(),NOW),/AUTHORIZATION/);
+});
+test('bounded provider merge discovery checks exact CI/COST-02, diff and remote head',()=>{
+  const pr={number:550,state:'open',draft:false,mergeable:true,changed_files:1,
+    base:{ref:'main',sha:B,repo:{full_name:REPOSITORY}},
+    head:{sha:A,ref:'docs-pr',repo:{full_name:REPOSITORY}}};
+  const runs={total_count:1,workflow_runs:[{id:11,name:'COMUN CI',event:'pull_request',
+    head_sha:A,status:'completed',conclusion:'success'}]};
+  const jobs={total_count:1,jobs:[{id:12,name:'COST-02 / exact checkpoint Preview',
+    status:'completed',conclusion:'success'}]};
+  const data=new Map([
+    ['repos/'+REPOSITORY+'/pulls?state=open&per_page=100&sort=updated&direction=desc',[pr]],
+    ['repos/'+REPOSITORY+'/pulls/550',pr],
+    ['repos/'+REPOSITORY+'/pulls/550/files?per_page=100',
+      [{filename:'docs/product.md',status:'modified'}]],
+    ['repos/'+REPOSITORY+'/actions/runs?head_sha='+A+'&event=pull_request&per_page=100',runs],
+    ['repos/'+REPOSITORY+'/actions/runs/11/jobs?filter=latest&per_page=100',jobs],
+    ['repos/'+REPOSITORY+'/pulls/550/reviews?per_page=100',[]],
+    ['repos/'+REPOSITORY+'/pulls/550/comments?per_page=100',[]],
+  ]);
+  const read=k=>{assert(data.has(k),'Unexpected route '+k);return data.get(k);};
+  const good=readMergeDiscovery(docsState(),null,read);
+  assert.equal(good.candidate.pr,550);
+  assert.equal(good.candidate.sha,A);
+  const unsafe=new Map(data);unsafe.set('repos/'+REPOSITORY+'/pulls/550/files?per_page=100',
+    [{filename:'app/page.tsx',status:'modified'}]);
+  assert.equal(readMergeDiscovery(docsState(),null,k=>unsafe.get(k)).candidate,null);
+  const stale=new Map(data);stale.set('repos/'+REPOSITORY+'/pulls/550',
+    {...pr,head:{...pr.head,sha:B}});
+  assert.throws(()=>readMergeDiscovery(docsState(),null,k=>stale.get(k)),/MERGE_HEAD_MOVED/);
+  const failed=new Map(data);failed.set('repos/'+REPOSITORY+'/actions/runs/11/jobs?filter=latest&per_page=100',
+    {...jobs,jobs:[{...jobs.jobs[0],conclusion:'failure'}]});
+  assert.equal(readMergeDiscovery(docsState(),null,k=>failed.get(k)).candidate,null);
+});
+test('single locked tick turns verified docs intake into lease without a worktree, never a merge effect',()=>{
+  const f=fixture(),docState=docsState();
+  try {
+    const checkpoint={remote:REMOTE,common:f.ctx.common,canonical:f.ctx.canonical,state:docState};
+    fs.mkdirSync(path.dirname(f.ctx.ledger),{recursive:true});
+    fs.writeFileSync(f.ctx.ledger,JSON.stringify(checkpoint));
+    const originalRef=f.git('rev-parse',REF);
+    const r=tick(f.ctx,{now:NOW,discoverMerge:()=>docsMergeSource(),
+      discover:()=>assert.fail('repair discovery should not execute')});
+    assert.equal(r.action,'EXECUTE');
+    assert.equal(r.task.target_pr,550);
+    assert.equal(r.task.action,'integrate-existing-pr');
+    assert.equal(r.worktree,null);
+    assert.equal(r.worktrees,0);
+    assert(r.owner_id);
+    assert.equal(loadState(f.ctx).state.tasks.filter(t=>t.action==='integrate-existing-pr').length,1);
+    assert.equal(f.git('rev-parse',REF),originalRef);
+    record(f.ctx,{owner_id:r.owner_id,task_id:r.task.task_id,event:{type:'cycle-complete'}});
+    assert.equal(inspectLock(f.ctx.common).state,'FREE');
+    assert.equal(loadState(f.ctx).state.tasks.filter(t=>t.action==='integrate-existing-pr').length,1);
   }finally{f.cleanup();}
 });
