@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { hash, task, plan, PROTECTED, validate } from './comun-orch-v2.mjs';
 import { REPOSITORY } from './comun-orch-reconcile.mjs';
+import { DOCS_MERGE_ALLOWED_SKIPPED_WORKFLOWS } from './orch-v2-candidate.mjs';
 
 const sha = s => /^[a-f0-9]{40}$/.test(s ?? '');
 const digest = s => /^[a-f0-9]{64}$/.test(s ?? '');
@@ -213,7 +214,8 @@ export function readMergeDiscovery(state,cursor,read=api) {
     page.total_count!==page.workflow_runs.length)throw Error('MERGE_RUNS_INCOMPLETE');
   if(!page.workflow_runs.length||page.workflow_runs.some(r=>
     r.event!=='pull_request'||r.head_sha!==p.head.sha||
-    r.status!=='completed'||!['success','skipped'].includes(r.conclusion)))return source;
+    r.status!=='completed'||(r.conclusion!=='success'&&
+      !(r.conclusion==='skipped'&&DOCS_MERGE_ALLOWED_SKIPPED_WORKFLOWS.includes(r.name)))))return source;
   const cis=page.workflow_runs.filter(r=>r.name==='COMUN CI'&&r.conclusion==='success');
   if(cis.length!==1)return source;
   const jobs=read(root+'/actions/runs/'+cis[0].id+'/jobs?filter=latest&per_page=100');
