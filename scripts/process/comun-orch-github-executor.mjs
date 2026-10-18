@@ -151,7 +151,9 @@ export function assessDocsMerge(e) {
 }
 export function mergeExistingPullRequest(ctx,{owner_id,task_id,operation_id,pr_number,expected_head_sha},
   {read=readMergeEvidence,merge=mergeOnGitHub,
-   readback=n=>mergeReadJSON('repos/'+COMUN_REPOSITORY+'/pulls/'+n),now=Date.now()}={}) {
+   readback=n=>mergeReadJSON('repos/'+COMUN_REPOSITORY+'/pulls/'+n),
+   readMain=sha=>mergeReadJSON('repos/'+COMUN_REPOSITORY+'/compare/'+sha+'...main'),
+   now=Date.now()}={}) {
   const proof=ownerProof(ctx,owner_id),loaded=loadState(ctx);
   const t=loaded.state.tasks.find(x=>x.task_id===task_id),policy=loaded.state.merge_policy;
   if(!t||t.status!=='RUNNING'||t.owner_id!==owner_id||!t.lease||
@@ -193,6 +195,13 @@ export function mergeExistingPullRequest(ctx,{owner_id,task_id,operation_id,pr_n
   if(verified.state!=='closed'||verified.merged!==true||
     verified.merge_commit_sha!==result.sha||verified.head?.sha!==expected_head_sha)
     throw Error('MERGE_READBACK_UNCERTAIN');
+  // PR metadata alone is insufficient; the merge commit must be on main.
+  // A later, independently merged descendant is acceptable, divergence is not.
+  const main=readMain(result.sha);
+  if(!['ahead','identical'].includes(main?.status)||
+    main.merge_base_commit?.sha!==result.sha||
+    !MERGE_SHA.test(main.head_commit?.sha??''))
+    throw Error('MERGE_MAIN_ANCESTRY_UNCERTAIN');
   const applied=structuredClone(intended.state);
   const appliedAt=new Date(now).toISOString();
   Object.assign(applied.tasks.find(x=>x.task_id===task_id).operations.at(-1),
