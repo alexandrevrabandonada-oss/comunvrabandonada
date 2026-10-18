@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import {previewProof} from './comun-orch-adapter.mjs';
 import {nextObservation, reconcileOne, readTracked, watchSpec} from './comun-orch-reconcile.mjs';
-import {discoveryDue, replenish, readDiscovery, permitted} from './comun-orch-discovery.mjs';
+import {discoveryDue, replenish, readDiscovery, permitted, mergeDiscoveryDue, replenishMergeDiscovery, readMergeDiscovery, mergePermitted} from './comun-orch-discovery.mjs';
 import {
   hash,
   plan,
@@ -299,6 +299,7 @@ export function tick(
     reconcile = true,
     observer_control = undefined,
     discover = readDiscovery,
+    discoverMerge = readMergeDiscovery,
     resolveExecutionBase = prepareExistingBase,
   } = {},
 ) {
@@ -340,9 +341,10 @@ export function tick(
       history_start:'Explicit APPLIED normal-code-push only; older unknown timestamps are not inferred'};
     observer_control.delivery_monitor = progress;
   }
-  const discoverNow = material_budget > 0 && discoveryDue(initial,now,observer_control);
-  const observationTask = !discoverNow && reconcile && preplan.action !== 'EXECUTE' ? nextObservation(initial,now,observer_control) : null;
-  if(fs.existsSync(ctx.ledger) && !discoverNow && !observationTask && !preplan.probes.length && !preplan.notifications.length &&
+  const mergeNow = material_budget > 0 && mergeDiscoveryDue(initial,now,observer_control);
+  const discoverNow = !mergeNow && material_budget > 0 && discoveryDue(initial,now,observer_control);
+  const observationTask = !mergeNow && !discoverNow && reconcile && preplan.action !== 'EXECUTE' ? nextObservation(initial,now,observer_control) : null;
+  if(fs.existsSync(ctx.ledger) && !mergeNow && !discoverNow && !observationTask && !preplan.probes.length && !preplan.notifications.length &&
     ['NOOP','RECONCILE'].includes(preplan.action))return {...preplan,owner_id:null,worktree:null,
       canonical:ctx.canonical,materialChanges:[],observer_control,progress,notify:false,writes:0,worktrees:0,next:null};
   const id = `orchv2-${randomUUID()}`;
@@ -363,8 +365,12 @@ export function tick(
     if (p.action === "RECONCILE")
       return { ...p, notify: false, writes: 0, worktrees: 0 };
     const materialChanges = [];
-    let observation = null, discovery = null, readNotifications = [];
-    if (discoverNow) {
+    let observation = null, discovery = null, mergeDiscovery = null, readNotifications = [];
+    if (mergeNow) {
+      const found = replenishMergeDiscovery(state,{now,observer_control,read:discoverMerge});
+      state=found.state; observer_control=found.observer_control;
+      mergeDiscovery=found.merge_discovery;
+    } else if (discoverNow) {
       const found = replenish(state, {now, observer_control, read: discover});
       state = found.state; observer_control = found.observer_control;
       discovery = found.discovery; readNotifications = found.notifications;
@@ -380,7 +386,7 @@ export function tick(
         source_evidence_sha:observation.source_evidence_sha});
     }
     // At most one cheap due probe per wake; no heavy/unchanged service inventory.
-    if (!discoverNow && !observationTask && p.probes.length) {
+    if (!mergeNow && !discoverNow && !observationTask && p.probes.length) {
       const t = state.tasks.find((t) => t.task_id === p.probes[0]);
       try {
         const result = probe(t);
@@ -443,43 +449,40 @@ export function tick(
         baseSha = resolveExecutionBase(ctx, claimed);
         if (baseSha !== claimed.inputs.sha) throw Error('DISCOVERY_HEAD_MOVED');
       }
-      worktree = path.resolve(worktreeRoot,id);
+      const docsMerge = claimed.action === 'integrate-existing-pr';
+      if (docsMerge && (!mergePermitted(state) || claimed.work_class!=='INTEGRATION' ||
+        claimed.pr_effect!=='EXISTING_PR' ||
+        claimed.merge_authorization?.evidence_sha!==state.merge_policy.evidence_sha))
+        throw Error('MERGE_EXECUTION_NOT_AUTHORIZED');
+      worktree = docsMerge ? null : path.resolve(worktreeRoot,id);
       claimed.lease={owner_id:id,owner_proof:ownerProof(ctx,id),cycle_id:id,worktree,
         started_at:new Date(now).toISOString(),deadline_at:new Date(now+25*60000).toISOString(),base_sha:baseSha,
         before_evidence:hash({inputs:claimed.inputs,evidence:claimed.evidence,operations:claimed.operations})};
       // Persist intent/lease BEFORE worktree creation. On interruption, preserve and reconcile.
       saveState(ctx, state, expectedHash,id);
       retainLock = true;
-      worktree = path.resolve(worktreeRoot, id);
-      if (worktree === path.resolve(ctx.repo) || fs.existsSync(worktree))
-        throw Error("ISOLATION_PATH_INVALID");
-      git(ctx.repo, "worktree", "add", "--detach", worktree, baseSha);
-      if (
-        git(worktree, "status", "--porcelain") ||
-        path.resolve(
-          git(
-            worktree,
-            "rev-parse",
-            "--path-format=absolute",
-            "--git-common-dir",
-          ),
-        ) !== path.resolve(ctx.common) ||
-        git(worktree, "remote", "get-url", "origin") !== REMOTE
-      )
-        throw Error("ISOLATION_INVALID");
-      retainLock = true;
+      if (!docsMerge) {
+        if (worktree === path.resolve(ctx.repo) || fs.existsSync(worktree))
+          throw Error("ISOLATION_PATH_INVALID");
+        git(ctx.repo, "worktree", "add", "--detach", worktree, baseSha);
+        if (git(worktree,"status","--porcelain") ||
+          path.resolve(git(worktree,"rev-parse","--path-format=absolute","--git-common-dir"))!==path.resolve(ctx.common) ||
+          git(worktree,"remote","get-url","origin")!==REMOTE)
+          throw Error("ISOLATION_INVALID");
+      }
     } else if (hash(state) !== priorHash || !fs.existsSync(ctx.ledger))
       saveState(ctx, state, expectedHash,id);
     return {
       ...decision,
-      action:discoverNow && decision.action !== 'EXECUTE' ? 'OBSERVE' : decision.action === 'NOOP' && observation ? 'OBSERVE' : decision.action,
-      reason:discoverNow && decision.action !== 'EXECUTE' ? 'QUEUE_DISCOVERY' : decision.action === 'NOOP' && observation ?
+      action:(mergeNow || discoverNow) && decision.action !== 'EXECUTE' ? 'OBSERVE' : decision.action === 'NOOP' && observation ? 'OBSERVE' : decision.action,
+      reason:mergeNow && decision.action !== 'EXECUTE' ? 'DOCS_MERGE_DISCOVERY' : discoverNow && decision.action !== 'EXECUTE' ? 'QUEUE_DISCOVERY' : decision.action === 'NOOP' && observation ?
         (observation.error_fingerprint ? 'TRACKED_READ_FAILED' : 'TRACKED_OBSERVATION') : decision.reason,
-      owner_id: worktree ? id : null,
+      owner_id: decision.action==='EXECUTE' ? id : null,
       worktree,
       canonical: ctx.canonical,
       observation,
       discovery,
+      merge_discovery:mergeDiscovery,
       progress,
       task: decision.selected ? state.tasks.find(t=>t.task_id===decision.selected) : null,
       observer_control,
