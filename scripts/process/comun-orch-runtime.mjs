@@ -508,6 +508,18 @@ export function record(ctx, { owner_id, task_id, event, now = Date.now() }) {
   if (!t || t.owner_id !== owner_id) throw Error("OWNER_MISMATCH");
   if(t.lease?.owner_proof && ownerProof(ctx,owner_id)!==t.lease.owner_proof)
     throw Error('OWNER_BYTES_CHANGED');
+  if(t.action==='integrate-existing-pr' && event.type==='result' && event.result==='PASS') {
+    // Only the verified executor may conclude a merge. A caller-supplied
+    // PASS/URL without this durable, same-cycle APPLIED record is not proof.
+    const applied=t.operations.filter(o=>o.action==='merge-pr'&&o.state==='APPLIED'&&
+      o.cycle_id===t.lease?.cycle_id&&o.expected_sha===t.inputs.sha&&
+      /^[a-f0-9]{40}$/.test(o.merge_commit_sha??'')&&
+      /^[a-f0-9]{64}$/.test(o.evidence_sha??''));
+    if(t.status!=='RUNNING'||applied.length!==1||
+      event.sha!==t.inputs.sha||event.input_fingerprint!==t.input_fingerprint||
+      event.evidence_sha!==applied[0].merge_commit_sha)
+      throw Error('VERIFIED_MERGE_APPLIED_PROOF_REQUIRED');
+  }
   if(event.type==='operation-intent') {
     if(!t.lease || now>Date.parse(t.lease.deadline_at))throw Error('CYCLE_BUDGET_EXHAUSTED');
     if(t.operations.some(o=>o.cycle_id===t.lease.cycle_id))throw Error('ONE_PUSH_PER_CYCLE');
