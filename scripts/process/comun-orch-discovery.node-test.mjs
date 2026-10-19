@@ -196,6 +196,35 @@ function fixture(){
   return {repo,ctx,git,cleanup(){assert(path.resolve(repo).startsWith(path.resolve(os.tmpdir())+path.sep));fs.rmSync(repo,{recursive:true});}};
 }
 
+test('rail claims its own station even with a higher-priority unrelated READY task',()=>{
+  const f=fixture(),r=railFixture(roadmapFixture());let result;
+  try {
+    const base=f.git('rev-parse','HEAD');
+    r.item.sha=base;r.s.roadmap_discovery.grants=[];
+    r.s.roadmap_discovery.standing_build=standingMandate();
+    r.s.tasks.push(task({task_id:'older-ready',priority:0,
+      authorized:true,inputs:{sha:base},action:'local-code',
+      pr_effect:'EXISTING_PR',target_pr:551}));
+    fs.mkdirSync(path.join(f.repo,'docs'),{recursive:true});
+    fs.writeFileSync(path.join(f.repo,'docs/comun-product-objective-and-roadmap.md'),
+      '# Roadmap\n## Search labels\n');
+    fs.writeFileSync(path.join(f.repo,'reports/current/comun-execution-checkpoint.json'),
+      JSON.stringify({legacy:{keep:true},orchV2:r.s,roadmap_backlog:r.checkpoint.roadmap_backlog}));
+    f.git('add','.');f.git('commit','-m','rail claim fixtures');f.git('update-ref',REF,'HEAD');
+    const ctx=context(f.repo);
+    result=tick(ctx,{now:NOW,reconcile:false,worktreeRoot:path.join(f.repo,'cycles'),
+      resolveExecutionBase:()=>base});
+    assert.equal(result.action,'EXECUTE');
+    assert.equal(result.selected,r.item.task_id);
+    const persisted=loadState(ctx).state;
+    assert.equal(persisted.tasks.find(t=>t.task_id==='older-ready').authorized,true);
+    assert.equal(persisted.tasks.find(t=>t.task_id==='older-ready').status,'READY');
+    assert.equal(persisted.tasks.find(t=>t.task_id===r.item.task_id).status,'RUNNING');
+    record(ctx,{owner_id:result.owner_id,task_id:result.selected,
+      event:{type:'cycle-complete'},now:NOW+1});
+    f.git('worktree','remove',result.worktree);
+  } finally { f.cleanup(); }
+});
 test('locked runtime admits canonical roadmap criteria into one owned worktree after repair intake is empty',()=>{
   const f=fixture(),r=roadmapFixture();
   try {

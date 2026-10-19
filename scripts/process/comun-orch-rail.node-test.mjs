@@ -99,3 +99,53 @@ test("no valid track blocks unrelated READY work when permanent mandate requires
   assert.equal(scoped.rail.reason, "ROADMAP_RAIL_REQUIRED");
   assert.equal(scoped.state.tasks[0].authorized, false);
 });
+
+test("a merged PR advances only with exact original head, verified merge commit and pass", () => {
+  const backlog=track(items());
+  backlog.items[0]={...backlog.items[0],completion_kind:"MERGED_PR",target_pr:551};
+  const t=completed("first");
+  t.target_pr=551;t.pr_effect="EXISTING_PR";t.action="integrate-existing-pr";
+  t.operations=[{action:"merge-pr",state:"APPLIED",expected_sha:A,
+    merge_commit_sha:B,evidence_sha:hash("merge audit")}];
+  t.evidence[0].evidence_sha=B;
+  assert.equal(selectRailStation(backlog,state([t])).item.task_id,"second");
+  for(const corrupt of [
+    t=>{t.operations[0].state="UNCERTAIN";},
+    t=>{t.operations[0].merge_commit_sha="wrong";},
+    t=>{t.target_pr=999;},
+    t=>{t.evidence[0].evidence_sha=hash("unrelated");},
+    t=>{t.action="local-code";},
+  ]){
+    const broken=structuredClone(t);corrupt(broken);
+    assert.equal(selectRailStation(backlog,state([broken])).reason,"ROADMAP_RAIL_PROOF_REQUIRED");
+  }
+  assert.equal(selectRailStation(backlog,state([])).reason,"ROADMAP_RAIL_EXTERNAL_GATE");
+});
+test("human station only accepts a proved, human-cleared protected transition",()=>{
+  const backlog=track(items());
+  backlog.items[0]={...backlog.items[0],completion_kind:"HUMAN_GATE",
+    proof_requirements:["explicit privacy review","real pilot evidence"]};
+  assert.equal(selectRailStation(backlog,state([])).reason,"ROADMAP_RAIL_EXTERNAL_GATE");
+  const t=completed("first");
+  t.proof_requirements=[...backlog.items[0].proof_requirements];
+  t.human_clearance={source:"human-message",sha:A,
+    evidence_sha:hash("human receipt"),
+    requirements:[...t.proof_requirements].sort()};
+  t.evidence[0].evidence_sha=t.human_clearance.evidence_sha;
+  assert.equal(selectRailStation(backlog,state([t])).item.task_id,"second");
+  for(const change of [
+    t=>{t.human_clearance.source="bot-comment";},
+    t=>{t.human_clearance.requirements=["only one"];},
+    t=>{t.human_clearance.evidence_sha="not-a-digest";},
+    t=>{t.evidence[0].evidence_sha="other";},
+  ]){
+    const broken=structuredClone(t);change(broken);
+    assert.equal(selectRailStation(backlog,state([broken])).reason,"ROADMAP_RAIL_PROOF_REQUIRED");
+  }
+});
+test("external-gate kinds are explicit and fail closed on incomplete requirements",()=>{
+  const backlog=track(items());backlog.items[0].completion_kind="UNKNOWN";
+  assert.throws(()=>selectRailStation(backlog,state([])),/ROADMAP_RAIL_INVALID/);
+  backlog.items[0].completion_kind="HUMAN_GATE";
+  assert.throws(()=>selectRailStation(backlog,state([])),/ROADMAP_RAIL_INVALID/);
+});

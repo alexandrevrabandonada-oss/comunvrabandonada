@@ -464,12 +464,21 @@ export function tick(
       );
     let worktree = null;
     if (decision.action === "EXECUTE") {
-      state = transition(
-        state,
-        decision.selected,
-        { type: "claim", owner_id: id, lock_owner: id },
-        now,
-      );
+      // The same rail-scoped priority view must reach claim admission.
+      // Otherwise transition() re-plans the unscoped legacy queue and can
+      // reject the chosen station behind a lower-priority historical task.
+      const scopedClaim=runtimeRail(state)?.state ?? state;
+      const claimedView=transition(scopedClaim,decision.selected,
+        {type:"claim",owner_id:id,lock_owner:id},now);
+      if(scopedClaim!==state){
+        // Never persist temporary authorization masks into the human ledger.
+        for(const [index,original] of state.tasks.entries()){
+          if(claimedView.tasks[index]?.task_id!==original.task_id)
+            throw Error("ROADMAP_RAIL_CLAIM_SCOPE_CHANGED");
+          claimedView.tasks[index].authorized=original.authorized;
+        }
+      }
+      state=validate(claimedView);
       const claimed=state.tasks.find(t=>t.task_id===decision.selected);
       let baseSha = ctx.canonical;
       if (claimed.execution_base === 'PR_HEAD') {

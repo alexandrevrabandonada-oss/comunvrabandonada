@@ -310,6 +310,15 @@ export function transition(state, id, event, now) {
       scope:
         "Existing human prerequisites only; no migration authorization inferred",
     });
+    // A single-track HUMAN_GATE may only recognize this previously validated
+    // human-cleared transition. The rail cannot mint or replace that event.
+    t.human_clearance={
+      source:event.source,sha:t.inputs.sha,evidence_sha:event.evidence_sha,
+      requirements:[...t.proof_requirements].sort(),
+      proofs:t.proof_requirements.map(requirement=>({
+        requirement,sha:t.inputs.sha,result:'PASS',
+      })),
+    };
   } else if (event.type === "candidate") {
     if (
       t.status !== "RUNNING" ||
