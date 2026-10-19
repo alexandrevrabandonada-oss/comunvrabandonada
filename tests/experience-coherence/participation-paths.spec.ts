@@ -232,9 +232,9 @@ for (const viewport of [
 
       await page.goto("/comun");
       await expect(page.getByRole("main")).toHaveCount(1);
-      await expect(page.locator("[data-comun-participation-paths]")).toHaveCount(
-        0,
-      );
+      await expect(
+        page.locator("[data-comun-participation-paths]"),
+      ).toHaveCount(0);
       await expect(
         page.getByRole("link", { name: "Buscar um assunto", exact: true }),
       ).toHaveAttribute("href", "/comun/buscar");
