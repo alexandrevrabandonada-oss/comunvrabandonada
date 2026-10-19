@@ -1,0 +1,284 @@
+{
+  "mission": "Issue555 operational resilience; repair existing556 only",
+  "remote_head_confirmed": "976243dc94ae90c20810be6c76e992e3b95b2070",
+  "installed_before": "f865aa3c1ecbe9ca61a74374251586a3b027fef1",
+  "canonical_before": "8cc95401b8b8facef5c00d74fa21a32d70469d15",
+  "ledger_revision_before": 59,
+  "counts": {
+    "DONE": 14,
+    "WAIT_HUMAN": 1,
+    "BLOCKED_PROTECTED": 2,
+    "WAIT_EXTERNAL": 3,
+    "READY": 1
+  },
+  "queue": [
+    {
+      "task_id": "pr553-domain",
+      "status": "DONE",
+      "sha": "bbb533ad787d27dea3cd9f10a03e4b1b7716dd3e",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": null,
+      "next_probe_at": null,
+      "unblocking_evidence": null
+    },
+    {
+      "task_id": "school-human-proof",
+      "status": "WAIT_HUMAN",
+      "sha": "6c52ec9cac39b7185ef3bbb0ba2201ce19053a98",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": null,
+      "next_probe_at": null,
+      "unblocking_evidence": "Responsável da Escola: Turnstile exclusivo do laboratório, CAPTCHA humano e cinco fluxos; sem credenciais no chat"
+    },
+    {
+      "task_id": "school-protected-release",
+      "status": "BLOCKED_PROTECTED",
+      "sha": "6c52ec9cac39b7185ef3bbb0ba2201ce19053a98",
+      "dependencies": [
+        "school-human-proof"
+      ],
+      "eligible_dependencies": false,
+      "observer": null,
+      "next_probe_at": null,
+      "unblocking_evidence": null
+    },
+    {
+      "task_id": "pr552-quality",
+      "status": "DONE",
+      "sha": "b92bdf1c3484aaab0b7bbfa2dba835aef7571700",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": null,
+      "next_probe_at": null,
+      "unblocking_evidence": null
+    },
+    {
+      "task_id": "radio-publication-date",
+      "status": "DONE",
+      "sha": "14596e7523715452816e28a6b3a514180735df95",
+      "dependencies": [
+        "pr552-quality"
+      ],
+      "eligible_dependencies": true,
+      "observer": null,
+      "next_probe_at": null,
+      "unblocking_evidence": null
+    },
+    {
+      "task_id": "pr552-cost-publication",
+      "status": "WAIT_EXTERNAL",
+      "sha": "14596e7523715452816e28a6b3a514180735df95",
+      "dependencies": [
+        "radio-publication-date"
+      ],
+      "eligible_dependencies": true,
+      "observer": null,
+      "next_probe_at": null,
+      "unblocking_evidence": "Own COST-02 job117036307632/run38919753803 plus normalized exact Git Preview on14596e75; aggregate success cannot satisfy it"
+    },
+    {
+      "task_id": "pr554-domain",
+      "status": "WAIT_EXTERNAL",
+      "sha": "7ad06aaf1302454dd2fc32fa1ddc86efad6ab0b9",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": null,
+      "next_probe_at": null,
+      "unblocking_evidence": "Existing review-pr554 is complete; Home domain integration still requires preserved552/553 submitPublicSearch and550 Jogos decisions plus real human UX evidence; no authorization from a timer"
+    },
+    {
+      "task_id": "candidate-integration",
+      "status": "BLOCKED_PROTECTED",
+      "sha": "8b0ba0d2c90295a6579e8e8808a9e765583e86c9",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": null,
+      "next_probe_at": null,
+      "unblocking_evidence": null
+    },
+    {
+      "task_id": "orch-v2-integration-debt",
+      "status": "DONE",
+      "sha": "f865aa3c1ecbe9ca61a74374251586a3b027fef1",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": null,
+      "next_probe_at": null,
+      "unblocking_evidence": null
+    },
+    {
+      "task_id": "review-pr545",
+      "status": "DONE",
+      "sha": "0eb41ec40622b86a8a75ef95a4a37e470d0ea958",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": {
+        "kind": "review-head",
+        "pr": 545
+      },
+      "next_probe_at": null,
+      "unblocking_evidence": null
+    },
+    {
+      "task_id": "review-pr550",
+      "status": "DONE",
+      "sha": "021d4e29ab1de78038ee8ebda4a4c85ce44af180",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": {
+        "kind": "review-head",
+        "pr": 550
+      },
+      "next_probe_at": null,
+      "unblocking_evidence": null
+    },
+    {
+      "task_id": "review-pr554",
+      "status": "DONE",
+      "sha": "7ad06aaf1302454dd2fc32fa1ddc86efad6ab0b9",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": {
+        "kind": "review-head",
+        "pr": 554
+      },
+      "next_probe_at": null,
+      "unblocking_evidence": null
+    },
+    {
+      "task_id": "pr556-contract",
+      "status": "DONE",
+      "sha": "66a6130cb875696da09d52ff2d8e7ce82dde697a",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": {
+        "kind": "workflow",
+        "pr": 556,
+        "workflow": "COMUN ORCH-V2 contract"
+      },
+      "next_probe_at": null,
+      "unblocking_evidence": "Current tracked PR head and exact named pull_request workflow id/attempt/status/conclusion; old proofs stay on their own SHA"
+    },
+    {
+      "task_id": "pr556-quality",
+      "status": "WAIT_EXTERNAL",
+      "sha": "66a6130cb875696da09d52ff2d8e7ce82dde697a",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": {
+        "kind": "workflow",
+        "pr": 556,
+        "workflow": "COMUN Quality Performance Deliverability"
+      },
+      "next_probe_at": null,
+      "unblocking_evidence": "Current tracked PR head and exact named pull_request workflow id/attempt/status/conclusion; old proofs stay on their own SHA"
+    },
+    {
+      "task_id": "pr556-security",
+      "status": "DONE",
+      "sha": "66a6130cb875696da09d52ff2d8e7ce82dde697a",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": {
+        "kind": "workflow",
+        "pr": 556,
+        "workflow": "COMUN Security Resilience Deliverability"
+      },
+      "next_probe_at": null,
+      "unblocking_evidence": "Current tracked PR head and exact named pull_request workflow id/attempt/status/conclusion; old proofs stay on their own SHA"
+    },
+    {
+      "task_id": "review-pr556-certification",
+      "status": "READY",
+      "sha": "66a6130cb875696da09d52ff2d8e7ce82dde697a",
+      "dependencies": [
+        "pr556-contract",
+        "pr556-quality",
+        "pr556-security"
+      ],
+      "eligible_dependencies": false,
+      "observer": null,
+      "next_probe_at": null,
+      "unblocking_evidence": null
+    },
+    {
+      "task_id": "review-pr511-stack",
+      "status": "DONE",
+      "sha": "b1217fc1aa8c8e488111889f0955fdb886cba38d",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": {
+        "kind": "review-head",
+        "pr": 511
+      },
+      "next_probe_at": null,
+      "unblocking_evidence": null
+    },
+    {
+      "task_id": "repair-orch-workflow-probes",
+      "status": "DONE",
+      "sha": "66a6130cb875696da09d52ff2d8e7ce82dde697a",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": null,
+      "next_probe_at": null,
+      "unblocking_evidence": null
+    },
+    {
+      "task_id": "repair-pr511-export",
+      "status": "DONE",
+      "sha": "ba0f4131783daa69f9a2a3e3c963878dd131318f",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": null,
+      "next_probe_at": null,
+      "unblocking_evidence": null
+    },
+    {
+      "task_id": "repair-pr515-review-expiry",
+      "status": "DONE",
+      "sha": "4023f4a6b22cdeee0d31689f023fb2ec9fb9ccf5",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": null,
+      "next_probe_at": null,
+      "unblocking_evidence": null
+    },
+    {
+      "task_id": "review-pr556-quality-failure",
+      "status": "DONE",
+      "sha": "66a6130cb875696da09d52ff2d8e7ce82dde697a",
+      "dependencies": [],
+      "eligible_dependencies": true,
+      "observer": null,
+      "next_probe_at": null,
+      "unblocking_evidence": null
+    }
+  ],
+  "no_new_prs": true,
+  "tests": {
+    "suite": "pure planner + runtime + integration + GitHub boundary + workflow scope + tracked reconciliation/release",
+    "passed": 113,
+    "failed": 0,
+    "skipped": 0,
+    "evidence_sha": "d587fe2144b46bdbc5baab499916942e0fcfa7ed5914e66f3515de2022ac0b6d",
+    "scope": "Precommit Windows tests; exact committed SHA rerun and installed readback remain separate"
+  },
+  "finding": "Installed launcher only reads a fixed old run when next_probe_at is non-null. WAIT_EXTERNAL without windows never sees pertinent newer heads/runs.",
+  "changes": [
+    "Closed tracked-source registry; one observation per wake; workflow/head proof boundaries",
+    "Memory-only backoff cursor; equal evidence never rewrites operational ledger",
+    "Same-PR dependencies must share own SHA; no PASS transport",
+    "PROTECTED_STOP with stable failure key; duplicate alerts deduplicated by existing memory",
+    "Eight-module manifest, read-only diagnose/hold, descendant CAS consolidation and reversible rollback"
+  ],
+  "activation": "Not yet activated when this candidate report was committed; final machine evidence belongs in the canonical follow-up record",
+  "limits": [
+    "No full CI/Preview certificate on candidate from local tests",
+    "No native scheduler trigger claimed",
+    "No merge/Production/remote migration/flags/secrets/permission/paid action",
+    "Seven Escola preflights and COST-02 exact Preview remain unchanged"
+  ]
+}

@@ -1352,3 +1352,51 @@ neste mesmo documento.
 ### Regra antidesvio
 
 **Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.
+
+**Trilha única de execução — 19/10/2026.** A ordem de trabalho é uma sequência de estações do mesmo roadmap canônico, referenciadas por `roadmap_backlog.rail.station_ids` e itens de `roadmap_backlog.items`. A primeira estação não concluída governa a execução; `WAIT_CI`, `WAIT_HUMAN` e `DONE` sem operação `normal-code-push:APPLIED` e teste PASS do próprio SHA não autorizam avançar. O mecanismo não gera grants, não integra PRs nem autoriza Production; os critérios originais dos programas V1, 49 e 50 e os gates humanos continuam válidos. A decisão e os testes estão registrados no issue #555.
+
+## ORCH-V2 — resiliência da execução do roadmap (16/10/2026)
+
+**Estado: CANDIDATO EM PR; não integrado à automação local, nem à produção.**
+Decisão: manter a única automação horária existente, preservando lock compartilhado, worktree isolado, `refs/comun/roadmap-execution` com CAS e limites de uma entrega/ciclo. Evoluir sua política de decisão, sem duplicar scheduler nem criar outro roadmap. Especificação: [Issue #555](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/issues/555); contrato detalhado em `docs/comun-orch-v2-operations.md`.
+
+Objetivo verificável: se #553 ou Escola estiverem bloqueados, selecionar outra tarefa realmente independente e autorizada; se nada mudar, `QUIET_NOOP` sem nova escrita, push, CI, build ou notificação. Impor retry/backoff por fingerprint material, alerta único por bloqueio e reconciliação de operações incertas antes de qualquer repetição. Lock sem owner verificável nunca será removido automaticamente. Não dispensar preflights nem converter `CANCELED` por ignore-build em Preview `READY`; equivalência de runtime é evidência distinta, sujeita ao contrato de SHA exato.
+
+Incremento proposto: motor puro com CLI sem efeitos externos e testes sintéticos em `scripts/roadmap/orch-v2*`. O launcher local ainda requer adaptador, ledger V1/V2 com CAS, provas em worktree descartável e readback da configuração **da mesma automação** antes de marcar `ATIVADO_LOCAL`. Nenhum controle de Production, migration, flags, segredos, custo ou merge é transferido ao motor. Após integração, acompanhar razão `entregas úteis / ciclos` e alertas duplicados evitados, sem gravar relatório por NOOP.
+
+### ORCH-V2 — limite de PRs e modo de dívida de integração (16/10/2026)
+
+**Estado: CANDIDATO EM PR #556, NÃO ATIVADO.** Inventário observado: 22 PRs abertos. Definir política de admissão por ciclo: acima de 5 PRs, proibir nova frente funcional em PR; preferir certificar, revisar, corrigir ou integrar PR existente, respeitando conflitos e dependências. Com fila em 5 ou menos, admitir novo PR somente com inventário recente, WIP abaixo do teto (2 implementações, 1 integração) e crédito verificável decorrente de integração ou encerramento justificado, sem fechamento por idade. Exceções de segurança urgente/reparo impossível no PR atual exigem aprovação humana e evidência. O planejador codificado em `scripts/roadmap/orch-v2.mjs` faz uma checagem pura; o launcher ainda deverá revalidar o inventário **imediatamente antes** de `CREATE_PR` e preservar CAS/idempotência. Ausência de classificação da intenção `prEffect` falha de maneira protegida. Não criar mais PR para fazer este controle. A documentação de operação fica em `docs/comun-orch-v2-operations.md`, e o Issue #555 mantém evidências; não substituir o roadmap único.
+
+### ORCH-V2 — decisão de execução material contínua (17/10/2026)
+
+**Estado: CANDIDATO EM PR #556; não instalado nem ativo no Windows.**
+Decisão posterior do responsável pelo COMUN: o ciclo deve produzir evolução
+real do produto, reparar falhas e integrar PRs elegíveis de modo recorrente,
+não se limitar a OBSERVE/NOOP. A métrica principal passa a ser
+`material_deliveries / cycles`, com `repairs_applied`, `merges_applied`,
+dívida de PRs e `cycles_without_material_delivery` separados de observações.
+A autorização para uma classe de efeito continua exigindo fonte humana,
+evidência no ledger, ownership, CAS e gates no SHA exato; texto no roadmap
+não substitui a política ativada no executor. Manter `no_new_prs=true`
+durante a redução da dívida de integração.
+
+**Incremento material nesta mesma PR:** `comun-orch-discovery.mjs` e
+`comun-orch-runtime.mjs` arbitram a descoberta vencida mais antiga entre
+integração documental e reparos de PRs existentes, sem deixar uma lane
+monopolizar todas as janelas. Além de `PRETTIER_TEST_ONLY`, a descoberta
+passa a reconhecer `TSC_SCOPED_FIX` para erros TypeScript no step de CI
+do HEAD, com no máximo três arquivos não sensíveis e contrato de
+reprodução/validação; o runtime impede push fora dos caminhos admitidos.
+Novos testes de regressão foram adicionados em
+`comun-orch-discovery.node-test.mjs`. **Provas de CI do HEAD novo e canário
+na automação local ainda estão pendentes.** Não atribuir os verdes anteriores
+à presente alteração.
+
+Próximo gate obrigatório: provar contratos próprios da PR #556, instalar
+release pinada na automação original preservando ID, intervalo e configuração,
+ler de volta o scheduler, autorizar a fila com fonte humana e CAS, observar
+pelo menos uma entrega APPLIED. A rota `DOCS_ONLY` permanece OFF até esse
+aceite; merge autônomo de código Tier L e admissão de BUILD de roadmap ainda
+precisam de implementação e testes próprios antes de ativação. Plano de
+execução/aceite: `docs/comun-orch-v2-autonomous-execution-activation.md`.
