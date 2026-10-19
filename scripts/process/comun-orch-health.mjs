@@ -48,19 +48,32 @@ export function healthSnapshot(state,{now=Date.now(),lock='FREE',observer_contro
     p.action==='EXECUTE'?{kind:'EXECUTE_ONE',task_id:p.selected}:observation?{kind:'READ_TRACKED_SOURCE',task_id:observation.task_id}:ordinaryProbes.length?{kind:'PROBE',task_id:ordinaryProbes[0]}:null;
   const recurring=state.tasks.filter(t=>t.attempts_for_fingerprint>=2||t.no_progress_cycles>=2).map(t=>({task_id:t.task_id,sha:t.inputs.sha,fingerprint:t.failure_fingerprint,attempts:t.attempts_for_fingerprint,no_progress_cycles:t.no_progress_cycles??0}));
   const due=Object.entries(observer_control?.cursors??{}).filter(([,c])=>c.suspended).map(([task_id,c])=>({task_id,until:c.next_probe_at,reason:'REMOTE_READ_CIRCUIT_OPEN',fingerprint:c.error_fingerprint}));
+  // No historical delivery timestamp is inferred: only the live observer memory
+  // can establish consecutive cycles without a reconciled APPLIED code push.
+  const cycles=observer_control?.delivery_monitor?.cycles_since_delivery;
+  const firstDeliveryMissing=Number.isSafeInteger(cycles)&&cycles>=2&&
+    !state.delivery_metrics?.last_material_delivery_at&&code.length===0;
+  const disabledLanes=firstDeliveryMissing?[
+    ...(state.roadmap_discovery?.enabled===true?[]:['ROADMAP_DISCOVERY_DISABLED']),
+    ...(state.queue_discovery?.authorization?.scope==='existing-pr-code-repair'?[]:['REPAIR_DISCOVERY_AUTHORIZATION_MISSING']),
+    ...(state.merge_policy?.enabled===true?[]:['DOCS_MERGE_POLICY_DISABLED']),
+  ]:[];
   const wakeDelay=Number.isFinite(Date.parse(last_wake))?now-Date.parse(last_wake):null;
   const missedWake=wakeDelay!==null&&wakeDelay>2*wake_interval_ms;
   const prolonged=!!last&&now-Date.parse(last)>=no_progress_ms;
-  const stalled=recurring.some(t=>t.no_progress_cycles>=2)||(prolonged&&next?.kind==='EXECUTE_ONE');
+  const stalled=firstDeliveryMissing||recurring.some(t=>t.no_progress_cycles>=2)||(prolonged&&next?.kind==='EXECUTE_ONE');
   return {version:1,read_only:true,last_wake,last_wake_delay_ms:wakeDelay,missed_wake:missedWake,last_task_transition:last,
     delivery_metrics:{...(state.delivery_metrics??{}),
       elapsed_ms:state.delivery_metrics?.last_material_delivery_at ? now-Date.parse(state.delivery_metrics.last_material_delivery_at) : null,
       cycles_since_delivery:observer_control?.delivery_monitor?.cycles_since_delivery ?? null,
       basis:'Only reconciled APPLIED normal-code-push; observations and task transitions are not deliveries'},
     last_material_progress:code.at(-1)??null,material_progress_time:'UNKNOWN_UNLESS_RECORDED_BY_OPERATION',
+    first_delivery_stall:firstDeliveryMissing?{reason:'NO_MATERIAL_DELIVERY_AFTER_REPEATED_CYCLES',
+      cycles_since_delivery:cycles,disabled_lanes:disabledLanes,
+      scope:'Read-only evidence; does not authorize grants, merges, pushes or Production'}:null,
     state:lock!=='FREE'?'PROTECTED':missedWake?'MISSED_WAKE':p.action==='RECONCILE'?'RECOVERY_REQUIRED':stalled?'STALLED':!last?'UNKNOWN':next?'ACTIONABLE':'WAITING',
     prolonged_no_progress:prolonged,
-    next_action:next,noop_reason:next?null:lock!=='FREE'?lock:recurring.length?'NO_ELIGIBLE_TASK_FAILURE_OR_NO_PROGRESS_BUDGET_EXHAUSTED':due.length?'READ_COOLDOWN_ACTIVE':'WAITING_FOR_DEPENDENCIES_OR_EXTERNAL_EVIDENCE',
+    next_action:next,noop_reason:next?null:lock!=='FREE'?lock:recurring.length?'NO_ELIGIBLE_TASK_FAILURE_OR_NO_PROGRESS_BUDGET_EXHAUSTED':due.length?'READ_COOLDOWN_ACTIVE':firstDeliveryMissing?'NO_MATERIAL_DELIVERY_AFTER_REPEATED_CYCLES':'WAITING_FOR_DEPENDENCIES_OR_EXTERNAL_EVIDENCE',
     blockers,recurring_failures:recurring,circuit_breakers:due,queue,notify:false,writes:0,worktrees:0};
 }
 
