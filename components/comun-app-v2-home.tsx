@@ -270,19 +270,12 @@ export function ComunAppV2Home({
         </section>
       ) : null}
 
-      {center ? (
+      {center && !attention[0] && (firstTask || firstAction) ? (
         <section aria-labelledby="home-next" className="mt-7">
           <h2 id="home-next" className="comun-v2-section-title mb-3">
             Próxima ação
           </h2>
-          {attention[0] ? (
-            <ComunActionCard
-              href={withComunAppV2(attention[0].action_url)}
-              title={attention[0].title}
-              description={attention[0].summary}
-              action={attention[0].action_label ?? "Abrir pedido"}
-            />
-          ) : firstTask ? (
+          {firstTask ? (
             <ComunActionCard
               href={withComunAppV2(
                 firstTask.action_url ??

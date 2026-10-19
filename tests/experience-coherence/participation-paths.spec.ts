@@ -157,6 +157,17 @@ for (const experience of ["", "?experiencia=legacy"]) {
       await expect(
         page.locator("[data-comun-motorola-primary-action]"),
       ).toHaveAttribute("href", "/comun/relatar");
+      // If a real signed-in center carries a priority inbox item, it
+      // must not repeat the same action under a second "Próxima ação" card.
+      const urgentItem = page.locator(
+        'section[aria-labelledby="home-attention"] a.surface-alert',
+      );
+      if (await urgentItem.count()) {
+        await expect(
+          page.getByRole("heading", { name: "Próxima ação", exact: true }),
+        ).toHaveCount(0);
+      }
+
     }
     await (experience ? paths : page)
       .getByRole("link", { name: "Aprender a organizar", exact: true })
