@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import {execFileSync,spawnSync} from 'node:child_process';
 import {hash,task,transition,plan} from './comun-orch-v2.mjs';
-import {admitDiscovery,readDiscovery,replenish,discoveryDue,mergeDiscoveryDue,readMergeDiscovery,admitMergeDiscovery,replenishMergeDiscovery,MERGE_DISCOVERY_ID,chooseDiscoveryLane,readRoadmapDiscovery,admitRoadmapDiscovery} from './comun-orch-discovery.mjs';
+import {admitDiscovery,readDiscovery,replenish,discoveryDue,mergeDiscoveryDue,readMergeDiscovery,admitMergeDiscovery,replenishMergeDiscovery,MERGE_DISCOVERY_ID,chooseDiscoveryLane,readRoadmapDiscovery,admitRoadmapDiscovery,roadmapAuthorized,standingBuildPolicy} from './comun-orch-discovery.mjs';
 import {context,tick,loadState,record,acquireLock,releaseLock,saveState,inspectLock,REMOTE,REF} from './comun-orch-runtime.mjs';
 import {REPOSITORY} from './comun-orch-reconcile.mjs';
 const NOW=Date.now(), A='a'.repeat(40), B='b'.repeat(40);
@@ -72,6 +72,98 @@ test('roadmap blocked dependency does not starve a different authorized existing
   f.s.roadmap_discovery.grants.push({...f.grant,task_id:other.task_id,criteria_sha:hash(other)});
   f.s.tasks.push(make('WAIT_HUMAN',{task_id:'blocked'}));
   assert.equal(readRoadmapDiscovery(f.ctx,f.s,f.read).candidate.item.task_id,other.task_id);
+});
+
+const standingMandate=()=>({enabled:true,source:'human-message',
+  scope:'EXISTING_PR_LOW_RISK_BUILD',evidence_sha:hash('actual fixture human source'),
+  no_new_prs:true,max_paths:3});
+
+test('standing human mandate admits scoped READY build without fabricating per-task grant',()=>{
+  const f=roadmapFixture();f.s.roadmap_discovery.grants=[];
+  f.s.roadmap_discovery.standing_build=standingMandate();
+  assert.equal(standingBuildPolicy(f.s.roadmap_discovery),true);
+  const source=readRoadmapDiscovery(f.ctx,f.s,f.read);
+  assert.equal(source.reason,'AUTHORIZED_CANONICAL_ROADMAP_ITEM');
+  assert.equal(source.candidate.grant.mode,'STANDING_POLICY');
+  const admitted=admitRoadmapDiscovery(f.s,source),t=admitted.tasks[0];
+  assert.equal(t.discovery.authorization.source,undefined);
+  assert.equal(t.discovery.authorization.mode,'STANDING_POLICY');
+  assert.equal(roadmapAuthorized(admitted,t),true);
+  assert.equal(readRoadmapDiscovery(f.ctx,admitted,f.read).candidate,null);
+  const revoked=structuredClone(admitted);
+  revoked.roadmap_discovery.standing_build.revoked=true;
+  assert.equal(roadmapAuthorized(revoked,t),false);
+  const changed=structuredClone(admitted);
+  changed.roadmap_discovery.standing_build.evidence_sha=hash('different human policy');
+  assert.equal(roadmapAuthorized(changed,t),false);
+  const explicitlyRevoked=structuredClone(admitted);
+  explicitlyRevoked.roadmap_discovery.grants.push({task_id:t.task_id,revoked:true});
+  assert.equal(roadmapAuthorized(explicitlyRevoked,t),false);
+  const invalid=roadmapFixture();invalid.s.roadmap_discovery.grants=[];
+  invalid.s.roadmap_discovery.standing_build=standingMandate();
+  invalid.s.roadmap_discovery.standing_build.max_paths=4;
+  assert.equal(readRoadmapDiscovery(invalid.ctx,invalid.s,invalid.read).candidate,null);
+});
+
+test('standing mandate cannot invent backlog, override blocked PR or modify sensitive paths',()=>{
+  const f=roadmapFixture();f.s.roadmap_discovery.grants=[];
+  f.s.roadmap_discovery.standing_build=standingMandate();
+  delete f.checkpoint.roadmap_backlog;
+  assert.equal(readRoadmapDiscovery(f.ctx,f.s,f.read).reason,'ROADMAP_STRUCTURED_CRITERIA_REQUIRED');
+  for(const change of [
+    x=>x.item.paths=['lib/auth/session.ts'],
+    x=>x.item.paths=['components/school/secret.ts'],
+    x=>x.item.paths=['lib/a.ts','lib/b.ts','lib/c.ts','lib/d.ts'],
+    x=>x.item.branch='main',
+    x=>x.item.dependencies=['nonexistent'],
+    x=>x.item.roadmap_heading='## Not an actual roadmap heading',
+    x=>x.s.tasks.push(make('WAIT_HUMAN',{target_pr:554})),
+    x=>{x.s.roadmap_discovery.standing_build.revoked=true;},
+    x=>{x.s.roadmap_discovery.standing_build.no_new_prs=false;},
+  ]){
+    const v=roadmapFixture();v.s.roadmap_discovery.grants=[];
+    v.s.roadmap_discovery.standing_build=standingMandate();change(v);
+    assert.equal(readRoadmapDiscovery(v.ctx,v.s,v.read).candidate,null);
+  }
+  // A user-agent-copied comment or generated document is not a human policy.
+  const fake=roadmapFixture();fake.s.roadmap_discovery.grants=[];
+  fake.s.roadmap_discovery.standing_build={...standingMandate(),source:'github-comment'};
+  assert.equal(readRoadmapDiscovery(fake.ctx,fake.s,fake.read).candidate,null);
+});
+
+test('standing authorization is checked again after discovery and on revoked push intent',()=>{
+  const f=roadmapFixture();f.s.roadmap_discovery.grants=[];
+  f.s.roadmap_discovery.standing_build=standingMandate();
+  const source=readRoadmapDiscovery(f.ctx,f.s,f.read);
+  f.s.roadmap_discovery.standing_build.revoked=true;
+  assert.throws(()=>admitRoadmapDiscovery(f.s,source),/ROADMAP_LIVE_AUTHORIZATION_REQUIRED/);
+  const x=fixture(),r=roadmapFixture();
+  try {
+    const base=x.git('rev-parse','HEAD');
+    r.item.sha=base;r.s.roadmap_discovery.grants=[];
+    r.s.roadmap_discovery.standing_build=standingMandate();
+    fs.mkdirSync(path.join(x.repo,'docs'),{recursive:true});
+    fs.writeFileSync(path.join(x.repo,'docs/comun-product-objective-and-roadmap.md'),'# Roadmap\n## Search labels\n');
+    fs.writeFileSync(path.join(x.repo,'reports/current/comun-execution-checkpoint.json'),
+      JSON.stringify({legacy:{keep:true},orchV2:r.s,roadmap_backlog:{items:[r.item]}}));
+    x.git('add','.');x.git('commit','-m','standing fixtures');x.git('update-ref',REF,'HEAD');
+    const ctx=context(x.repo);
+    const result=tick(ctx,{now:NOW,reconcile:false,worktreeRoot:path.join(x.repo,'cycles'),
+      discover:()=>({repository:REPOSITORY,complete:true,observed_at:new Date(NOW).toISOString(),
+        inventory:[],candidate:null,reason:'NO_SUPPORTED_REPAIR_EVIDENCE',scan_index:1}),
+      resolveExecutionBase:()=>base});
+    assert.equal(result.action,'EXECUTE');
+    const loaded=loadState(ctx),revoked=structuredClone(loaded.state);
+    revoked.roadmap_discovery.standing_build.revoked=true;
+    saveState(ctx,revoked,loaded.expectedHash,result.owner_id);
+    const previous=fs.readFileSync(ctx.ledger);
+    assert.throws(()=>record(ctx,{owner_id:result.owner_id,task_id:r.item.task_id,
+      event:{type:'operation-intent',operation_id:'revoked-standing',
+        expected_sha:base,action:'normal-code-push'},now:NOW+1}),/ROADMAP_AUTHORIZATION_REVOKED/);
+    assert.deepEqual(fs.readFileSync(ctx.ledger),previous);
+    record(ctx,{owner_id:result.owner_id,task_id:r.item.task_id,event:{type:'cycle-complete'},now:NOW+1});
+    x.git('worktree','remove',result.worktree);
+  }finally{x.cleanup();}
 });
 function fixture(){
   const repo=fs.mkdtempSync(path.join(os.tmpdir(),'comun-discovery-'));

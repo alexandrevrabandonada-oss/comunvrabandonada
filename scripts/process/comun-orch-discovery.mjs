@@ -30,16 +30,69 @@ const protectedPr = (state, pr) => state.tasks.some(t => t.target_pr === pr &&
   (['WAIT_HUMAN', 'BLOCKED_PROTECTED', 'RUNNING'].includes(t.status) ||
     PROTECTED.includes(t.action) || t.authorized === false || t.operations.some(o => o.state === 'UNCERTAIN')));
 
-// Product work is referenced in the SAME canonical checkpoint/roadmap. A new
-// Markdown paragraph cannot authorize code: each machine-readable entry also
-// needs a matching human-sourced grant already installed in the live ledger.
+// Product work comes from canonical structured criteria. Either an exact
+// human grant or a live, bounded standing human mandate may admit it.
+// Neither a Markdown paragraph nor a generated ledger entry grants powers.
+export const STANDING_BUILD_SCOPE='EXISTING_PR_LOW_RISK_BUILD';
+// Human policy must be installed in the live ledger by its original owner.
+// This helper cannot mint an authorization, discover unknown PR rights,
+// authorize a merge, or change a production/environment capability.
+export function standingBuildPolicy(policy) {
+  const mandate=policy?.standing_build;
+  return policy?.enabled===true && policy.source==='human-message' &&
+    policy.scope==='EXISTING_PR_ROADMAP' && digest(policy.evidence_sha) &&
+    mandate?.enabled===true && mandate.revoked!==true &&
+    mandate.source==='human-message' && mandate.scope===STANDING_BUILD_SCOPE &&
+    mandate.no_new_prs===true && digest(mandate.evidence_sha) &&
+    mandate.max_paths===3;
+}
+function receiptForStanding(policy,item) {
+  return standingBuildPolicy(policy) ? {mode:'STANDING_POLICY',
+    task_id:item.task_id,criteria_sha:hash(item),
+    standing_sha:hash(policy.standing_build)} : null;
+}
+function validRoadmapAuthorization(policy,taskId,criteriaSha,grant,paths) {
+  if(!grant || grant.task_id!==taskId || grant.criteria_sha!==criteriaSha)return false;
+  // A specific explicit revocation has priority over the standing mandate.
+  if(Array.isArray(policy?.grants) && policy.grants.some(g=>
+    g.task_id===taskId && g.revoked===true))return false;
+  if(grant.mode==='STANDING_POLICY')
+    return standingBuildPolicy(policy) && grant.standing_sha===hash(policy.standing_build) &&
+      Array.isArray(paths) && paths.length>0 && paths.length<=policy.standing_build.max_paths;
+  return grant.source==='human-message' && digest(grant.evidence_sha) &&
+    grant.revoked!==true && Array.isArray(policy?.grants) &&
+    policy.grants.some(g=>g.source==='human-message'&&digest(g.evidence_sha)&&
+      g.revoked!==true&&hash(g)===hash(grant));
+}
+// Execution and operation-intent check live state again, including revocation.
+// Admission had validated actual canonical roadmap heading and exact PR SHA;
+// this check additionally binds its immutable fingerprint and allowed paths.
+export function roadmapAuthorized(state,t) {
+  const policy=state.roadmap_discovery;
+  if(policy?.enabled!==true || policy.source!=='human-message' ||
+    policy.scope!=='EXISTING_PR_ROADMAP'||!digest(policy.evidence_sha)||
+    policy.evidence_sha!==t.discovery?.policy_sha||
+    t.discovery?.recipe!=='ROADMAP_SCOPED_BUILD'||
+    !Number.isSafeInteger(t.target_pr)||t.target_pr<1||
+    t.pr_effect!=='EXISTING_PR'||t.execution_base!=='PR_HEAD'||
+    t.discovery.pr!==t.target_pr ||
+    (t.lease?.base_sha && t.discovery.source_sha!==t.lease.base_sha) ||
+    !Array.isArray(t.discovery?.paths)||!t.discovery.paths.length||
+    t.discovery.paths.length>3||
+    t.discovery.paths.some(p=>!/^(components|lib)\/[a-zA-Z0-9_/-]+\.(ts|tsx)$/.test(p)||
+      /auth|school|escola|schema|migration|rls|permission|payment|secret|admin|captcha|env|release/i.test(p)))
+      return false;
+  return validRoadmapAuthorization(policy,t.roadmap_item,t.inputs.finding,
+    t.discovery.authorization,t.discovery.paths);
+}
+
 export function readRoadmapDiscovery(ctx, state, readGit = args => execFileSync('git',
   ['-C', ctx.repo, ...args], { encoding: 'utf8', timeout: 30000,
     maxBuffer: 4 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] })) {
   const policy = state.roadmap_discovery;
   if (policy?.enabled !== true || policy.source !== 'human-message' ||
       policy.scope !== 'EXISTING_PR_ROADMAP' || !digest(policy.evidence_sha) ||
-      !Array.isArray(policy.grants))
+      (!Array.isArray(policy.grants) && !standingBuildPolicy(policy)))
     return { reason: 'ROADMAP_HUMAN_POLICY_REQUIRED', candidate: null };
   if (state.tasks.some(t => t.status === 'RUNNING' || t.operations.some(o => o.state === 'UNCERTAIN')) ||
       plan(state, { now: Date.now() }).action === 'EXECUTE')
@@ -62,9 +115,11 @@ export function readRoadmapDiscovery(ctx, state, readGit = args => execFileSync(
     !state.tasks.some(t => t.task_id === i.task_id || t.roadmap_item === i.task_id))
     .sort((a, b) => a.priority - b.priority || String(a.task_id).localeCompare(String(b.task_id)));
   for (const item of eligible) {
-    const grant = policy.grants.find(g => g.task_id === item.task_id);
-    if (!grant || grant.source !== 'human-message' || !digest(grant.evidence_sha) ||
-        grant.criteria_sha !== hash(item) || grant.revoked === true) continue;
+    const exact = (Array.isArray(policy.grants)?policy.grants:[]).find(g=>
+      g.task_id===item.task_id && g.source==='human-message' &&
+      digest(g.evidence_sha) && g.criteria_sha===hash(item) && g.revoked!==true);
+    const grant=exact??receiptForStanding(policy,item);
+    if(!validRoadmapAuthorization(policy,item.task_id,hash(item),grant,item.paths))continue;
     if (!/^[a-z0-9-]+$/.test(item.task_id) || !Number.isFinite(item.priority) ||
         !Number.isSafeInteger(item.target_pr) || item.target_pr < 1 ||
         !sha(item.sha) || !/^[a-zA-Z0-9][a-zA-Z0-9_./-]*$/.test(item.branch ?? '') ||
@@ -102,9 +157,7 @@ export function admitRoadmapDiscovery(state, source) {
   const policy = state.roadmap_discovery;
   if (policy?.enabled !== true || policy.source !== 'human-message' ||
       policy.scope !== 'EXISTING_PR_ROADMAP' || policy.evidence_sha !== policy_sha ||
-      !policy.grants?.some(g => hash(g) === hash(grant) && g.revoked !== true &&
-        g.source === 'human-message' && digest(g.evidence_sha) &&
-        g.task_id === item.task_id && g.criteria_sha === hash(item)))
+      !validRoadmapAuthorization(policy,item.task_id,hash(item),grant,item.paths))
     throw Error('ROADMAP_LIVE_AUTHORIZATION_REQUIRED');
   if (state.tasks.some(t => t.task_id === item.task_id)) return state;
   const next = structuredClone(state);

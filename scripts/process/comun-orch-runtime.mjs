@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import {previewProof} from './comun-orch-adapter.mjs';
 import {nextObservation, reconcileOne, readTracked, watchSpec} from './comun-orch-reconcile.mjs';
-import {chooseDiscoveryLane, replenish, readDiscovery, permitted, replenishMergeDiscovery, readMergeDiscovery, mergePermitted, readRoadmapDiscovery, admitRoadmapDiscovery} from './comun-orch-discovery.mjs';
+import {chooseDiscoveryLane, replenish, readDiscovery, permitted, replenishMergeDiscovery, readMergeDiscovery, mergePermitted, readRoadmapDiscovery, admitRoadmapDiscovery, roadmapAuthorized} from './comun-orch-discovery.mjs';
 import {
   hash,
   plan,
@@ -21,14 +21,6 @@ export const REF = "refs/comun/roadmap-execution";
 const CHECKPOINT = "reports/current/comun-execution-checkpoint.json";
 const REPOSITORY = "alexandrevrabandonada-oss/comunvrabandonada";
 const lockProofs=new Map();
-function roadmapAuthorized(state,t) {
-  const policy=state.roadmap_discovery;
-  return policy?.enabled===true && policy.source==='human-message' &&
-    policy.scope==='EXISTING_PR_ROADMAP' && policy.evidence_sha===t.discovery?.policy_sha &&
-    policy.grants?.some(g=>g.revoked!==true && g.source==='human-message' &&
-      hash(g)===hash(t.discovery.authorization) && g.task_id===t.task_id &&
-      g.criteria_sha===t.inputs.finding);
-}
 const read = (p) => fs.readFileSync(p, "utf8").replace(/^\uFEFF/, "");
 const git = (repo, ...args) =>
   execFileSync("git", ["-C", repo, ...args], {
