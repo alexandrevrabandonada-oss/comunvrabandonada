@@ -2,6 +2,21 @@
 
 > **Atualização transversal (14/10/2026):** [Consolidação de rede social, convivência, atratividade e sustentabilidade](#consolidação-canônica--rede-social-convivência-e-atratividade-14102026). Esta seção integra decisões e hipóteses ao roadmap único; não significa implementação nem lançamento.
 
+## 49-E4 — candidato de continuidade em comunidades — 14/10/2026
+
+Após #544/main `3694710f`, auditoria identificou perda da experiência legada
+no submit dos filtros, link de limpeza e cartões da lista de comunidades.
+Correção focal preserva o modo nos três pontos, sem schema ou nova capacidade.
+Lint, tipos, build e nove testes de helpers locais PASS. Casos Playwright novos
+preparados; execução local BLOCKED por download Chromium inválido, CI/Preview
+PENDING. Não é entrega Production nem conclusão de 49-M/V1. Evidências:
+[continuidade 49-E4](../reports/current/comun-49-e4-community-continuity.md).
+
+O primeiro candidato remoto `ddbb4118` revelou bloqueio real sem JavaScript:
+quatro casos falharam com a shell presa no carregamento. Correção opta pelo
+fallback público existente apenas na lista de comunidades, sem mudar painéis
+privados. Falhas preservadas; novos gates do SHA corrigido PENDING.
+
 ## Piloto UX da Home — descoberta familiar e conteúdo real (15/10/2026)
 
 **Estado: CANDIDATO EM PR; não integrado nem validado com pessoas.** Vinculado a
@@ -1029,6 +1044,435 @@ ou preservar o bloqueio exato; depois implementar esta continuidade da
 Feirinha antes das chamadas diretas dos cartões. Descoberta cultural segue
 na sequência já registrada. Nenhuma migration, flag ou indexação autorizada
 por este checkpoint; compreensão e atratividade humanas continuam pendentes.
+
+### SOC-D09 — Jogos no COMUN: brincar, criar e publicar em comunidade
+
+**Data:** 14/10/2026. **Estado:** `PRINCÍPIO DECIDIDO` para integrar
+jogos à experiência do COMUN; `HIPÓTESE/PLANEJADO` para interface,
+publicação de terceiros e arquitetura executável. Não implementado.
+
+**Decisão de produto:** reservar um destino reconhecível **Jogos**,
+integrado à descoberta cultural e aos perfis do mesmo COMUN, e não
+uma rede, login, moeda, reputação ou produto paralelo. O acesso deve
+oferecer diversão independente de ativismo ou de tarefas educativas.
+A entrada pode ter destaque próprio na navegação quando houver
+catálogo real e experiência jogável; não criar aba vazia.
+
+- **Primeiro jogo de referência: `Cidade em Disputa`.** RPG autoral
+  sobre Volta Redonda, não reduzido a propaganda eleitoral.
+  Respeitar três jornadas iniciais já definidas: **História de
+  Volta Redonda**, **Meio Ambiente** e **Política**. Priorizar
+  exploração, escolhas e consequências, preservando criatividade,
+  livre interpretação e prazer de jogar. Distinguir fonte científica
+  ou documental de ficção e hipótese; identificar artigos e datas
+  para afirmações factuais. Não exigir adesão ideológica nem
+  pontuar jogador por opiniões políticas. Inspirar-se em exploração
+  retrô sem reutilizar assets protegidos de jogos comerciais.
+  A beta web existente deve ser auditada e reutilizada, não refeita:
+  a distribuição e os limites de mobile não equivalem a integração
+  certificada no COMUN. Preservar distinção entre a build atual
+  e as três jornadas conceituais, sem anunciá-las como concluídas.
+- **Jogos com finalidades diversas.** Abranger narrativas, puzzles,
+  estratégia, humor, aventuras, jogos cooperativos e experiências
+  de curta duração. Não reduzir a aba a quizzes cívicos,
+  gamificação da militância ou missões da Escola.
+- **Integração social com baixo atrito.** Cada jogo pode ter página
+  pública com descrição, imagens autorizadas, créditos, autoria,
+  requisitos, idioma, acessibilidade, idade/conteúdo, fonte e
+  links de compartilhamento. Pessoas podem descobrir o criador,
+  conversar, guardar e divulgar se os recursos existentes
+  permitirem; o jogo permanece útil sem respostas ou cadastro.
+  Conquistas e progresso são privados por padrão; compartilhar
+  é opt-in, sem placar moral, pontuação cívica ou seguidores
+  convertidos em autoridade.
+- **Criação comunitária com autonomia.** Qualquer criador elegível
+  pode propor um jogo próprio, inclusive não educativo.
+  Publicação deve seguir processo de proposta/triagem,
+  demonstração verificável, revisão de autoria e direitos,
+  segurança e acessibilidade, decisão motivada, publicação,
+  denúncia e eventual retirada/recurso. Critérios públicos
+  protegem pluralidade estética e de ideias; não usar curadoria
+  para exigir alinhamento político.
+- **Segurança de código de terceiros: limite inegociável.**
+  Na fase inicial, aceitar apenas metadados, imagens permitidas
+  e link externo previamente revisado para jogo hospedado
+  pelo criador, deixando claro quando se sai do COMUN.
+  Não aceitar/executar uploads de HTML, JavaScript, ZIP,
+  binários, Unity WebGL ou outras aplicações arbitrárias no
+  mesmo domínio/ambiente privilegiado. Futuro embed/hosting
+  só após arquitetura de origem isolada, CSP, sandbox efetivo,
+  verificação de arquivos, limites de recursos, proibição
+  de acesso a sessão/cookies/identidade do COMUN,
+  revisão de dependências e mecanismos de desligamento.
+  Iframe isolado por si só não prova segurança.
+- **Privacidade e acesso.** Jogar conteúdo público sem cadastro
+  quando tecnicamente possível; nenhum rastreador de
+  terceiros oculto, monetização predatória, compras de
+  influência ou anúncios comportamentais. Não ceder dados
+  de membros a criadores. Controles mobile, teclado,
+  leitura alternativa para quem não consegue jogar,
+  opção de reduzir movimento/sons, baixo consumo de dados
+  e estados de carregamento/erro são critérios de qualidade.
+  Jogos com chat, multiplayer, menores ou pagamentos
+  requerem avaliação e regras próprias; não pertencem ao MVP.
+
+**Implantação incremental dentro de 49-E / U0–U8 / 50 COMUN UNO:**
+
+1. **Inventariar antes de construir.** Localizar jogos existentes
+   e suas licenças, builds e compatibilidade mobile/web.
+   A árvore `app/comun` não possuía rota `jogos` na consulta
+   de 14/10; não declarar o RPG ou outros jogos integrados.
+2. **Experiência piloto sem schema novo.** Prototipar página
+   `/comun/jogos` com 1 jogo real autorizado e jogável
+   ou demonstração efetiva claramente identificada, créditos,
+   condições de acesso e retorno ao COMUN. Reutilizar
+   navegação, descoberta, acervo e compartilhamento;
+   se não houver jogo elegível, manter a hipótese no roadmap
+   em vez de mostrar acervo fictício.
+3. **Curadoria comunitária controlada.** Validar pequena
+   seleção de jogos de terceiros por link, antes de permitir
+   submissão aberta. Medir demanda, moderação, qualidade,
+   custo operacional e capacidade de retirada.
+4. **Proposta de publicação.** Somente após critérios
+   comprovados, disponibilizar envio de metadados
+   e link de demonstração, com fila de revisão,
+   comunicação do estado e recurso; sem upload executável.
+5. **Evolução social e técnica.** Avaliar comentários,
+   coleções, colaboração criativa, jogar em grupo,
+   hospedagem isolada e ferramentas de criação apenas
+   diante de demanda real e testes de segurança.
+
+**Critério de aceite:** alguém consegue encontrar e iniciar
+um jogo real, entender quem o criou, jogá-lo com os
+controles disponíveis e retornar ao COMUN sem exposição
+indevida; um criador consegue submeter e acompanhar uma
+proposta sem abrir superfície para execução de código
+desconhecido. Reprovar experiência ruim em celular,
+conteúdo artificial, autoria falsa, ausência de moderação
+ou pressão para participar politicamente.
+
+**Evidência existente reconciliada (14/10/2026):**
+a beta pública do RPG já foi entregue fora do COMUN, na landing
+`landingmissao`, pelo
+[PR #36](https://github.com/alexandrevrabandonada-oss/landingmissao/pull/36)
+(merged). Entrada:
+[VR: Cidade em Disputa — Beta](https://www.alexandrevrabandonada.online/jogar/cidade-em-disputa).
+A aplicação carrega um runtime Unity/WebGL separado após o clique,
+pela origem `jogo.alexandrevrabandonada.online`, com manifesto de
+versão, controles mobile e desktop, feedback e save no navegador.
+O código da landing não comprova que o jogo já esteja dentro
+do COMUN nem que as jornadas História/Meio Ambiente/Política
+estejam completas. Ver
+[`docs/GAME_BETA_RELEASE.md`](https://github.com/alexandrevrabandonada-oss/landingmissao/blob/main/docs/GAME_BETA_RELEASE.md).
+Ensaios em viewports Chrome existem; aparelho físico e leitor de tela
+continuam sem certificação específica.
+
+**SOC-D09.A — Primeira experiência integrada, sem duplicar runtime.**
+Estado: `PLANEJADO`, sem implementação COMUN. Primeiro publicar
+na descoberta/aba Jogos um cartão de jogo **real**, com imagem
+autorizada, autoria, indicação de beta, objetivo, controles,
+compatibilidade, limitações e ação direta **Jogar**.
+No primeiro ciclo, a ação aponta à entrada pública já existente
+com link externo claro e retorno previsível ao COMUN; não duplicar
+o player em outra rota ou origem nem carregar WASM no feed inicial.
+Se houver uma futura incorporação, verificar CSP, origem,
+permissões, foco, fullscreen, performance, isolamento e
+persistência de save em dispositivos reais.
+Não pressupor transferência de saves entre hosts/domínios,
+não exigir login COMUN e não sincronizar escolhas narrativas
+ou inferências políticas com o perfil.
+
+**SOC-D09.B — Comunidade de criadores, não depósito de arquivos.**
+Estado: `PRINCÍPIO DECIDIDO` para experiência;
+`HIPÓTESE` para infraestrutura. A página de cada jogo mostra
+quem criou, autoria e licença, atualizações, suporte e formas
+de contato opcionais. O criador pode propor, revisar,
+despublicar e recorrer; pessoas podem descobrir e divulgar
+o projeto sem pontuação competitiva obrigatória. Divulgação
+editorial não é endosso da qualidade factual ou de segurança
+e nunca deve ser comprada.
+
+**SOC-D09.C — Ordem de investimento e critérios de promoção.**
+Estado: `PLANEJADO`. O primeiro jogo publicado serve como
+caso de teste técnico e de atratividade: descoberta pública
+sem conta; jogo abre a partir do celular; não baixa runtime
+antes da escolha explícita; retorno à plataforma; save
+preservado no mesmo host; aviso de saída externa e privacidade;
+créditos/licenças presentes; opção de feedback clara.
+Depois de uma jornada demonstrada, selecionar poucos
+jogos comunitários com curadoria. Não publicar formulário
+aberto de submissão de jogos, embutir código de terceiros,
+criar chat/multiplayer ou mover o save para a conta COMUN
+antes de testar necessidade, custos e segurança.
+
+**Distinção histórica:** o RPG Unity/WebGL já publicado
+não deve ser confundido automaticamente com propostas
+separadas de city-builder/RTS sobre Volta Redonda.
+Mecânicas de construção, multiplayer, política territorial
+ou conteúdo novo do RPG exigem evidência própria;
+não integrar projetos diferentes por similaridade de nome.
+
+**SOC-D09.D — Candidato técnico de entrada pública (15/10/2026).**
+Estado: `CANDIDATO EM PR`, não integrado. O
+[PR #551](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/551)
+introduz a rota `/comun/jogos` e o cartão de uma beta real,
+acessível pelo Explorar legado e App V2 com retorno preservado.
+A ação de jogar abre a landing pública externa em nova aba,
+sem iframe, sem carregar Unity antes da escolha e sem
+transferência de dados de conta ou save pelo COMUN.
+Atualiza a matriz de superfícies para reconhecer a rota
+`public_web` e 241 páginas, preservando as outras regras
+e casos negativos. Ensaio de navegador avalia os viewports,
+contraste, foco, link/retorno e ausência de preload externo.
+
+**Gate:** o #551 depende deste contrato SOC-D09, dos
+workflows aplicáveis e de revisão antes de qualquer merge.
+Falhas de preflight remoto por CA, migration da Escola e
+bloqueios de #546/#549 continuam independentes; não dispensar
+nem confundir sucesso local com Produção ou prova humana.
+Este é um incremento de descoberta, não uma comunidade de
+criadores já operacional nem hospedagem de jogos.
+
+**SOC-D09.E — Contrato de publicação comunitária (15/10/2026).**
+Estado: `PRINCÍPIO DECIDIDO`; fluxo público e
+infraestrutura ainda `PLANEJADOS`.
+
+O criador conserva a autoria e os direitos sobre seu jogo;
+publicá-lo no catálogo do COMUN **não** implica cessão
+exclusiva, transferência de código, licenciamento aberto
+obrigatório ou acesso a dados dos participantes. A licença
+de divulgação necessária para título, descrição, imagens
+autorizadas, créditos e link é específica e revogável,
+respeitadas obrigações legítimas de auditoria/retenção.
+
+A proposta de jogo deve poder informar: nome e contato
+protegido do responsável; link externo de demonstração
+funcional; descrição, gênero e idioma; plataformas,
+controles e recursos de acessibilidade; licença de
+imagens/músicas e demais terceiros; conteúdo sensível/faixa
+etária indicada; publicidade, compras e coleta de dados
+existentes no destino; e canal para correção/retirada.
+Contato privado do criador não deve aparecer na vitrine.
+
+A curadoria é **prévia à exposição pública** e baseada em
+segurança, autenticidade de autoria, direitos, qualidade
+mínima de funcionamento, compatibilidade e regras claras.
+Ela não exige concordância política nem preferência
+estética institucional. Informar o motivo da recusa,
+permitir correções e recurso; não oferecer publicação
+automática, aprovação por popularidade ou prazo fictício.
+A moderação só poderá escalar quando houver capacidade
+humana de analisar e remover jogos com prontidão.
+
+Estados mínimos da futura proposta: `rascunho`,
+`enviada`, `em_revisao`, `ajustes_solicitados`,
+`aprovada`, `publicada`, `retirada` ou
+`recusada`. Estes estados são especificação conceitual,
+**não** tabelas ou endpoints autorizados.
+
+**Gate de continuidade:** antes de desenvolver formulário,
+reutilizar serviços de propostas/curadoria já existentes
+somente se oferecerem o mesmo contrato de privacidade,
+autoria, recurso e operação. Se não houver equipe para
+moderar, manter convite privado e seleção manual de poucos
+jogos, sem criar superfície pública de submissão.
+Não construir hospedagem executável no mesmo domínio.
+
+**SOC-D09.F — Auditoria de reaproveitamento da curadoria cultural (15/10/2026).**
+Estado: `AUDITORIA DE CÓDIGO`; implicações arquiteturais
+`PRINCÍPIO DECIDIDO`; integração técnica `NÃO IMPLEMENTADA`.
+
+A mesa existente `/comun/admin/curadoria` agrega filas
+específicas de `comun_archive_submissions` (foto/documento),
+`comun_archive_artwork_submissions` (arte),
+`comun_archive_oral_history_suggestions` (história oral)
+e `comun_radio_contributions` (rádio).
+O tipo `CulturalSpecialization` e o projetor de
+`lib/archive/cultural-curation-worklist.ts` possuem
+essas quatro especializações; nenhuma é "jogo".
+
+Reaproveitáveis conceitualmente e após testes:
+
+- Separação de contribuição privada, revisão de direitos,
+  avaliação de risco, preparação editorial e publicação
+  explicitamente autorizada.
+- Fila com status, visibilidade do próximo passo, motivos
+  de bloqueio, responsabilidades e possibilidade de retirada.
+- Contratos `lib/editorial-operation.ts`, critérios de
+  autoria e direitos de `docs/acervo-artistas-locais.md`
+  e proteção de contatos/sanitização de `docs/operacao-comun.md`.
+- Princípios de limites de envio e protocolo de recebimento
+  sem promessa de publicação vistos no Acervo.
+
+**Não reaproveitar sem adaptação e revisão:**
+
+- `/api/comun/archive/submissions` recebe fotografia e
+  requer um envelope de upload, direitos e vínculo ao
+  acervo fotográfico; um link de jogo não é uma fotografia.
+- `/api/comun/archive/suggestions` complementa um item
+  de Acervo já publicado; não cria um jogo candidato.
+- O fluxo save-first de contribuição cultural possui
+  intenções pré-definidas e flag própria; a opção
+  genérica "não sei" não pode converter silenciosamente
+  uma submissão em jogo nem aprovar link executável.
+- A fila `/comun/admin/curadoria` não pode exibir
+  contribuições de jogos sem fonte autorizada, estados,
+  papéis e auditoria específicos. Reutilizar componentes
+  de UI é diferente de compartilhar tabelas ou grants.
+
+**Menor caminho honesto sem migration:**
+
+1. Certificar primeiro o catálogo #551 e sua navegação,
+   preservando bloqueios de CI/ambiente.
+2. Convidar manualmente poucos desenvolvedores com
+   critérios públicos, por canais existentes e controlados;
+   não dizer "envie seu jogo" com um botão inoperante.
+3. Curar somente metadados públicos e links de destinos
+   externos avaliados, com autoria/licença, adequação
+   etária, avisos de privacidade/monetização e processo
+   claro de retirada. Não usar contas ou contatos pessoais
+   de outras fontes sem finalidade compatível.
+4. Quando existir capacidade de curadoria e necessidade
+   observada, propor **um único fluxo** de indicação de
+   jogo com rascunho privado, protocolo, avaliação e
+   resultado comunicável. Antes de migrations, provar
+   que as abstrações editoriais existentes podem ser
+   reutilizadas sem compartilhar schemas indevidos.
+5. Manter jogos comunitários independentes de
+   verificação de identidade civil pública, de
+   posição política e de exigência de código aberto.
+
+**Checklist de revisão futura para publicador humano:**
+direito autoral e assets; link de origem íntegro;
+demonstração efetivamente carregável; privacidade
+e rastreadores do destino; acessibilidade e controles;
+classificação de conteúdo e menores; monetização
+informada; risco de fraude/malware; canal de retirada;
+conflito de interesse na curadoria. Aprovação editorial
+não equivale a auditoria de segurança universal nem
+endosso sobre afirmações narrativas do jogo.
+
+**SOC-D09.G — Evidência dos PRs, sem perder o bloqueio.**
+Na consulta de 15/10/2026, o PR documental #550 havia
+passado seus checks mas seguia aberto; o PR de entrada
+#551 estava em draft. O #551 possuía três checks falhos:
+`remote-read-only-preflight` (ausência de certificado CA),
+`COMUN Quality / isolated a11y` (limitação de pulls
+Docker seguida de porta local ocupada) e `pr-lane`
+(erro HTTP 502 do Supabase local após reset descartável).
+Isso não é comprovação de falha funcional da nova
+rota, mas **impede certificação do PR**. Não desligar
+TLS, não falsear resultado, não contornar QA. Os
+demais checks aprovados valem apenas para seus
+próprios escopos e SHA.
+Quando os estados mudarem, atualizar este registro
+com evidence link e SHA, sem reescrever a história.
+
+**Relações canônicas:** SOC-D01 (experiência e relação),
+SOC-D02 (ausência e saída), SOC-D03 (segurança),
+SOC-D05 (anti-proliferação), SOC-D06 (autoria),
+SOC-D07 (evidência). Não interromper a prioridade atual
+de privacidade/continuidade da Feirinha, os PRs em curso,
+ou a migration pendente da Escola. Nenhuma alteração
+de schema, flags, Production ou indexação autorizada.
+
+### SOC-D09.H — Encaixe definitivo de Jogos na arquitetura COMUN
+
+**Decisão em 15/10/2026:** Jogos é uma **experiência cultural e social**
+transversal, não um novo produto, uma escola disfarçada nem um catálogo de
+executáveis. Existe para divertir, criar, descobrir pessoas e obras, por livre
+iniciativa de jogadores e autores. A finalidade cultural independe da adesão
+política e da produção de dados para a rede. Estado: `PRINCÍPIO DECIDIDO`;
+arquitetura de publicação de terceiros: `HIPÓTESE`; primeira rota do catálogo:
+`CANDIDATO EM PR #551`, não integrada.
+
+**Arquitetura de experiência e responsabilidades (sem duplicação):**
+
+- **Descobrir / Cultura:** principal porta para jogos publicados. A vitrine
+  `/comun/jogos` é destino específico, acessível a partir de Explorar e links
+  públicos; a primeira presença na navegação principal **não é obrigatória**
+  enquanto a experiência ainda for estreita. Promover um atalho principal
+  somente se houver conteúdo verdadeiro, continuidade e demanda observada.
+  Não criar página vazia nem alimentar a home com jogos fictícios.
+- **Jogos:** ficha pública da obra e lançamento explícito do jogo, com
+  créditos, estágio de desenvolvimento, requisitos e informação sobre saída
+  externa. Um jogo é um **conteúdo cultural interativo**, não é por si só
+  uma tarefa, denúncia, miniapp cívico, curso ou comunidade política.
+- **Pessoas / Comunidades:** descobrir o autor e, com consentimento, conversar,
+  compartilhar a experiência ou colaborar. Jogar não concede associação,
+  papel, competência, reputação cívica nem permissão administrativa.
+  Não criar segundo perfil social especializado para jogos.
+- **Escola / Fábrica:** oferecem aprendizagem de criação digital e
+  colaboração em projetos **por opção do criador**. Um curso não publica
+  jogo automaticamente; um jogo publicado não cria competência certificada.
+  Reutilizar apenas capacidades existentes e autorizadas.
+- **Acervo / Curadoria:** inspiração para direitos, proveniência, revisão,
+  retirada e recurso. Não inserir links de games nas tabelas de fotos,
+  arte e áudio como se fossem registros da mesma natureza. O editor de
+  jogos exigirá contrato específico antes de qualquer submissão pública.
+- **Miniapps:** permanecem ferramentas para necessidades práticas;
+  não se confundem com jogos, mesmo quando uma interação usa mecânicas
+  lúdicas. Não abrir motor universal de plugins por causa da aba Jogos.
+
+**Contrato de entrada em jogo (versão inicial):** abrir uma ficha sem login,
+informar beta/autoria/origem externa e acionar `Jogar` voluntariamente.
+Somente após esse ato a pessoa deixa o domínio COMUN e carrega o runtime
+externo. Não injetar SDK, sessão, pixel, token ou identificador de integrante
+do COMUN no jogo. Não transferir escolhas políticas, comportamento,
+salvamento local ou estatísticas individuais do RPG para o perfil social.
+Oferecer alternativa informativa de conteúdo quando a execução exigir
+hardware, dados, movimento ou controles não disponíveis. Não prometer
+que a abertura em nova aba preserva contexto de todos os navegadores:
+validar celular, foco e retorno.
+
+**Curadoria e pluralidade:** publicação aberta significa critérios
+transparentes e tratamento imparcial, **não** upload automático. O criador
+conserva seus direitos e pode solicitar retirada, correções e recurso.
+Jogo não precisa ensinar política, ser de código aberto ou concordar com o
+COMUN. Conteúdo de terceiros continua sob responsabilidade do publicador
+original; informações sobre monetização, trackers e faixa etária são
+visíveis antes do clique. Ao encontrar conteúdo possivelmente perigoso,
+não promovê-lo sem revisão. Não declarar jogos externos "seguros" apenas
+porque o link foi aprovado editorialmente.
+
+**Ritmo de execução, subordinado ao roadmap 49-E / U0–U8 / 50:**
+
+1. **Fechamento técnico existente:** preservar prioridade de integridade,
+   privacidade, Feirinha e bloqueios certificados da Escola; #550 é
+   documentação e #551 permanece separado e bloqueado até gates completos.
+2. **Caso de referência:** demonstrar em Preview a jornada completa:
+   `Explorar → Jogos → Cidade em Disputa → Jogar → Retornar`.
+   Testar mobile, ausência de pré-carregamento, acessibilidade básica,
+   memória/autoria verificáveis e convite sem login. Não afirmar
+   sucesso humano com teste automatizado.
+3. **Catálogo editorial mínimo:** selecionar poucos jogos realmente
+   acessíveis por link, manualmente, com diversidade de estilos,
+   autoria e condições de publicação revisadas. Validar capacidade
+   de checar links, reclamações e retiradas.
+4. **Criação comunitária:** só então ensaiar em operação o contrato
+   `SOC-D09.E/F` de proposta e revisão. Se o fluxo não puder ser
+   atendido, manter curadoria por convite em vez de abrir fila pública
+   sem acompanhamento.
+5. **Experiência coletiva avançada:** avaliar salvar, perfis de
+   criadores, comentários, multiplayer e eventual embed isolado
+   com evidência de valor, riscos e custo. Sem migrations especulativas,
+   feed infinito, gamificação da participação ou loja paralela.
+
+**Critérios de promoção:** a pessoa consegue jogar por prazer sem contribuir;
+o catálogo exibe somente obras autorizadas, com acessibilidade e autoria
+claras; os links não recebem dados do COMUN; decisões editoriais podem
+ser corrigidas e revertidas; a operação de curadoria tem responsável e
+capacidade real; custos de suporte não inviabilizam a Feirinha ou
+a organização de base. Se a primeira jornada não funcionar, **não**
+abrir o fluxo de publicações de terceiros nem colocar Jogos como
+prioridade máxima da navegação.
+
+**Decisão de não fazer agora:** não hospedar jogos arbitrários; não
+lançar loja, criador monetizado pela atenção, recompensas por convites,
+ranking público ou sincronização de progresso; não abrir submissões
+automáticas, chat infantil ou eventos multiplayer. Nenhuma destas
+exclusões impede pesquisa futura com nova evidência e revisão formal
+neste mesmo documento.
 
 ### Regra antidesvio
 
