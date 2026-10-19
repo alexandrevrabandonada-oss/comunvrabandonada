@@ -64,7 +64,8 @@ on:
 
 concurrency:
   group: comun-quality-performance-${{ github.event.pull_request.number || github.ref }}-${{ inputs.mode || 'automatic' }}
-  cancel-in-progress: false
+  # A newer PR head supersedes previous PR evidence; keep manual/release runs intact.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
