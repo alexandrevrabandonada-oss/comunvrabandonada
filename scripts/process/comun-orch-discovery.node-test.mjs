@@ -246,6 +246,39 @@ test('two real legitimate NOOP cycles preserve ledger/ref/worktrees; observation
     assert.deepEqual(fs.readFileSync(f.ctx.ledger),bytes);assert.equal(f.git('rev-parse',REF),ref);assert.equal(f.git('worktree','list','--porcelain'),wt);
   }finally{f.cleanup();}
 });
+test('three empty wakes without a repair grant track non-delivery without mutations',()=>{
+  const f=fixture();
+  try {
+    const checkpointPath=path.join(f.repo,'reports/current/comun-execution-checkpoint.json');
+    const checkpoint=JSON.parse(fs.readFileSync(checkpointPath,'utf8'));
+    checkpoint.orchV2=state([]);
+    delete checkpoint.orchV2.queue_discovery;
+    fs.writeFileSync(checkpointPath,JSON.stringify(checkpoint));
+    f.git('add','reports/current/comun-execution-checkpoint.json');
+    f.git('commit','-m','fixture without repair grant');
+    f.git('update-ref',REF,'HEAD');
+    const ctx=context(f.repo);
+    const first=tick(ctx,{now:NOW,reconcile:false});
+    assert.equal(first.action,'NOOP');
+    assert.equal(first.progress.cycles_since_delivery,1);
+    assert.equal(first.observer_control.delivery_monitor.cycles_since_delivery,1);
+    const originalLedger=fs.readFileSync(ctx.ledger);
+    const second=tick(ctx,{now:NOW+40*60000,reconcile:false,
+      observer_control:first.observer_control});
+    assert.equal(second.action,'NOOP');
+    assert.equal(second.progress.cycles_since_delivery,2);
+    assert.equal(second.writes,0);assert.equal(second.worktrees,0);
+    assert.equal(second.notify,false);
+    const third=tick(ctx,{now:NOW+80*60000,reconcile:false,
+      observer_control:second.observer_control});
+    assert.equal(third.action,'NOOP');
+    assert.equal(third.progress.cycles_since_delivery,3);
+    assert.equal(third.writes,0);assert.equal(third.worktrees,0);
+    assert.equal(third.notify,false);
+    assert.deepEqual(fs.readFileSync(ctx.ledger),originalLedger);
+    assert.equal(inspectLock(ctx.common).state,'FREE');
+  }finally{f.cleanup();}
+});
 test('interruption after admission persistence leaves one owned RUNNING lease and original lock for reconciliation',()=>{
   const f=fixture();try{
     const runtime=new URL('./comun-orch-runtime.mjs',import.meta.url).href;
