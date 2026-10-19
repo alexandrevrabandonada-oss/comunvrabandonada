@@ -191,7 +191,7 @@ test('additive migration preserves unknown envelope, original evidence and is id
 test('installed launcher canary and reversible hold: hashes/common-dir enforced before any write',()=>{
   const f=fixture([make('human',{status:'WAIT_HUMAN'}),make('unobserved',{status:'WAIT_EXTERNAL'})]);
   try{
-    const install=path.join(f.ctx.common,'installed'),modules=['comun-orch-launcher.mjs','comun-orch-runtime.mjs','comun-orch-v2.mjs','comun-orch-adapter.mjs','orch-v2-candidate.mjs','comun-orch-github-executor.mjs','comun-orch-reconcile.mjs','comun-orch-memory.mjs','comun-orch-ci-diagnostics.mjs','comun-orch-health.mjs','comun-orch-discovery.mjs','comun-orch-rail.mjs'];
+    const install=path.join(f.ctx.common,'installed'),modules=['comun-orch-launcher.mjs','comun-orch-runtime.mjs','comun-orch-v2.mjs','comun-orch-adapter.mjs','orch-v2-candidate.mjs','comun-orch-github-executor.mjs','comun-orch-reconcile.mjs','comun-orch-memory.mjs','comun-orch-ci-diagnostics.mjs','comun-orch-health.mjs','comun-orch-discovery.mjs','comun-orch-rail.mjs','comun-orch-technical-checkpoint.mjs'];
     fs.mkdirSync(install);fs.mkdirSync(path.join(f.repo,'scripts/process'),{recursive:true});
     const files={};for(const name of modules){const bytes=fs.readFileSync(fileURLToPath(new URL(name,import.meta.url)));files[name]=hash(bytes.toString());fs.writeFileSync(path.join(install,name),bytes);fs.writeFileSync(path.join(f.repo,'scripts/process',name),bytes);}
     f.git('config','core.autocrlf','false');f.git('add','scripts');f.git('commit','-m','installed fixture source');f.git('update-ref',REF,'HEAD',f.ctx.canonical);
@@ -249,6 +249,15 @@ test('installed launcher canary and reversible hold: hashes/common-dir enforced 
       path.join(install,'comun-orch-rail.mjs'));
     const missingRail=structuredClone(manifest);delete missingRail.files['comun-orch-rail.mjs'];
     fs.writeFileSync(path.join(install,'manifest.json'),JSON.stringify(missingRail));
+    assert.equal(JSON.parse(run().stdout).reason,'INSTALLED_SOURCE_DRIFT');
+    assert.deepEqual(fs.readFileSync(f.ctx.ledger),bytes);
+    fs.writeFileSync(path.join(install,'manifest.json'),JSON.stringify(manifest));
+    fs.appendFileSync(path.join(install,'comun-orch-technical-checkpoint.mjs'),'\n// checkpoint tamper');
+    assert.equal(JSON.parse(run().stdout).reason,'INSTALLED_SOURCE_DRIFT');
+    fs.copyFileSync(path.join(f.repo,'scripts/process/comun-orch-technical-checkpoint.mjs'),
+      path.join(install,'comun-orch-technical-checkpoint.mjs'));
+    const missingCheckpoint=structuredClone(manifest);delete missingCheckpoint.files['comun-orch-technical-checkpoint.mjs'];
+    fs.writeFileSync(path.join(install,'manifest.json'),JSON.stringify(missingCheckpoint));
     assert.equal(JSON.parse(run().stdout).reason,'INSTALLED_SOURCE_DRIFT');
     assert.deepEqual(fs.readFileSync(f.ctx.ledger),bytes);
   }finally{f.cleanup();}

@@ -661,7 +661,7 @@ test('bounded TypeScript repairs require own failed step, safe compiler location
     'components/comun-card.tsx(17,9): error TS2322: Type mismatch');
   assert.equal(good.candidate.recipe,'TSC_SCOPED_FIX');
   assert.deepEqual(good.candidate.paths,['components/comun-card.tsx']);
-  const admitted=admitDiscovery(state(),good,NOW);
+  const admitted=admitDiscovery(state(),good,Date.parse(good.observed_at));
   assert.equal(admitted.tasks[0].status,'READY');
   assert.equal(admitted.tasks[0].execution_base,'PR_HEAD');
   assert.equal(admitted.tasks[0].discovery.recipe,'TSC_SCOPED_FIX');

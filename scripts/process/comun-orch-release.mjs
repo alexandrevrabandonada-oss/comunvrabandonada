@@ -9,7 +9,7 @@ export const MODULES = Object.freeze(['comun-orch-launcher.mjs','comun-orch-runt
   'comun-orch-v2.mjs','comun-orch-adapter.mjs','orch-v2-candidate.mjs',
   'comun-orch-github-executor.mjs','comun-orch-reconcile.mjs','comun-orch-memory.mjs',
   'comun-orch-ci-diagnostics.mjs','comun-orch-health.mjs','comun-orch-discovery.mjs',
-  'comun-orch-rail.mjs']);
+  'comun-orch-rail.mjs','comun-orch-technical-checkpoint.mjs']);
 const git=(repo,args,options={})=>execFileSync('git',['-C',repo,...args],{
   timeout:30000,stdio:['pipe','pipe','pipe'],...options});
 const text=(repo,...args)=>git(repo,args,{encoding:'utf8'}).trim();

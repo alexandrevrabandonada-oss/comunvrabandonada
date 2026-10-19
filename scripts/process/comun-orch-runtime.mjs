@@ -8,6 +8,7 @@ import {previewProof} from './comun-orch-adapter.mjs';
 import {nextObservation, reconcileOne, readTracked, watchSpec} from './comun-orch-reconcile.mjs';
 import {chooseDiscoveryLane, discoveryDue, replenish, readDiscovery, permitted, replenishMergeDiscovery, readMergeDiscovery, mergePermitted, readRoadmapDiscovery, admitRoadmapDiscovery, roadmapAuthorized} from './comun-orch-discovery.mjs';
 import {scopeRailTasks} from './comun-orch-rail.mjs';
+import {TECHNICAL_RECIPE,checkpointAuthorized,admitCheckpoint,assertEmptyCheckpoint} from './comun-orch-technical-checkpoint.mjs';
 import {
   hash,
   plan,
@@ -383,13 +384,17 @@ export function tick(
     : chooseDiscoveryLane(initial,now,observer_control,material_budget);
   const mergeNow = dueLane === 'merge';
   const discoverNow = dueLane === 'repair';
+  const technicalNow=strictRail && material_budget>0 &&
+    !['EXECUTE','RECONCILE'].includes(preplan.action) &&
+    initial.technical_checkpoint_grants?.some(g=>g.revoked===false &&
+      g.station_id===currentStation?.station_id && !initial.tasks.some(t=>t.task_id===g.task_id));
   const roadmapNow = initial.roadmap_discovery?.enabled === true && material_budget > 0 &&
     !['EXECUTE', 'RECONCILE'].includes(preplan.action);
   const observedTask = !mergeNow && !discoverNow && reconcile && preplan.action !== 'EXECUTE'
     ? nextObservation(initial,now,observer_control) : null;
   const station=runtimeRail(initial)?.rail.station_id;
   const observationTask = !strictRail || observedTask?.task_id===station ? observedTask : null;
-  if(fs.existsSync(ctx.ledger) && !mergeNow && !discoverNow && !roadmapNow && !observationTask && !preplan.probes.length && !preplan.notifications.length &&
+  if(fs.existsSync(ctx.ledger) && !mergeNow && !discoverNow && !roadmapNow && !technicalNow && !observationTask && !preplan.probes.length && !preplan.notifications.length &&
     ['NOOP','RECONCILE'].includes(preplan.action))return {...preplan,owner_id:null,worktree:null,
       canonical:ctx.canonical,materialChanges:[],observer_control,progress,notify:false,writes:0,worktrees:0,next:null};
   const id = `orchv2-${randomUUID()}`;
@@ -421,9 +426,10 @@ export function tick(
       state = found.state; observer_control = found.observer_control;
       discovery = found.discovery; readNotifications = found.notifications;
     }
-    if (roadmapNow && runtimePlan(state).action !== 'EXECUTE') {
-      const source = readRoadmapDiscovery(ctx, state);
-      state = admitRoadmapDiscovery(state, source);
+    if ((roadmapNow||technicalNow) && runtimePlan(state).action !== 'EXECUTE') {
+      const source = roadmapNow ? readRoadmapDiscovery(ctx, state) : {reason:'TECHNICAL_CHECKPOINT_INTAKE'};
+      state = roadmapNow ? admitRoadmapDiscovery(state, source) : state;
+      state=admitCheckpoint(ctx,state,runtimeRail(state)?.rail??{reason:'LEGACY'});
       roadmapDiscovery = {reason: source.reason,
         admitted: source.candidate?.item.task_id ?? null, evidence_sha: hash(source)};
     }
@@ -506,7 +512,9 @@ export function tick(
       let baseSha = ctx.canonical;
       if (claimed.execution_base === 'PR_HEAD') {
         const roadmapBuild = claimed.discovery?.recipe === 'ROADMAP_SCOPED_BUILD';
-        const allowed = roadmapBuild ? roadmapAuthorized(state,claimed) : permitted(state);
+        const technical=claimed.discovery?.recipe===TECHNICAL_RECIPE;
+        const allowed = technical ? checkpointAuthorized(ctx,state,claimed) :
+          roadmapBuild ? roadmapAuthorized(state,claimed) : permitted(state);
         if (!claimed.discovery || !allowed || claimed.authorized !== true)
           throw Error('EXISTING_BRANCH_AUTHORIZATION_REQUIRED');
         baseSha = resolveExecutionBase(ctx, claimed);
@@ -584,6 +592,9 @@ export function record(ctx, { owner_id, task_id, event, now = Date.now() }) {
       event.evidence_sha!==applied[0].merge_commit_sha)
       throw Error('VERIFIED_MERGE_APPLIED_PROOF_REQUIRED');
   }
+  const technical=t.discovery?.recipe===TECHNICAL_RECIPE;
+  if(technical && ['candidate','operation-intent'].includes(event.type) &&
+    !checkpointAuthorized(ctx,loaded.state,t))throw Error('TECHNICAL_CHECKPOINT_AUTHORIZATION_REVOKED');
   if(event.type==='operation-intent') {
     if(t.discovery?.recipe==='ROADMAP_SCOPED_BUILD' && !roadmapAuthorized(loaded.state,t))
       throw Error('ROADMAP_AUTHORIZATION_REVOKED');
@@ -596,11 +607,16 @@ export function record(ctx, { owner_id, task_id, event, now = Date.now() }) {
       path.resolve(git(t.lease.worktree,'rev-parse','--path-format=absolute','--git-common-dir'))!==path.resolve(ctx.common))
       throw Error('ISOLATED_CANDIDATE_REQUIRED');
     const files=git(ctx.repo,'diff','--name-only',t.lease.base_sha,event.expected_sha).split('\n');
-    if(!files.some(f=>/^(app|components|lib|scripts|tests)\//.test(f)))throw Error('MATERIAL_CANDIDATE_REQUIRED');
-    if(t.discovery && (files.some(f=>!t.discovery.paths.includes(f)) ||
+    if(technical)assertEmptyCheckpoint(t,event.expected_sha);
+    else if(!files.some(f=>/^(app|components|lib|scripts|tests)\//.test(f)))throw Error('MATERIAL_CANDIDATE_REQUIRED');
+    if(t.discovery && (files.filter(Boolean).some(f=>!t.discovery.paths.includes(f)) ||
       git(ctx.repo,'ls-remote','--heads','origin',`refs/heads/${t.branch}`).split(/\s/)[0]!==t.lease.base_sha))
       throw Error('DISCOVERY_SCOPE_OR_REMOTE_HEAD_CHANGED');
   }
+  if(technical && event.type==='result' && event.result==='PASS' &&
+    !t.operations.some(o=>o.action==='normal-code-push' && o.state==='APPLIED' &&
+      o.expected_sha===t.inputs.sha && o.cycle_id===t.lease?.cycle_id &&
+      /^[a-f0-9]{64}$/.test(o.evidence_sha??'')))throw Error('TECHNICAL_CHECKPOINT_APPLIED_REQUIRED');
   if(event.type==='cycle-complete')event={...event,cycle_id:t.lease?.cycle_id ?? event.cycle_id,
     before_evidence:t.lease?.before_evidence,
     after_evidence:hash({inputs:t.inputs,evidence:t.evidence,operations:t.operations})};
@@ -612,7 +628,7 @@ export function record(ctx, { owner_id, task_id, event, now = Date.now() }) {
     t.operations.find(o=>o.operation_id===event.operation_id)?.state==='UNCERTAIN') {
     const op=state.tasks.find(t=>t.task_id===task_id).operations.find(o=>o.operation_id===event.operation_id);
     op.applied_at=new Date(now).toISOString();
-    if(op.action==='normal-code-push')state.delivery_metrics={...(state.delivery_metrics??{}),last_material_delivery_at:op.applied_at,
+    if(op.action==='normal-code-push' && !technical)state.delivery_metrics={...(state.delivery_metrics??{}),last_material_delivery_at:op.applied_at,
       last_material_delivery_sha:op.expected_sha,last_material_delivery_task:task_id,
       delivery_count:(state.delivery_metrics?.delivery_count??0)+1};
   }

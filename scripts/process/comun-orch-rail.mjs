@@ -1,6 +1,7 @@
 // Single-track progress over the *existing* canonical roadmap_backlog.items.
 // Pure, read-only and fail-closed. Neither a station nor this planner grants
 // write, merge, deployment or production permissions.
+import {checkpointTaskBound} from './comun-orch-technical-checkpoint.mjs';
 const STATION_ID = /^[a-z0-9-]+$/;
 
 function materialPass(item,t) {
@@ -94,6 +95,11 @@ export function scopeRailTasks(backlog, state, {required = false} = {}) {
       t.pr_effect==="EXISTING_PR" && t.discovery?.pr===active.target_pr &&
       t.discovery?.source_sha===active.inputs?.sha &&
       ["PRETTIER_TEST_ONLY","TSC_SCOPED_FIX"].includes(t.discovery?.recipe);
-    return t.status==="RUNNING"||parent||repair ? t : {...t,authorized:false};
+    const grant=state.technical_checkpoint_grants?.find(g=>g.task_id===t.task_id);
+    const technical=grant?.revoked===false && grant.station_id===rail.station_id &&
+      backlog.items.some(i=>i.task_id===rail.station_id && i.completion_kind==='HUMAN_GATE' &&
+        i.sha===grant.sha && i.target_pr===grant.target_pr && i.branch===grant.branch) &&
+      checkpointTaskBound(t,grant);
+    return t.status==="RUNNING"||parent||repair||technical ? t : {...t,authorized:false};
   })}};
 }
