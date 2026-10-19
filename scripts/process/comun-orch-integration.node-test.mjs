@@ -238,5 +238,18 @@ test('installed launcher canary and reversible hold: hashes/common-dir enforced 
     assert.equal(JSON.parse(run().stdout).reason,'COMMON_DIR_CHANGED');
     fs.writeFileSync(path.join(install,'manifest.json'),JSON.stringify(manifest));fs.appendFileSync(path.join(install,'comun-orch-adapter.mjs'),'\n// drift');
     assert.equal(JSON.parse(run().stdout).reason,'INSTALLED_SOURCE_DRIFT');assert.deepEqual(fs.readFileSync(f.ctx.ledger),bytes);
+    // All runtime imports must be covered by the manifest/canonical
+    // integrity check, including the single-track planner module.
+    fs.copyFileSync(path.join(f.repo,'scripts/process/comun-orch-adapter.mjs'),
+      path.join(install,'comun-orch-adapter.mjs'));
+    fs.appendFileSync(path.join(install,'comun-orch-rail.mjs'),'\n// rail tamper');
+    assert.equal(JSON.parse(run().stdout).reason,'INSTALLED_SOURCE_DRIFT');
+    assert.deepEqual(fs.readFileSync(f.ctx.ledger),bytes);
+    fs.copyFileSync(path.join(f.repo,'scripts/process/comun-orch-rail.mjs'),
+      path.join(install,'comun-orch-rail.mjs'));
+    const missingRail=structuredClone(manifest);delete missingRail.files['comun-orch-rail.mjs'];
+    fs.writeFileSync(path.join(install,'manifest.json'),JSON.stringify(missingRail));
+    assert.equal(JSON.parse(run().stdout).reason,'INSTALLED_SOURCE_DRIFT');
+    assert.deepEqual(fs.readFileSync(f.ctx.ledger),bytes);
   }finally{f.cleanup();}
 });
