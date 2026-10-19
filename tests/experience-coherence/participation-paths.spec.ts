@@ -255,7 +255,9 @@ for (const viewport of [
       await expect(page).toHaveURL(/\/comun\/buscar$/);
       await page.goBack();
       await expect(page).toHaveURL(/\/comun$/);
-      const featured = page.locator("[data-comun-home-featured-source]");
+      const featured = page
+        .getByRole("main")
+        .locator("[data-comun-home-featured-source]");
       const source = await featured.getAttribute(
         "data-comun-home-featured-source",
       );
