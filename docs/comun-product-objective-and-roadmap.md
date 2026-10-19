@@ -1,5 +1,21 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Checkpoint manual de integração — 19/10/2026
+
+**Fonte de verdade:** `main` em `11c3bc362f8d14c0972f949e369b7cfa9f2a22ec` (merge #545); 20 PRs abertos na consulta GitHub. Esta seção foi **proposta no PR #554**, não integrada em `main`. A certificação do SHA final desta revisão permanece `PENDING/NOT_RUN`, não é Production.
+
+**Decisão de execução:** executar manualmente por trilhas, com assistência de ferramentas e CI acionada pelas alterações reais, **sem ativar ou agendar ORCH-V2**. O #556 permanece draft e sua integração ao agendador/launcher Windows não está comprovada. Manter três pessoas reais para o ensaio final 47.11/50 COMUN UNO; antes disso utilizar navegadores, contratos, Auth/RLS em laboratório, teclado, axe, network e cenários sintéticos. Teste automatizado não substitui entendimento/consentimento das pessoas e ensaio final não autoriza ignorar gates técnicos.
+
+### Trilha operacional única — reduzir WIP e integrar valor verificável
+
+1. **P0 — continuidade e descoberta na Home (#554, draft):** um conjunto principal de entradas, acesso anônimo à busca e relato, conteúdo público com origem `remote/editorial_fallback/empty` distinguível, ausência de feed fictício, `legacy` preservada. No HEAD `0f0df307`: Experience Coherence passou; Quality/Performance `39335839689` terminou **230 PASS / 1 FAIL** no navegador (360×800, `?experiencia=legacy`, JS ativo). O trace textual registra navegação com `q=` vazio após digitar `comunidade-inexistente-49e`; origem precisa ainda não certificada. COST-02 `39335839634` **FAIL** (`preview-not-valid-for-checkpoint`). **Não fazer merge.** Revisão focal `8c010505` torna o contrato explícito: espera a shell interativa estabilizar e exige que o valor digitado conste na URL submetida. Isso NÃO comprova cura da perda de texto durante hidratação precoce; exigir regressão no SHA novo e investigação separada se voltar a falhar.
+2. **P1 — preservar busca e continuidade privada sem sobreposição:** reconciliar #553 (retorno de filtros; preflights remotos recusam a migration de Escola), #546 (privacidade/continuidade) e #549 (consentimento atual da Feirinha) com o mesmo `main`. Revisar conflitos de `components/comun-app-v2-home.tsx` entre #553 e #554 antes de integrar. PRs abertos não equivalem a funcionalidades publicadas; nunca transportar verdes entre SHAs.
+3. **P2 — descoberta cultural e relações com baixo atrito:** #552 (curadoria pública) e #551 (Jogos/Cidade em Disputa) continuam candidatos. Só promover quando catálogo, autoria, direitos, retorno, segurança e gates de cada SHA forem comprovados. Fábrica/competências (#511–#515), Editais #524 e módulos futuros não antecedem o fechamento das jornadas básicas e bloqueios críticos.
+4. **Proteções não negociáveis:** Escola `20261006134804_comun_learning_r0.sql` continua dependente de recuperação real, autorização e preflights; **sem schema write, migração remota, flags, Production, indexação, alteração de TLS, remoção de checks, force-push ou merge automático** para obter verde. COST-02 e Preview do SHA exato são portas independentes. `SKIPPED`, `QUEUED` e `PENDING` não significam `PASS`.
+5. **Saída desta trilha:** filtro e retorno em mobile/desktop, JS ligado/desligado, busca pública, teclado/foco e privacidade verdes no SHA integrado; Preview Git e COST-02 certificados; sem P0/P1; revisão técnica final e pós-merge. Só então declarar incrementos `INTEGRADO`; `PRODUÇÃO VERIFICADA` exige deploy/observação da própria `main`. Avaliação com as três pessoas fica no gate final, não é improvisada em PR intermediário.
+
+**Estado desta passada:** teste endurecido no PR #554 e checkpoint da auditoria proposto no mesmo documento canônico. Nenhum merge, publicação, schema ou agendamento executado. Próxima ação única: conferir CI do novo HEAD, diagnosticar eventual perda de `q` e classificar COST-02/Preview; não forçar entrega incompatível com segurança.
+
 > **Atualização transversal (14/10/2026):** [Consolidação de rede social, convivência, atratividade e sustentabilidade](#consolidação-canônica--rede-social-convivência-e-atratividade-14102026). Esta seção integra decisões e hipóteses ao roadmap único; não significa implementação nem lançamento.
 
 ## 49-E4 — candidato de continuidade em comunidades — 14/10/2026
