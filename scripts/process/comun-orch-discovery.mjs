@@ -128,7 +128,7 @@ export function readRoadmapDiscovery(ctx, state, readGit = args => execFileSync(
     ? [rail.item]
     : items.filter(i => i.status === 'READY' &&
         !state.tasks.some(t => t.task_id === i.task_id || t.roadmap_item === i.task_id))
-        .sort((a,b) => a.priority - b.priority || String(a.task_id).localeCompare(String(b.task_id)));
+        .sort((a,b) => a.priority - b.priority || String(a.task_id).localeCompare(String(b.task_id))));
   for (const item of eligible) {
     const exact = (Array.isArray(policy.grants)?policy.grants:[]).find(g=>
       g.task_id===item.task_id && g.source==='human-message' &&
