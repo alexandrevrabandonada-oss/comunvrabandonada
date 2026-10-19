@@ -231,7 +231,7 @@ for (const viewport of [
       });
 
       await page.goto("/comun");
-      await expect(page.locator("main")).toHaveCount(1);
+      await expect(page.getByRole("main")).toHaveCount(1);
       await expect(page.locator("[data-comun-participation-paths]")).toHaveCount(
         0,
       );
