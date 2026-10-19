@@ -167,7 +167,14 @@ for (const experience of ["", "?experiencia=legacy"]) {
           page.getByRole("heading", { name: "Próxima ação", exact: true }),
         ).toHaveCount(0);
       }
-
+      // Accessible links in the horizontal tool strip must have a visible
+      // keyboard focus treatment just like the primary intent doors.
+      const calcadasShortcut = page
+        .locator('section[aria-labelledby="home-shortcuts"]')
+        .getByRole("link", { name: "Calçadas", exact: true });
+      await calcadasShortcut.focus();
+      await expect(calcadasShortcut).toBeFocused();
+      await expect(calcadasShortcut).toHaveClass(/focus-visible:outline-4/);
     }
     await (experience ? paths : page)
       .getByRole("link", { name: "Aprender a organizar", exact: true })

@@ -416,7 +416,7 @@ function Shortcut({
     <Link
       href={withComunAppV2(href)}
       prefetch={false}
-      className="flex min-h-24 min-w-24 snap-start flex-col items-center justify-center gap-2 rounded-[var(--comun-radius-card)] border border-comun-black/20 bg-comun-paper p-3 text-center text-xs font-black"
+      className="flex min-h-24 min-w-24 snap-start flex-col items-center justify-center gap-2 rounded-[var(--comun-radius-card)] border border-comun-black/20 bg-comun-paper p-3 text-center text-xs font-black focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2"
     >
       <span className="grid size-10 place-items-center rounded-[var(--comun-radius-control)] bg-comun-black text-comun-paper [&>svg]:size-5">
         {icon}
