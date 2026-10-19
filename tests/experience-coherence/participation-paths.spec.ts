@@ -11,21 +11,34 @@ for (const experience of ["", "?experiencia=legacy"]) {
       try {
         const page = await context.newPage();
         await page.goto(`/comun/comunidades${experience}`);
+        // Test the form after the interactive shell settles: on the previous
+        // mobile CI run, hydration replaced a typed q with an empty value.
+        // The no-JavaScript path is still tested independently below.
+        if (javaScriptEnabled) await page.waitForLoadState("networkidle");
         const form = page.locator("form").filter({
           has: page.getByRole("textbox", {
             name: "Buscar comunidade",
             exact: true,
           }),
         });
-        await form
-          .getByRole("textbox", { name: "Buscar comunidade", exact: true })
-          .fill("comunidade-inexistente-49e");
+        const query = "comunidade-inexistente-49e";
+        const searchField = form.getByRole("textbox", {
+          name: "Buscar comunidade",
+          exact: true,
+        });
+        await searchField.fill(query);
         const submit = form.getByRole("button", {
           name: experience ? "Filtrar" : "Buscar",
           exact: true,
         });
         await submit.focus();
+        await expect(searchField).toHaveValue(query);
         await page.keyboard.press("Enter");
+        // A successful navigation must carry the actual typed query, not just
+        // land in the same experience with silently cleared filters.
+        await expect
+          .poll(() => new URL(page.url()).searchParams.get("q"))
+          .toBe(query);
         await expect(
           page.getByRole("heading", {
             name: "Nenhuma comunidade com esses filtros",
