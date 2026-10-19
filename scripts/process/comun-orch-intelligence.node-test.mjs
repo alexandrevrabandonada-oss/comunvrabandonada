@@ -112,6 +112,30 @@ test('health distinguishes interrupted work, prolonged no-progress, provider coo
   independent.status='RUNNING';independent.owner_id='interrupted';h=healthSnapshot(state([human,independent]),{now:NOW});
   assert.equal(h.next_action.kind,'RECONCILE_OWNERSHIP_WITH_PROOF');assert.equal(h.next_action.task_id,'fix');
 });
+test('repeated native-like cycles without recorded first code delivery are STALLED, not UNKNOWN',()=>{
+  const control={version:1,cursors:{},delivery_monitor:{last_material_delivery_at:null,cycles_since_delivery:3}};
+  const s=state([]);
+  const h=healthSnapshot(s,{now:NOW,observer_control:control,last_wake:new Date(NOW).toISOString()});
+  assert.equal(h.state,'STALLED');
+  assert.equal(h.noop_reason,'NO_MATERIAL_DELIVERY_AFTER_REPEATED_CYCLES');
+  assert.equal(h.first_delivery_stall.cycles_since_delivery,3);
+  assert.deepEqual(h.first_delivery_stall.disabled_lanes,[
+    'ROADMAP_DISCOVERY_DISABLED','REPAIR_DISCOVERY_AUTHORIZATION_MISSING','DOCS_MERGE_POLICY_DISABLED']);
+  assert.equal(h.next_action,null);assert.equal(h.notify,false);
+  assert.equal(h.writes,0);assert.equal(h.worktrees,0);
+  const fresh=healthSnapshot(s,{now:NOW,observer_control:{
+    ...control,delivery_monitor:{last_material_delivery_at:null,cycles_since_delivery:1}}});
+  assert.equal(fresh.state,'UNKNOWN');assert.equal(fresh.first_delivery_stall,null);
+  const authorized=state([]);authorized.roadmap_discovery={enabled:true};
+  authorized.queue_discovery={authorization:{scope:'existing-pr-code-repair'}};
+  authorized.merge_policy={enabled:true};
+  const configured=healthSnapshot(authorized,{now:NOW,observer_control:control});
+  assert.equal(configured.state,'STALLED');
+  assert.deepEqual(configured.first_delivery_stall.disabled_lanes,[]);
+  const delivered=state([task({task_id:'delivered',priority:1,status:'WAIT_EXTERNAL',inputs:{sha:A},
+    operations:[{action:'normal-code-push',state:'APPLIED',expected_sha:A,evidence_sha:hash('applied')}]})]);
+  assert.equal(healthSnapshot(delivered,{now:NOW,observer_control:control}).first_delivery_stall,null);
+});
 const proof=()=>({head_sha:A,input_fingerprint:hash(A),evidence:[{sha:A,input_fingerprint:hash(A),result:'PASS',evidence_sha:hash('proof')}],
  checks:{head_sha:A,repository:REPOSITORY,complete:true,observed_at:new Date(NOW).toISOString(),items:
   ['COMUN ORCH-V2 contract','COMUN Quality Performance Deliverability','COMUN Security Resilience Deliverability','COMUN CI'].map((workflow,i)=>({workflow,name:i===3?'COST-02 / exact checkpoint Preview':workflow,sha:A,status:'completed',conclusion:'success'}))},
