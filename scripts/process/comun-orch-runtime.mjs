@@ -337,18 +337,19 @@ export function tick(
     return p;
   };
   const preplan=runtimePlan(initial);
-  let progress;
-  if (permitted(initial)) {
-    observer_control = structuredClone(observer_control ?? {version:1,cursors:{}});
-    const last = initial.delivery_metrics?.last_material_delivery_at ?? null;
-    const monitor = observer_control.delivery_monitor;
-    progress = {last_material_delivery_at:last,
-      last_material_delivery_sha:initial.delivery_metrics?.last_material_delivery_sha ?? null,
-      elapsed_ms:last ? now-Date.parse(last) : null,
-      cycles_since_delivery:last !== monitor?.last_material_delivery_at ? 1 : (monitor?.cycles_since_delivery ?? 0)+1,
-      history_start:'Explicit APPLIED normal-code-push only; older unknown timestamps are not inferred'};
-    observer_control.delivery_monitor = progress;
-  }
+  // Delivery accounting is read-only and must not depend on permission to
+  // discover repairs. Otherwise a denied/absent grant hides repeated empty wakes.
+  observer_control = structuredClone(observer_control ?? {version:1,cursors:{}});
+  const last = initial.delivery_metrics?.last_material_delivery_at ?? null;
+  const monitor = observer_control.delivery_monitor;
+  const previousCycles = Number.isSafeInteger(monitor?.cycles_since_delivery) &&
+    monitor.cycles_since_delivery >= 0 ? monitor.cycles_since_delivery : 0;
+  const progress = {last_material_delivery_at:last,
+    last_material_delivery_sha:initial.delivery_metrics?.last_material_delivery_sha ?? null,
+    elapsed_ms:last ? now-Date.parse(last) : null,
+    cycles_since_delivery:last !== monitor?.last_material_delivery_at ? 1 : previousCycles+1,
+    history_start:'Explicit APPLIED normal-code-push only; older unknown timestamps are not inferred'};
+  observer_control.delivery_monitor = progress;
   // Do not starve a repair intake while the docs merge intake polls every wake.
   // Both lanes remain gated by their individual authorization and cooldown.
   const dueLane = chooseDiscoveryLane(initial,now,observer_control,material_budget);
