@@ -171,40 +171,6 @@ for (const experience of ["", "?experiencia=legacy"]) {
   });
 }
 
-for (const experience of ["", "?experiencia=app-v2"]) {
-  test(`Participar público disponível sem JS ${experience || "canônico"}`, async ({
-    browser,
-    baseURL,
-  }) => {
-    const context = await browser.newContext({
-      baseURL,
-      javaScriptEnabled: false,
-    });
-    try {
-      const page = await context.newPage();
-      await page.goto(`/comun/participar${experience}`);
-      const main = page.getByRole("main");
-      await expect(main).toHaveCount(1);
-      await expect(
-        main.getByRole("heading", {
-          name: "Como você quer contribuir?",
-          exact: true,
-        }),
-      ).toBeVisible();
-      const paths = main.locator("[data-comun-participation-paths]");
-      await expect(paths).toBeVisible();
-      await expect(
-        paths.locator("[data-comun-participation-path]"),
-      ).toHaveCount(3);
-      await expect(
-        paths.getByRole("link", { name: "Buscar um assunto", exact: true }),
-      ).toHaveAttribute("href", `/comun/buscar${experience}`);
-    } finally {
-      await context.close();
-    }
-  });
-}
-
 test("Orientação prática funciona sem JavaScript e abre a busca pública", async ({
   browser,
   baseURL,

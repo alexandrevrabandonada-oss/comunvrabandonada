@@ -210,7 +210,7 @@ export default async function ParticiparPage({
   }
   if (appV2) {
     return (
-      <ComunShell publicReadOnlyFallback>
+      <ComunShell>
         <div
           className="comun-v2-participate-page comun-surface-page"
           data-comun-layout-page="participar"
@@ -251,7 +251,7 @@ export default async function ParticiparPage({
     );
   }
   return (
-    <ComunShell publicReadOnlyFallback>
+    <ComunShell>
       {params.status === "recebido" ? (
         <Section>
           <div
