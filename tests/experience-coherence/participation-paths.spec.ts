@@ -111,10 +111,7 @@ for (const viewport of [
   { name: "mobile", width: 360, height: 800 },
   { name: "desktop", width: 1280, height: 800 },
 ]) {
-  test("Home pública -> busca -> retorno sem JavaScript (" + viewport.name + ")", async ({
-    browser,
-    baseURL,
-  }) => {
+  test("Home sem JS: " + viewport.name, async ({ browser, baseURL }) => {
     const context = await browser.newContext({
       baseURL,
       viewport: { width: viewport.width, height: viewport.height },
