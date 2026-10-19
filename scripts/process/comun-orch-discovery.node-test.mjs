@@ -65,6 +65,21 @@ test('roadmap admission detects live revocation and canonical CAS changes withou
     args[0]==='rev-parse'?A:f.read(args)),/ROADMAP_CANONICAL_CHANGED/);
 });
 
+
+test('canonical rail takes first station even when unrelated historical READY task exists',()=>{
+  const f=roadmapFixture();
+  f.s.tasks.push(task({task_id:'other-ready',priority:0,inputs:{sha:A},
+    authorized:true,pr_effect:'EXISTING_PR',target_pr:551}));
+  f.s.roadmap_discovery.standing_build=standingMandate();
+  f.s.roadmap_discovery.grants=[];
+  f.checkpoint.roadmap_backlog.rail={version:1,mode:'SINGLE_TRACK',
+    completion_policy:'MATERIAL_AND_PASS',station_ids:[f.item.task_id]};
+  const got=readRoadmapDiscovery(f.ctx,f.s,f.read);
+  assert.equal(got.reason,'AUTHORIZED_CANONICAL_RAIL_STATION');
+  assert.equal(got.candidate.item.task_id,f.item.task_id);
+  assert.deepEqual(got.rail,{station_id:f.item.task_id,index:0,total:1});
+});
+
 test('roadmap blocked dependency does not starve a different authorized existing PR',()=>{
   const f=roadmapFixture(),other={...f.item,task_id:'roadmap-independent',target_pr:550};
   f.item.dependencies=['blocked'];f.grant.criteria_sha=hash(f.item);

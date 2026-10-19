@@ -28,6 +28,8 @@ jobs:
         run: node --version
       - name: Test read-only orchestrator and PR backlog gate
         run: node --test scripts/roadmap/orch-v2.node-test.mjs
+      - name: Test canonical single-track railroad planner
+        run: node --test scripts/process/comun-orch-rail.node-test.mjs
       - name: Test read-only CI impact planning
         run: node --test scripts/process/comun-orch-impact.node-test.mjs
       - name: Test local adapter and isolated operational scenarios

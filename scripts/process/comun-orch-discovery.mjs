@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { hash, task, plan, PROTECTED, validate } from './comun-orch-v2.mjs';
 import { REPOSITORY } from './comun-orch-reconcile.mjs';
 import { DOCS_MERGE_ALLOWED_SKIPPED_WORKFLOWS } from './orch-v2-candidate.mjs';
+import {selectRailStation,scopeRailTasks} from './comun-orch-rail.mjs';
 
 const sha = s => /^[a-f0-9]{40}$/.test(s ?? '');
 const digest = s => /^[a-f0-9]{64}$/.test(s ?? '');
@@ -94,8 +95,8 @@ export function readRoadmapDiscovery(ctx, state, readGit = args => execFileSync(
       policy.scope !== 'EXISTING_PR_ROADMAP' || !digest(policy.evidence_sha) ||
       (!Array.isArray(policy.grants) && !standingBuildPolicy(policy)))
     return { reason: 'ROADMAP_HUMAN_POLICY_REQUIRED', candidate: null };
-  if (state.tasks.some(t => t.status === 'RUNNING' || t.operations.some(o => o.state === 'UNCERTAIN')) ||
-      plan(state, { now: Date.now() }).action === 'EXECUTE')
+  if (state.tasks.some(t => t.status === 'RUNNING' ||
+      t.operations.some(o => o.state === 'UNCERTAIN')))
     return { reason: 'ROADMAP_INTAKE_BUSY', candidate: null };
   const current = readGit(['rev-parse', 'refs/comun/roadmap-execution']).trim();
   if (current !== ctx.canonical) throw Error('ROADMAP_CANONICAL_CHANGED');
@@ -111,9 +112,23 @@ export function readRoadmapDiscovery(ctx, state, readGit = args => execFileSync(
   if (!Array.isArray(items) || items.length > 100 ||
       new Set(items.map(i => i.task_id)).size !== items.length)
     throw Error('ROADMAP_BACKLOG_INCOMPLETE');
-  const eligible = items.filter(i => i.status === 'READY' &&
-    !state.tasks.some(t => t.task_id === i.task_id || t.roadmap_item === i.task_id))
-    .sort((a, b) => a.priority - b.priority || String(a.task_id).localeCompare(String(b.task_id)));
+  const rail=selectRailStation(checkpoint.roadmap_backlog,state,{
+    required:standingBuildPolicy(policy)});
+  const scoped=scopeRailTasks(checkpoint.roadmap_backlog,state,{
+    required:standingBuildPolicy(policy)});
+  // Existing, unrelated READY tasks must not starve the current canonical
+  // rail station. Interrupted work remains a separate fail-closed blocker.
+  if(plan(scoped.state,{now:Date.now()}).action==='EXECUTE')
+    return {...source,reason:'ROADMAP_INTAKE_BUSY'};
+  if(rail.reason!=='ROADMAP_RAIL_LEGACY'&&rail.reason!=='ROADMAP_RAIL_STATION_READY'){
+    return {...source,reason:rail.reason,rail:{station_id:rail.station_id,
+      index:rail.index,total:rail.total}};
+  }
+  const eligible = (rail.reason==='ROADMAP_RAIL_STATION_READY'
+    ? [rail.item]
+    : items.filter(i => i.status === 'READY' &&
+        !state.tasks.some(t => t.task_id === i.task_id || t.roadmap_item === i.task_id))
+        .sort((a,b) => a.priority - b.priority || String(a.task_id).localeCompare(String(b.task_id)));
   for (const item of eligible) {
     const exact = (Array.isArray(policy.grants)?policy.grants:[]).find(g=>
       g.task_id===item.task_id && g.source==='human-message' &&
@@ -141,8 +156,15 @@ export function readRoadmapDiscovery(ctx, state, readGit = args => execFileSync(
           e.input_fingerprint === dependency.input_fingerprint);
     })) continue;
     source.candidate = { item, grant, policy_sha: policy.evidence_sha };
-    source.reason = 'AUTHORIZED_CANONICAL_ROADMAP_ITEM';
+    source.rail = rail.reason==='ROADMAP_RAIL_STATION_READY' ? {
+      station_id:rail.station_id,index:rail.index,total:rail.total} : null;
+    source.reason = rail.reason==='ROADMAP_RAIL_STATION_READY'
+      ? 'AUTHORIZED_CANONICAL_RAIL_STATION' : 'AUTHORIZED_CANONICAL_ROADMAP_ITEM';
     break;
+  }
+  if(rail.reason==='ROADMAP_RAIL_STATION_READY' && !source.candidate){
+    source.reason='ROADMAP_RAIL_STATION_NOT_ADMISSIBLE';
+    source.rail={station_id:rail.station_id,index:rail.index,total:rail.total};
   }
   if (readGit(['rev-parse', 'refs/comun/roadmap-execution']).trim() !== current)
     throw Error('ROADMAP_CANONICAL_CHANGED');

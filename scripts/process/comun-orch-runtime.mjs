@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import {previewProof} from './comun-orch-adapter.mjs';
 import {nextObservation, reconcileOne, readTracked, watchSpec} from './comun-orch-reconcile.mjs';
 import {chooseDiscoveryLane, replenish, readDiscovery, permitted, replenishMergeDiscovery, readMergeDiscovery, mergePermitted, readRoadmapDiscovery, admitRoadmapDiscovery, roadmapAuthorized} from './comun-orch-discovery.mjs';
+import {scopeRailTasks} from './comun-orch-rail.mjs';
 import {
   hash,
   plan,
@@ -321,10 +322,23 @@ export function tick(
       writes: 0,
       worktrees: 0,
     };
+  // In single-track mode, the canonical station sequence, not arbitrary
+  // historical PR readiness, governs which code task may be executed.
+  const strictRail = ctx.checkpoint.roadmap_backlog?.rail !== undefined ||
+    initial.roadmap_discovery?.standing_build?.enabled === true;
+  const runtimeRail = state => strictRail ? scopeRailTasks(
+    ctx.checkpoint.roadmap_backlog,state,{
+      required:state.roadmap_discovery?.standing_build?.enabled === true}) : null;
   const runtimePlan = state => {
-    const p = plan(state,{now,material_budget});
+    const scoped=runtimeRail(state);
+    const p = plan(scoped?.state??state,{now,material_budget});
     // Tracked reconciliation owns these reads, including suspended old run probes.
     if (reconcile) p.probes = p.probes.filter(id => !watchSpec(state.tasks.find(t=>t.task_id===id)));
+    if (strictRail) p.probes=p.probes.filter(id => {
+      const t=state.tasks.find(t=>t.task_id===id);
+      return t && scoped.rail.station_id!==null &&
+        (t.task_id===scoped.rail.station_id || t.roadmap_item===scoped.rail.station_id);
+    });
     if (p.action === 'PROBE' && !p.probes.length) p.action = 'NOOP';
     return p;
   };
@@ -344,12 +358,15 @@ export function tick(
   observer_control.delivery_monitor = progress;
   // Do not starve a repair intake while the docs merge intake polls every wake.
   // Both lanes remain gated by their individual authorization and cooldown.
-  const dueLane = chooseDiscoveryLane(initial,now,observer_control,material_budget);
+  const dueLane = strictRail ? null : chooseDiscoveryLane(initial,now,observer_control,material_budget);
   const mergeNow = dueLane === 'merge';
   const discoverNow = dueLane === 'repair';
   const roadmapNow = initial.roadmap_discovery?.enabled === true && material_budget > 0 &&
     !['EXECUTE', 'RECONCILE'].includes(preplan.action);
-  const observationTask = !mergeNow && !discoverNow && reconcile && preplan.action !== 'EXECUTE' ? nextObservation(initial,now,observer_control) : null;
+  const observedTask = !mergeNow && !discoverNow && reconcile && preplan.action !== 'EXECUTE'
+    ? nextObservation(initial,now,observer_control) : null;
+  const station=runtimeRail(initial)?.rail.station_id;
+  const observationTask = !strictRail || observedTask?.task_id===station ? observedTask : null;
   if(fs.existsSync(ctx.ledger) && !mergeNow && !discoverNow && !roadmapNow && !observationTask && !preplan.probes.length && !preplan.notifications.length &&
     ['NOOP','RECONCILE'].includes(preplan.action))return {...preplan,owner_id:null,worktree:null,
       canonical:ctx.canonical,materialChanges:[],observer_control,progress,notify:false,writes:0,worktrees:0,next:null};
