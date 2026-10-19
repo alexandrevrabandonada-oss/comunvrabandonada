@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import {previewProof} from './comun-orch-adapter.mjs';
 import {nextObservation, reconcileOne, readTracked, watchSpec} from './comun-orch-reconcile.mjs';
-import {chooseDiscoveryLane, replenish, readDiscovery, permitted, replenishMergeDiscovery, readMergeDiscovery, mergePermitted, readRoadmapDiscovery, admitRoadmapDiscovery, roadmapAuthorized} from './comun-orch-discovery.mjs';
+import {chooseDiscoveryLane, discoveryDue, replenish, readDiscovery, permitted, replenishMergeDiscovery, readMergeDiscovery, mergePermitted, readRoadmapDiscovery, admitRoadmapDiscovery, roadmapAuthorized} from './comun-orch-discovery.mjs';
 import {scopeRailTasks} from './comun-orch-rail.mjs';
 import {
   hash,
@@ -337,7 +337,9 @@ export function tick(
     if (strictRail) p.probes=p.probes.filter(id => {
       const t=state.tasks.find(t=>t.task_id===id);
       return t && scoped.rail.station_id!==null &&
-        (t.task_id===scoped.rail.station_id || t.roadmap_item===scoped.rail.station_id);
+        (t.task_id===scoped.rail.station_id || t.roadmap_item===scoped.rail.station_id ||
+          (t.rail_station===scoped.rail.station_id &&
+            scoped.state.tasks.find(x=>x.task_id===id)?.authorized!==false));
     });
     if (p.action === 'PROBE' && !p.probes.length) p.action = 'NOOP';
     return p;
@@ -356,9 +358,29 @@ export function tick(
     cycles_since_delivery:last !== monitor?.last_material_delivery_at ? 1 : previousCycles+1,
     history_start:'Explicit APPLIED normal-code-push only; older unknown timestamps are not inferred'};
   observer_control.delivery_monitor = progress;
-  // Do not starve a repair intake while the docs merge intake polls every wake.
-  // Both lanes remain gated by their individual authorization and cooldown.
-  const dueLane = strictRail ? null : chooseDiscoveryLane(initial,now,observer_control,material_budget);
+  // The rail can repair only its own current existing PR and exact SHA, and
+  // only under the independently approved repair-discovery authorization.
+  // A human blocker, protected station or unverified head is not bypassed.
+  const currentStation=runtimeRail(initial)?.rail;
+  const currentTask=initial.tasks.find(t=>t.task_id===currentStation?.station_id||
+    t.roadmap_item===currentStation?.station_id);
+  const railScope=strictRail && currentStation?.reason==='ROADMAP_RAIL_STATION_ACTIVE' &&
+    ['WAIT_CI','WAIT_EXTERNAL','RETRY_BACKOFF'].includes(currentTask?.status) &&
+    currentTask?.pr_effect==='EXISTING_PR' &&
+    Number.isSafeInteger(currentTask?.target_pr)&&currentTask.target_pr>0 &&
+    /^[a-f0-9]{40}$/.test(currentTask.inputs?.sha??'') &&
+    (ctx.checkpoint.roadmap_backlog?.items??[]).some(item=>
+      item.task_id===currentStation.station_id &&
+      (item.completion_kind??'CODE_PUSH')==='CODE_PUSH' &&
+      item.target_pr===currentTask.target_pr) &&
+    permitted(initial)
+    ? {station_id:currentStation.station_id,target_pr:currentTask.target_pr,
+        sha:currentTask.inputs.sha} : null;
+  const dueLane = strictRail ?
+    (railScope && material_budget>0 &&
+      discoveryDue(runtimeRail(initial).state,now,observer_control,railScope)
+      ? 'repair' : null)
+    : chooseDiscoveryLane(initial,now,observer_control,material_budget);
   const mergeNow = dueLane === 'merge';
   const discoverNow = dueLane === 'repair';
   const roadmapNow = initial.roadmap_discovery?.enabled === true && material_budget > 0 &&
@@ -394,7 +416,8 @@ export function tick(
       state=found.state; observer_control=found.observer_control;
       mergeDiscovery=found.merge_discovery;
     } else if (discoverNow) {
-      const found = replenish(state, {now, observer_control, read: discover});
+      const found = replenish(state, {now, observer_control, read: discover,
+        rail_scope:railScope, planning_state:runtimeRail(state)?.state??null});
       state = found.state; observer_control = found.observer_control;
       discovery = found.discovery; readNotifications = found.notifications;
     }

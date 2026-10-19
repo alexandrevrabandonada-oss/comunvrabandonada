@@ -83,8 +83,17 @@ export function selectRailStation(backlog, state, {required = false} = {}) {
 export function scopeRailTasks(backlog, state, {required = false} = {}) {
   const rail = selectRailStation(backlog, state, {required});
   if (rail.reason === "ROADMAP_RAIL_LEGACY") return {rail, state};
-  return {rail, state: {...state, tasks: state.tasks.map(t =>
-    t.status === "RUNNING" || (rail.station_id !== null &&
-      (t.roadmap_item === rail.station_id || t.task_id === rail.station_id))
-      ? t : {...t, authorized: false})}};
+  const active = state.tasks.find(t=>t.roadmap_item===rail.station_id ||
+    t.task_id===rail.station_id);
+  return {rail, state: {...state, tasks: state.tasks.map(t => {
+    const parent = rail.station_id!==null &&
+      (t.roadmap_item===rail.station_id||t.task_id===rail.station_id);
+    const repair = rail.station_id!==null && active &&
+      t.rail_station===rail.station_id && t.rail_source_sha===active.inputs?.sha &&
+      t.target_pr===active.target_pr && t.inputs?.sha===active.inputs?.sha &&
+      t.pr_effect==="EXISTING_PR" && t.discovery?.pr===active.target_pr &&
+      t.discovery?.source_sha===active.inputs?.sha &&
+      ["PRETTIER_TEST_ONLY","TSC_SCOPED_FIX"].includes(t.discovery?.recipe);
+    return t.status==="RUNNING"||parent||repair ? t : {...t,authorized:false};
+  })}};
 }

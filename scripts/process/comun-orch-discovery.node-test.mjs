@@ -8,6 +8,7 @@ import {hash,task,transition,plan} from './comun-orch-v2.mjs';
 import {admitDiscovery,readDiscovery,replenish,discoveryDue,mergeDiscoveryDue,readMergeDiscovery,admitMergeDiscovery,replenishMergeDiscovery,MERGE_DISCOVERY_ID,chooseDiscoveryLane,readRoadmapDiscovery,admitRoadmapDiscovery,roadmapAuthorized,standingBuildPolicy} from './comun-orch-discovery.mjs';
 import {context,tick,loadState,record,acquireLock,releaseLock,saveState,inspectLock,REMOTE,REF} from './comun-orch-runtime.mjs';
 import {REPOSITORY} from './comun-orch-reconcile.mjs';
+import {scopeRailTasks} from './comun-orch-rail.mjs';
 const NOW=Date.now(), A='a'.repeat(40), B='b'.repeat(40);
 const authorization={source:'human-message',scope:'existing-pr-code-repair',evidence_sha:hash('explicit fixture authorization'),no_new_prs:true};
 const state=(tasks=[])=>({schema_version:2,revision:0,tasks,queue_discovery:{authorization},integration_debt:{no_new_prs:true}});
@@ -29,6 +30,101 @@ function roadmapFixture() {
     JSON.stringify(checkpoint):'# Canonical roadmap\n## Search labels\n';
   return {s,item,grant,checkpoint,ctx,read};
 }
+
+
+test('rail-scoped repair discovers only the current PR and refuses head drift',()=>{
+  const scope={station_id:'current',target_pr:551,sha:A};
+  const p=n=>({number:n,state:'open',base:{ref:'main',repo:{full_name:REPOSITORY}},
+    head:{sha:n===551?A:B,ref:'existing',repo:{full_name:REPOSITORY}}});
+  const failed={id:31,workflow_id:8,run_attempt:1,head_sha:A,event:'pull_request',
+    repository:{full_name:REPOSITORY},status:'completed',conclusion:'failure',
+    name:'COMUN Experience Coherence'};
+  const job={id:41,run_id:31,head_sha:A,conclusion:'failure',
+    steps:[{name:'Check formatted files',conclusion:'failure'}]};
+  let runCalls=0,readJobs=0;
+  const read=route=>{
+    if(route.includes('?state=open'))return [p(512),p(551),p(554)];
+    if(route.includes('/actions/runs?')){runCalls++;return {total_count:1,workflow_runs:[failed]};}
+    if(route.includes('/jobs?')){readJobs++;return {total_count:1,jobs:[job]};}
+    return p(551);
+  };
+  const log=()=> '[warn] tests/experience-coherence/games-entry.spec.ts\n[warn] Code style issues found';
+  const out=readDiscovery(state(),undefined,read,log,scope);
+  assert.equal(out.triaged_pr,551);assert.equal(out.candidate?.pr,551);
+  assert.equal(runCalls,1);assert.equal(readJobs,1);
+  const drift=readDiscovery(state(),undefined,route=>
+    route.includes('?state=open')?[p(554),{...p(551),head:{...p(551).head,sha:B}}]:read(route),log,scope);
+  assert.equal(drift.reason,'ROADMAP_RAIL_REPAIR_HEAD_MOVED');
+  assert.equal(drift.candidate,null);
+  assert.equal(runCalls,1);
+  assert.throws(()=>readDiscovery(state(),null,read,log,{...scope,target_pr:0}),
+    /ROADMAP_RAIL_REPAIR_SCOPE/);
+});
+test('rail-repair admission cannot drift to a different PR or bypass legacy priorities',()=>{
+  const current=task({task_id:'current',priority:5,status:'WAIT_CI',
+    inputs:{sha:A},authorized:true,pr_effect:'EXISTING_PR',target_pr:551});
+  const old=task({task_id:'older',priority:0,inputs:{sha:A},authorized:true,
+    action:'local-code',pr_effect:'EXISTING_PR',target_pr:512});
+  const original=state([old,current]);
+  const backlog={items:[{task_id:'current',status:'READY',sha:A,target_pr:551}],
+    rail:{version:1,mode:'SINGLE_TRACK',
+      completion_policy:'MATERIAL_AND_PASS',station_ids:['current']}};
+  const scope={station_id:'current',target_pr:551,sha:A};
+  const planning=scopeRailTasks(backlog,original).state;
+  const src={...source(),triaged_pr:551,triaged_sha:A};
+  const got=admitDiscovery(original,src,NOW,scope,planning);
+  const repair=got.tasks.at(-1);
+  assert.equal(repair.rail_station,'current');
+  assert.equal(repair.rail_source_sha,A);
+  assert.equal(plan(scopeRailTasks(backlog,got).state,{now:NOW}).selected,repair.task_id);
+  assert.equal(got.tasks.find(t=>t.task_id==='older').authorized,true);
+  assert.throws(()=>admitDiscovery(original,{...src,triaged_pr:554},NOW,scope,planning),
+    /ROADMAP_RAIL_REPAIR_SCOPE/);
+  assert.throws(()=>admitDiscovery(original,{...src,candidate:{...src.candidate,pr:554}},NOW,scope,planning),
+    /ROADMAP_RAIL_REPAIR_SCOPE/);
+  const changed=structuredClone(got);
+  changed.tasks.find(t=>t.task_id==='current').inputs.sha=B;
+  assert.equal(scopeRailTasks(backlog,changed).state.tasks.at(-1).authorized,false);
+  const blocked=state([old,task({...current,status:'WAIT_HUMAN'})]);
+  assert.throws(()=>admitDiscovery(blocked,src,NOW,scope,scopeRailTasks(backlog,blocked).state),
+    /DISCOVERY_PROTECTED_PR/);
+});
+
+test('native tick repairs only the active rail PR and preserves unrelated READY tasks',()=>{
+  const f=fixture();let executed;
+  try{
+    const base=f.git('rev-parse','HEAD');
+    const current=task({task_id:'station',priority:5,status:'WAIT_CI',
+      authorized:true,inputs:{sha:base},action:'local-code',
+      pr_effect:'EXISTING_PR',target_pr:551});
+    const old=task({task_id:'old-pr',priority:0,authorized:true,
+      inputs:{sha:base},action:'local-code',pr_effect:'EXISTING_PR',target_pr:512});
+    const s=state([old,current]);
+    const backlog={items:[{task_id:'station',status:'READY',
+      target_pr:551,sha:base,completion_kind:'CODE_PUSH'}],
+      rail:{version:1,mode:'SINGLE_TRACK',
+        completion_policy:'MATERIAL_AND_PASS',station_ids:['station']}};
+    fs.writeFileSync(path.join(f.repo,'reports/current/comun-execution-checkpoint.json'),
+      JSON.stringify({legacy:{keep:true},orchV2:s,roadmap_backlog:backlog}));
+    f.git('add','.');f.git('commit','-m','one rail station with waiting CI');
+    f.git('update-ref',REF,'HEAD');
+    const ctx=context(f.repo);
+    const incoming={...source(base),triaged_pr:551,triaged_sha:base};
+    executed=tick(ctx,{now:NOW,reconcile:false,worktreeRoot:path.join(f.repo,'cycles'),
+      discover:()=>incoming,resolveExecutionBase:()=>base});
+    assert.equal(executed.action,'EXECUTE');
+    assert.equal(executed.task.rail_station,'station');
+    assert.equal(executed.task.target_pr,551);
+    assert.equal(executed.discovery.triaged_pr,551);
+    const persisted=loadState(ctx).state;
+    assert.equal(persisted.tasks.find(x=>x.task_id==='old-pr').authorized,true);
+    assert.equal(persisted.tasks.find(x=>x.task_id==='old-pr').status,'READY');
+    assert.equal(persisted.tasks.find(x=>x.task_id==='station').status,'WAIT_CI');
+    record(ctx,{owner_id:executed.owner_id,task_id:executed.selected,
+      event:{type:'cycle-complete'},now:NOW+1});
+    f.git('worktree','remove',executed.worktree);
+  } finally {f.cleanup();}
+});
 
 test('roadmap intake references canonical source and exact human criteria, never creates a PR',()=>{
   const f=roadmapFixture(),source=readRoadmapDiscovery(f.ctx,f.s,f.read);
