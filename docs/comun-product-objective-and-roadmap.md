@@ -2,6 +2,21 @@
 
 > **Atualização transversal (14/10/2026):** [Consolidação de rede social, convivência, atratividade e sustentabilidade](#consolidação-canônica--rede-social-convivência-e-atratividade-14102026). Esta seção integra decisões e hipóteses ao roadmap único; não significa implementação nem lançamento.
 
+## 49-E4 — candidato de continuidade em comunidades — 14/10/2026
+
+Após #544/main `3694710f`, auditoria identificou perda da experiência legada
+no submit dos filtros, link de limpeza e cartões da lista de comunidades.
+Correção focal preserva o modo nos três pontos, sem schema ou nova capacidade.
+Lint, tipos, build e nove testes de helpers locais PASS. Casos Playwright novos
+preparados; execução local BLOCKED por download Chromium inválido, CI/Preview
+PENDING. Não é entrega Production nem conclusão de 49-M/V1. Evidências:
+[continuidade 49-E4](../reports/current/comun-49-e4-community-continuity.md).
+
+O primeiro candidato remoto `ddbb4118` revelou bloqueio real sem JavaScript:
+quatro casos falharam com a shell presa no carregamento. Correção opta pelo
+fallback público existente apenas na lista de comunidades, sem mudar painéis
+privados. Falhas preservadas; novos gates do SHA corrigido PENDING.
+
 ## Continuidade independente — 12/10/2026
 
 Candidato funcional `42f7ddd6`: cópia de texto da ouvidoria e protocolo agora
