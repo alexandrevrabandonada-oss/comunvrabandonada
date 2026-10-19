@@ -107,6 +107,88 @@ test("Orientação prática funciona sem JavaScript e abre a busca pública", as
   }
 });
 
+for (const viewport of [
+  { name: "mobile", width: 360, height: 800 },
+  { name: "desktop", width: 1280, height: 800 },
+]) {
+  test("Home pública -> busca -> retorno sem JavaScript (" + viewport.name + ")", async ({
+    browser,
+    baseURL,
+  }) => {
+    const context = await browser.newContext({
+      baseURL,
+      viewport: { width: viewport.width, height: viewport.height },
+      javaScriptEnabled: false,
+    });
+    try {
+      const page = await context.newPage();
+      const writes: string[] = [];
+      page.on("request", (request) => {
+        if (
+          !["GET", "HEAD"].includes(request.method()) &&
+          new URL(request.url()).pathname.startsWith("/api/comun")
+        ) {
+          writes.push(request.url());
+        }
+      });
+
+      await page.goto("/comun");
+      await expect(page.locator("main")).toHaveCount(1);
+      await expect(page.locator("[data-comun-participation-paths]")).toHaveCount(
+        0,
+      );
+      await expect(
+        page.getByRole("link", { name: "Buscar um assunto", exact: true }),
+      ).toHaveAttribute("href", "/comun/buscar");
+      await page
+        .getByRole("link", { name: "Buscar um assunto", exact: true })
+        .click();
+      await expect(page).toHaveURL(/\/comun\/buscar$/);
+      await page
+        .getByRole("textbox", { name: "Termo de busca" })
+        .fill("calçadas");
+      await page.getByRole("button", { name: "Buscar", exact: true }).click();
+      await expect(page).toHaveURL(/\/comun\/buscar\?q=cal%C3%A7adas/);
+      await expect(
+        page.getByRole("heading", { name: "Buscar no COMUN", exact: true }),
+      ).toBeVisible();
+
+      await page.goBack();
+      await expect(page).toHaveURL(/\/comun\/buscar$/);
+      await page.goBack();
+      await expect(page).toHaveURL(/\/comun$/);
+      const featured = page.locator("[data-comun-home-featured-source]");
+      const source = await featured.getAttribute(
+        "data-comun-home-featured-source",
+      );
+      expect(["remote", "editorial_fallback", "empty"]).toContain(source);
+      if (source === "empty") {
+        await expect(featured).toContainText(
+          "Ainda não há uma pauta disponível neste destaque.",
+        );
+        await expect(featured.locator('[data-comun-card="pauta"]')).toHaveCount(
+          0,
+        );
+      } else {
+        await expect(featured.locator('[data-comun-card="pauta"]')).toHaveCount(
+          1,
+        );
+        if (source === "editorial_fallback") {
+          await expect(featured).toContainText(
+            "Não indica resultados ou participações já verificados.",
+          );
+        }
+        await expect(
+          featured.getByRole("link", { name: "Abrir pauta", exact: true }),
+        ).toHaveAttribute("href", /^\/comun\/pautas\/[^/?#]+$/);
+      }
+      expect(writes).toEqual([]);
+    } finally {
+      await context.close();
+    }
+  });
+}
+
 for (const experience of ["", "?experiencia=legacy"]) {
   test(`Home -> organização pública -> comunidades -> retorno ${experience || "canônica"}`, async ({
     page,

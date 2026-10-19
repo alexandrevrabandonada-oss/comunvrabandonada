@@ -56,11 +56,16 @@ sem desorientar quem chega para relatar algo.
   expor dados privados ou contornar flags/editoria.
 - Regressões existentes de navegação, browser, WCAG/Axe, foco, mobile 320–390,
   scroll, abertura/retorno e falta de conexão precisam passar no SHA exato.
-- Teste com pessoas novas deve verificar: localizar conteúdo útil sem login,
-  relatar um problema, encontrar organização, explicar a diferença entre
-  conhecer/participar e voltar ao item após navegar. Medir conclusão sem ajuda,
-  dúvidas expressas e disposição de voltar. Métrica de cliques isolada não
-  demonstra atratividade.
+- Antes do ensaio humano final, automatizar a jornada pública em mobile
+  e desktop (inclusive sem JavaScript): descobrir uma pauta elegível ou ausência
+  honesta, buscar, voltar sem perder a orientação e verificar foco/contraste.
+  Os testes não medem compreensão, desejo de voltar nem confiança de pessoas.
+- As três pessoas disponíveis ficam reservadas para o ensaio integrado de
+  fechamento da V1 (47.11 e 50 como avaliação futura, sem antecipar conclusão).
+  Nesse ensaio, verificar descoberta sem login, relato, participação, retorno,
+  explicação de evidências, autonomia e acessibilidade; registrar tarefas,
+  tempos, ajuda, dúvidas e decisão humana. Não declarar a Home aprovada por
+  pessoas apenas porque passou em Playwright.
 
 ### Ordem de evolução, sem expansão especulativa
 
@@ -95,6 +100,17 @@ atualização de Production ou usabilidade humana. Preservar o bloqueio se
 a CI ou o Preview não comprovarem o SHA exato. Conferir conflito funcional
 com #553 (submissão segura da Busca Viva) antes de integrar. Não substituir
 verificações de aparelhos reais por Playwright.
+
+### Execução sob demanda — validação automatizada antes da coorte final (19/10/2026)
+
+A coorte de três participantes reais não será consumida em cada PR ou
+microcorreção. Ela será convocada quando o ciclo integrado da V1 estiver
+tecnicamente pronto para o ensaio final. Enquanto isso, cada jornada deve
+receber regressões automatizadas verificáveis com o SHA exato e testes de
+navegação sem cadastro, teclado, mobile e comportamento sem JavaScript.
+O piloto da Home permanece **candidato em PR**, não ensaiado com pessoas,
+e a plataforma não ganha autorização de launch_publicly por esta decisão.
+A automação agendada não é necessária para esse fluxo sob demanda.
 
 ## Continuidade independente — 12/10/2026
 
