@@ -236,7 +236,7 @@ export function ComunAppV2Home({
             </h2>
             <Link
               href={withComunAppV2("/comun/caixa-de-entrada")}
-              className="inline-flex min-h-11 items-center text-sm font-black underline"
+              className="inline-flex min-h-11 items-center text-sm font-black underline focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2"
             >
               Ver Caixa
             </Link>
@@ -244,7 +244,7 @@ export function ComunAppV2Home({
           {attention[0] ? (
             <Link
               href={withComunAppV2(attention[0].action_url)}
-              className="surface-alert flex min-h-24 items-center gap-4 rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
+              className="surface-alert flex min-h-24 items-center gap-4 rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2"
             >
               <span className="grid size-12 shrink-0 place-items-center rounded-full bg-comun-yellow text-xl font-black">
                 !
