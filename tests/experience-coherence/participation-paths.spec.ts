@@ -151,6 +151,7 @@ for (const experience of ["", "?experiencia=legacy"]) {
           document.documentElement.clientWidth,
       ),
     ).toBe(true);
+    await expect(page).toHaveTitle("Do assunto à primeira ação | COMUN");
     const audit = await new AxeBuilder({ page }).analyze();
     expect(
       audit.violations.filter((violation) =>
