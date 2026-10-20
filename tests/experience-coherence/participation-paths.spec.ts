@@ -303,6 +303,48 @@ for (const viewport of [
   });
 }
 
+// Keep the original SSR Home entry and the search POST action in sync after
+// merging the compact public Home with contextual search. Navigation remains
+// public and must not create API writes or silently drop the legacy boundary.
+for (const mode of ["", "&experiencia=legacy"]) {
+  test(`Home -> busca pública preserva consulta ${mode || "canônica"}`, async ({
+    page,
+  }) => {
+    const writes: string[] = [];
+    page.on("request", (request) => {
+      if (
+        !["GET", "HEAD"].includes(request.method()) &&
+        new URL(request.url()).pathname.startsWith("/api/comun")
+      )
+        writes.push(request.url());
+    });
+
+    await page.goto(`/comun?inteligencia=busca-viva${mode}`);
+    await page.waitForLoadState("networkidle");
+    const input = page.getByRole("textbox", {
+      name: "Necessidade ou assunto",
+    });
+    await expect(input).toHaveCount(1);
+    await input.fill("calçadas");
+    await expect(input).toHaveValue("calçadas");
+    await page.getByRole("button", { name: "Buscar", exact: true }).click();
+
+    await expect
+      .poll(() => new URL(page.url()).pathname)
+      .toBe("/comun/buscar");
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get("q"))
+      .toBe("calçadas");
+    expect(new URL(page.url()).searchParams.get("experiencia")).toBe(
+      mode ? "legacy" : null,
+    );
+    await expect(
+      page.getByRole("heading", { name: "Buscar no COMUN", exact: true }),
+    ).toBeVisible();
+    expect(writes).toEqual([]);
+  });
+}
+
 for (const experience of ["", "?experiencia=legacy"]) {
   test(`Home -> organização pública -> comunidades -> retorno ${experience || "canônica"}`, async ({
     page,
