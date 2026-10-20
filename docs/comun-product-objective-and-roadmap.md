@@ -1,31 +1,15 @@
 # Objetivo final e roadmap auditado do COMUN
 
-## Checkpoint manual — Ajuda de conexão pública (20/10/2026)
+## Checkpoint manual — Ajuda de conexão (20/10/2026)
 
-**Base revisada:** `main` em `34de2f3b1d2e663284238cf77926037fdce80d00`, após o merge certificado
-do preflight de recuperação lógica #557; Home #554 já integrada.
-A Escola continua sem migração/restore real, enquanto #553, #546 e #549
-aguardam seus gates próprios. CI e Preview de uma nova proposta não
-devem ser confundidos com publicação.
-
-**Bug de experiência observado na fonte:** o cartão “Conexão, instalação e
-atualização” em `/comun/ajuda` ligava diretamente a `/comun/offline`,
-página de erro que anuncia “Sem conexão agora” independentemente da
-conexão real. Abrir orientação não deve simular erro de rede.
-
-**Incremento focal proposto:** manter o cartão e trocar seu link por
-âncora para uma orientação pública, sem cliente JavaScript obrigatório,
-informando limites da instalação/cache, confirmação de envios antes de
-repetir e eventual necessidade de reselecionar fotos. A rota offline de
-fallback permanece inalterada. Contrato de navegador testa o clique por
-teclado com JS ligado e desligado; sem novo endpoint, migração, cadastro,
-dados reais ou disparo de envio.
-
-**Status no momento da proposta:** `CANDIDATO_EM_PR`. Somente uma CI
-do HEAD exato, Preview COST-02 e revisão/merge posterior permitem
-classificar como `INTEGRADO`; Production precisa de deployment e
-verificação próprios. Nenhum teste humano da coorte final foi consumido.
-
+- Base revisada: `34de2f3b1d2e663284238cf77926037fdce80d00`.
+- Origem: Home #554 e preflight Escola #557 integrados.
+- Problema: a Ajuda enviava pessoas online para `/comun/offline`.
+- Correção candidata: orientação em `/comun/ajuda#conexao`.
+- Prova exigida: teclado e navegação com e sem JavaScript.
+- Limites: sem novo endpoint, migração, cadastro ou envio.
+- Estado: `CANDIDATO_EM_PR`; CI e Preview não transferíveis.
+- Escola, Busca #553, U0 #546 e Feirinha #549 preservam seus gates.
 
 ## Checkpoint manual de integração — 19/10/2026
 
