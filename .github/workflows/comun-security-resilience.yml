@@ -96,7 +96,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          # The secrets gate scans 30 real commits; shallow boundaries create
+          # synthetic root patches and can overflow the history scan buffer.
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22.18.0
@@ -181,7 +183,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22.18.0

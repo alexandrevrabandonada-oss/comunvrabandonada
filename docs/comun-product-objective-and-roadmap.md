@@ -1,8 +1,441 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Checkpoint manual de integração — 19/10/2026
+
+**Fonte de verdade:** `main` em `11c3bc362f8d14c0972f949e369b7cfa9f2a22ec` (merge #545); 20 PRs abertos na consulta GitHub. Esta seção foi **proposta no PR #554**, não integrada em `main`. A certificação do SHA final desta revisão permanece `PENDING/NOT_RUN`, não é Production.
+
+**Decisão de execução:** executar manualmente por trilhas, com assistência de ferramentas e CI acionada pelas alterações reais, **sem ativar ou agendar ORCH-V2**. O #556 permanece draft e sua integração ao agendador/launcher Windows não está comprovada. Manter três pessoas reais para o ensaio final 47.11/50 COMUN UNO; antes disso utilizar navegadores, contratos, Auth/RLS em laboratório, teclado, axe, network e cenários sintéticos. Teste automatizado não substitui entendimento/consentimento das pessoas e ensaio final não autoriza ignorar gates técnicos.
+
+### Trilha operacional única — reduzir WIP e integrar valor verificável
+
+1. **P0 — continuidade e descoberta na Home (#554, draft):** um conjunto principal de entradas, acesso anônimo à busca e relato, conteúdo público com origem `remote/editorial_fallback/empty` distinguível, ausência de feed fictício, `legacy` preservada. No HEAD `0f0df307`: Experience Coherence passou; Quality/Performance `39335839689` terminou **230 PASS / 1 FAIL** no navegador (360×800, `?experiencia=legacy`, JS ativo). O trace textual registra navegação com `q=` vazio após digitar `comunidade-inexistente-49e`; origem precisa ainda não certificada. COST-02 `39335839634` **FAIL** (`preview-not-valid-for-checkpoint`). **Não fazer merge.** Revisão focal `8c010505` torna o contrato explícito: espera a shell interativa estabilizar e exige que o valor digitado conste na URL submetida. Isso NÃO comprova cura da perda de texto durante hidratação precoce; exigir regressão no SHA novo e investigação separada se voltar a falhar.
+2. **P1 — preservar busca e continuidade privada sem sobreposição:** reconciliar #553 (retorno de filtros; preflights remotos recusam a migration de Escola), #546 (privacidade/continuidade) e #549 (consentimento atual da Feirinha) com o mesmo `main`. Revisar conflitos de `components/comun-app-v2-home.tsx` entre #553 e #554 antes de integrar. PRs abertos não equivalem a funcionalidades publicadas; nunca transportar verdes entre SHAs.
+3. **P2 — descoberta cultural e relações com baixo atrito:** #552 (curadoria pública) e #551 (Jogos/Cidade em Disputa) continuam candidatos. Só promover quando catálogo, autoria, direitos, retorno, segurança e gates de cada SHA forem comprovados. Fábrica/competências (#511–#515), Editais #524 e módulos futuros não antecedem o fechamento das jornadas básicas e bloqueios críticos.
+4. **Proteções não negociáveis:** Escola `20261006134804_comun_learning_r0.sql` continua dependente de recuperação real, autorização e preflights; **sem schema write, migração remota, flags, Production, indexação, alteração de TLS, remoção de checks, force-push ou merge automático** para obter verde. COST-02 e Preview do SHA exato são portas independentes. `SKIPPED`, `QUEUED` e `PENDING` não significam `PASS`.
+5. **Saída desta trilha:** filtro e retorno em mobile/desktop, JS ligado/desligado, busca pública, teclado/foco e privacidade verdes no SHA integrado; Preview Git e COST-02 certificados; sem P0/P1; revisão técnica final e pós-merge. Só então declarar incrementos `INTEGRADO`; `PRODUÇÃO VERIFICADA` exige deploy/observação da própria `main`. Avaliação com as três pessoas fica no gate final, não é improvisada em PR intermediário.
+
+**Estado desta passada:** teste endurecido no PR #554 e checkpoint da auditoria proposto no mesmo documento canônico. Nenhum merge, publicação, schema ou agendamento executado. Próxima ação única: conferir CI do novo HEAD, diagnosticar eventual perda de `q` e classificar COST-02/Preview; não forçar entrega incompatível com segurança.
+
+> **Atualização transversal (14/10/2026):** [Consolidação de rede social, convivência, atratividade e sustentabilidade](#consolidação-canônica--rede-social-convivência-e-atratividade-14102026). Esta seção integra decisões e hipóteses ao roadmap único; não significa implementação nem lançamento.
+
+## 49-E4 — candidato de continuidade em comunidades — 14/10/2026
+
+Após #544/main `3694710f`, auditoria identificou perda da experiência legada
+no submit dos filtros, link de limpeza e cartões da lista de comunidades.
+Correção focal preserva o modo nos três pontos, sem schema ou nova capacidade.
+Lint, tipos, build e nove testes de helpers locais PASS. Casos Playwright novos
+preparados; execução local BLOCKED por download Chromium inválido, CI/Preview
+PENDING. Não é entrega Production nem conclusão de 49-M/V1. Evidências:
+[continuidade 49-E4](../reports/current/comun-49-e4-community-continuity.md).
+
+O primeiro candidato remoto `ddbb4118` revelou bloqueio real sem JavaScript:
+quatro casos falharam com a shell presa no carregamento. Correção opta pelo
+fallback público existente apenas na lista de comunidades, sem mudar painéis
+privados. Falhas preservadas; novos gates do SHA corrigido PENDING.
+
+## Piloto UX da Home — descoberta familiar e conteúdo real (15/10/2026)
+
+**Estado: CANDIDATO EM PR; não integrado nem validado com pessoas.** Vinculado a
+SOC-D01 (valor sem reciprocidade), SOC-D05 (reutilizar antes de criar), SOC-D07
+(medir uma jornada real), SOC-D09 (descoberta cultural) e ao inventário U0. Este
+checkpoint é parte do roadmap único e não inicia outro programa de redesign.
+
+### Problema observado no código e hipótese
+
+A Home App V2 de `components/comun-app-v2-home.tsx` apresenta a entrada "Vi um
+problema", três portas de intenção ("O que você quer fazer?") e depois três
+cartões "Você escolhe como usar", antes de destacar uma pauta. A repetição exige
+interpretação de caminhos parecidos antes de oferecer conteúdo concreto.
+**Hipótese, não achado de ensaio humano:** reduzir entradas repetidas e
+antecipar um conteúdo público elegível melhora compreensão e vontade de explorar
+sem desorientar quem chega para relatar algo.
+
+### Incremento piloto estritamente delimitado
+
+1. **Home App V2:** manter "Vi um problema" como CTA primário, acrescentar
+   acesso explícito à busca pública, preservar três portas e substituí-las como
+   único grupo de escolha inicial; "Aprender a organizar" fica como link discreto,
+   sem duplicar a coleção completa de cartões. A coleção existente continua em
+   `/comun/participar` e na Home legacy para compatibilidade.
+2. **Conteúdo antes de catálogo:** antecipar uma pauta pública com
+   `source=remote`, quando houver, a partir do leitor existente. Se houver
+   somente o fallback editorial canônico de Calçadas, exibir essa origem e
+   esclarecer que ela não comprova participação nem resultados. Sem qualquer
+   item elegível, explicitar ausência e oferecer o catálogo; não fabricar
+   fotos, histórias, atividade, resultados ou contagens. Preservar em
+   Acompanhamentos a pauta pessoal distinta quando a pessoa estiver logada,
+   sem duplicar exatamente a mesma pauta.
+3. **Sem novos poderes:** nenhum novo endpoint, autenticação, tabela, migration,
+   feed, perfilamento, like, alteração de elegibilidade, ranking, telemetria,
+   permissão, jogo, publicação, mensagem ou mudança em Production.
+4. **Cuidado com conflito:** #553 também modifica este componente da Home
+   (form da Busca Viva) e o próprio roadmap. Reconciliar os commits depois da
+   conclusão de #553; não mesclar o piloto automaticamente. #550/#552 também
+   propõem mudanças documentais independentes no roadmap. Preservar as alterações
+   aprovadas ao reconciliar; #546/#549 e Escola seguem seus bloqueios próprios.
+
+### Critérios de aceitação e contraexemplos
+
+- Em `/comun` canônico, busca, relato e exploração continuam acessíveis,
+  há somente um grupo principal de escolhas de intenção e pauta real aparece
+  perto da entrada quando houver item elegível.
+- Em `?experiencia=legacy` e `/comun/participar`, a jornada de orientação
+  anterior e seus links persistem. Os links diretos/teclado continuam válidos.
+- Sem pautas publicáveis ou fallback editorial autorizado, a Home mostra
+  ausência, não uma pauta fictícia. Quando o fallback for usado, ele é
+  identificado como editorial, sem confundir com publicação remota. Nunca
+  expor dados privados ou contornar flags/editoria.
+- Regressões existentes de navegação, browser, WCAG/Axe, foco, mobile 320–390,
+  scroll, abertura/retorno e falta de conexão precisam passar no SHA exato.
+- Antes do ensaio humano final, automatizar a jornada pública em mobile
+  e desktop (inclusive sem JavaScript): descobrir uma pauta elegível ou ausência
+  honesta, buscar, voltar sem perder a orientação e verificar foco/contraste.
+  Os testes não medem compreensão, desejo de voltar nem confiança de pessoas.
+- As três pessoas disponíveis ficam reservadas para o ensaio integrado de
+  fechamento da V1 (47.11 e 50 como avaliação futura, sem antecipar conclusão).
+  Nesse ensaio, verificar descoberta sem login, relato, participação, retorno,
+  explicação de evidências, autonomia e acessibilidade; registrar tarefas,
+  tempos, ajuda, dúvidas e decisão humana. Não declarar a Home aprovada por
+  pessoas apenas porque passou em Playwright.
+
+### Ordem de evolução, sem expansão especulativa
+
+**P0** retirar redundância e apresentar a pauta real; **P1** validar descoberta
+transversal dos leitores públicos propostos em #552, linguagem, hierarquia e
+contraste da Home; **P1** ensaiar busca e retorno do #553; **P2** avaliar cultura,
+Feirinha e jogos com conteúdo real, autoria e direitos; **P2** experimentar
+conversa livre somente depois de fechar a primeira interação de ponta a ponta,
+moderação, saída e proteção de dados. Manter Zen Brutalista com três níveis de
+expressividade (calmo, contextual, cultural), acessibilidade e dispositivos
+populares. Não padronizar interfaces culturais com urgência de denúncia.
+
+**Prova inicial:** alteração isolada em branch, mais teste de continuidade;
+ainda sem testes executados neste registro. Não equivale a merge, Preview READY,
+disponibilidade pública ou validação humana. Próximo bloqueio: classificar CI do
+piloto e coordenar merge/rebase com #553 sem dispensar gates.
+
+### Checkpoint técnico do candidato — 16/10/2026
+
+Branch isolada `codex/comun-home-discovery-pilot-20261015`, PR #554
+draft. O primeiro head `5b9f7a1e` teve Experience Coherence e o
+contrato sintético de continuidade **SUCCESS**, mas Core Journeys falhou
+no Prettier do componente e COST-02 recusou ausência do marcador Preview.
+Essas falhas não são testes verdes. A correção de estilo foi aplicada, assim
+como um atributo público não sensível para distinguir o cartão `remote`,
+o destaque `editorial_fallback` e o estado `empty`. Um teste de navegação
+verifica as três possibilidades sem fabricar conteúdo.
+
+O commit com marcador de Preview apenas solicita o build canônico em Git
+e não comprova Vercel READY, deployment GitHub válido, CI verde, merge,
+atualização de Production ou usabilidade humana. Preservar o bloqueio se
+a CI ou o Preview não comprovarem o SHA exato. Conferir conflito funcional
+com #553 (submissão segura da Busca Viva) antes de integrar. Não substituir
+verificações de aparelhos reais por Playwright.
+
+### Execução sob demanda — validação automatizada antes da coorte final (19/10/2026)
+
+A coorte de três participantes reais não será consumida em cada PR ou
+microcorreção. Ela será convocada quando o ciclo integrado da V1 estiver
+tecnicamente pronto para o ensaio final. Enquanto isso, cada jornada deve
+receber regressões automatizadas verificáveis com o SHA exato e testes de
+navegação sem cadastro, teclado, mobile e comportamento sem JavaScript.
+O piloto da Home permanece **candidato em PR**, não ensaiado com pessoas,
+e a plataforma não ganha autorização de launch_publicly por esta decisão.
+A automação agendada não é necessária para esse fluxo sob demanda.
+
+## Continuidade independente — 12/10/2026
+
+Candidato funcional `42f7ddd6`: cópia de texto da ouvidoria e protocolo agora
+oferece alternativa manual selecionável quando o navegador recusa clipboard,
+sem falso sucesso, envio automático ou perda de contexto. Cinco cenários Chromium,
+teclado/foco, celular e Axe passaram em componentes reais com fixtures sintéticas;
+build/TypeScript/ESLint focais passaram. Preview e integração ainda exigem gates
+próprios. [Provas e limites](../reports/current/comun-copy-continuity.md).
+
+A recuperação da Escola retoma pelo checkpoint versionado do #540, sem repetir
+provas válidas: convite Gmail recebido/confirmado PASS; bateria restante de até
+seis mensagens autorizada, ainda sem envios e bloqueada pela captura fiel Source.
+#523 permanece separado e seus seis preflights continuam obrigatórios. Sem schema
+write, flags ou indexação; não declarar Escola liberada ou V1 concluída.
+
+## Recuperação da Escola — escopo separado, 08/10/2026
+
+Revisão do #534: preparação elegível para integração após gates do SHA, sem
+autorizar recuperação real. O crash foi reduzido a uma função que retorna 1:
+na mesma biblioteca/PG17.6, hint_roles=anon reproduz signal 11; hint_roles vazio
+retorna 42501. Finding permanece aberto e separado do restore PASS.
+Caso mínimo e configuração/logs sanitizados preservados no pacote.
+Novo gate externo: clone físico pode iniciar cron/webhooks/wrappers ao concluir;
+isolamento não decorre do nome do projeto. Destino nominal proposto, tarifas,
+autorização em etapas e campos ainda pendentes estão no
+[pacote de decisão real](../reports/current/comun-escola-real-recovery-decision.md).
+Sem upgrade, cópia privada, restore ou alteração Production nesta revisão.
+
+#533 integrado e certificado em main `2151826f`. #523 continua draft em
+`cf0e8e41`: Quality PASS e seis preflights de schema bloqueados.
+A sessão do projeto correto foi disponibilizada em outro perfil Chrome;
+identidade confirmada pelo hash do PRE. O painel Free não oferece backups,
+PITR ou restore gerenciado em novo projeto nas condições atuais. A limitação
+histórica de acesso ao dashboard está resolvida; recuperação real ainda não.
+
+Esta passada compara backup lógico independente e Pro/recuperação gerenciada,
+prepara captura protegida e ensaio sintético em cluster vazio. Cobertura DB,
+Auth, Storage metadata/bytes e configurações externas são tratadas separadamente.
+Uma falha de backend signal 11 em chamada não autorizada foi reproduzida somente
+na imagem descartável pinada; não foi testada nem inferida em Production.
+Ela continua finding aberto, sem alteração de grants para obter verde.
+Resultados, limites, retenção proposta e operação real pendente estão em
+[estratégia de recuperação](../reports/current/comun-escola-recovery-strategy.md).
+
+PASS sintético em `4bc3e33b`: restauração após destruição da origem, 278 tabelas,
+catálogo/dados/roles/grants/memberships, histórico/ledger, RLS A/B, negação de RPC
+no cluster restaurado e arquivo separado. Evidência sanitizada e 80 focais PASS.
+O crash anterior da instância padrão da imagem permanece FAIL separado.
+Auth/Storage API, Vault, off-site/escrow e restore real não estão certificados.
+Recomendação para decisão: Pro + backup físico diário efetivo + restore em novo
+projeto, com lógico como segunda linha; sem contratação ou upgrade nesta rodada.
+
+Próximo gate: comprovar snapshot recuperável real e restore isolado, com destino,
+tratamento dos dados e responsáveis aprovados; depois autorização específica de
+schema. Sem upgrade, migration Production, flags, abertura de indexação ou
+certificação da V1 nesta passada.
+
+## Fechamento exclusivo da Escola e #523 — 08/10/2026
+
+#532 integrado em `636e3e1d`, Production Git READY no SHA exato, sem schema
+write. Captura/read-only e equivalência PRE/POST auditadas por artifact/hash.
+Quality de #523 `cf0e8e41` terminou verde após uma única reexecução dirigida
+do 502 de Território, sem código; os seis preflights Escola continuam FAILURE.
+O candidato permanece draft, com funcionalidades estáveis.
+
+A revisão focal #533 exige POST e ledger aprovados antes do COMMIT, controles
+SQL negativos e preservação de privilégios no laboratório. A captura confirmou
+os direitos existentes do leitor Production; a fixture foi corrigida para
+reproduzi-los sem mudar o destino real. Prova SQL funcional `775f86e9`, run
+37863202153 PASS: POST/ledger divergentes abortam e preservam PRE, privilégios
+preexistentes preservados, aplicação única e replay recusado. Os fingerprints
+PRE/POST revisados permaneceram intactos. Checkpoints posteriores exigem gates
+próprios, sem transportar aprovações por presunção.
+Backup/ponto recuperável/acesso ao restore do COMUN permanecem BLOCKED, pois
+o conector não expõe o projeto e o dashboard está sem sessão. Restore isolado
+do provedor NOT_RUN. Responsáveis humanos ainda não designados; nenhuma
+autorização de migration, flag ou indexação foi inferida. Próximo gate: fechar
+recuperação/executor e autorizar separadamente a liberação da Escola. Evidências
+e procedimento em [fechamento controlado](../reports/current/comun-escola-controlled-release-closure.md).
+Não declara V1 concluída nem libera merge de #523 sem seus seis gates.
+
 Base de produção conferida em 06/10/2026: `64bba7165033724bba3d8f8b98256aacd99dd450`, após os PRs #504, #505 e #506. A reconciliação de 02/10 e os achados intermediários abaixo são históricos. A V1 continua incompleta; a situação atual e a fila sem amostra humana estão na seção seguinte.
 
+## Atualização transversal do produto — 06/10/2026
+
+### Checkpoint integrado e fila de revisão — 08/10/2026
+
+Consulta deste checkpoint: `main` em
+`eb317e76f9d259c4436e4a791e6215d153ab7c99`. Código integrado não significa
+schema promovido, flag ativada ou jornada pública certificada. A V1 permanece
+incompleta; os checkpoints seguintes desta página são históricos.
+
+| Tijolo                                                                                                         | Evidência confirmada                                                                | Estado e limite                                                                              |
+| -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| [#522 — Quality read-only](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/522)            | Merge `2d21df3d`; inspeção read-only verde no pós-merge                             | Integrado; a run falhou depois no seletor antigo de busca                                    |
+| [#526 — Revisão da Escola](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/526)            | Merge `6a3c39a3`; revisão imutável e prova PostgreSQL descartável                   | Integrado; não autoriza promoção remota                                                      |
+| [#525 — Seletor visível de busca](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/525)     | Merge `092a4afa`; 10 checks do candidato verdes, 35 skipped                         | Integrado; Quality pós-merge falhou por SHA sem build                                        |
+| [#527 — Ensaio atômico da Escola](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/527)     | Merge `eb317e76`; 10 checks verdes, 75 skipped; SQL canônico descartável verde      | Integrado; pós-merge 4 verdes/73 skipped e Vercel success; não prova recuperação do provedor |
+| [#528 — Escopo pós-merge do Quality](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/528)  | Candidato `986b3851`; 46 testes locais e Preview/COST-02 verdes                     | Draft; laboratório completo de Quality ainda em execução nesta consulta                      |
+| [#523 — Coerência e compartilhamento](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/523) | Candidato reconciliado `922e5d82`; runtime preservado frente ao checkpoint anterior | Draft; gates remotos dependem da Escola; não transferir PASS entre SHAs                      |
+
+Skipped não é PASS. O #525 alterou somente testes, delta ignorado pelo
+classificador de build em Production. Quality job `113451932296` falhou após
+30 tentativas com `COMUN_QUALITY_EXPECTED_SHA_NOT_DEPLOYED`. A falha permanece
+registrada. O #528 reutiliza a classificação do build para declarar somente
+deltas explicitamente sem runtime como não aplicáveis; mudanças de runtime,
+schema, dependências, arquivos desconhecidos e diffs indisponíveis continuam
+exigindo deploy do SHA exato. Não há certificação de Production por exclusão.
+
+O [ensaio atômico canônico descartável da Escola](comun-escola-atomic-disposable.md)
+comprovou rollback após schema, histórico e ledger, instalação única com POST e
+ledger exatos, outros domínios preservados no escopo canônico v2 e replay
+recusado. Não cobre integralmente schemas privados nem recuperação após COMMIT
+no provedor. O manifesto permanece `remotePromotionAllowed=false` e a
+preparação mantém `promotionReady=false`.
+
+Fila de avanço, em ordem:
+
+1. Concluir os checks do #528; integrar por merge normal somente se verdes;
+   verificar o pós-merge e o SHA servido quando o delta exige build.
+2. Identificar e allowlistar o ambiente canônico da Escola; capturar baseline
+   e ledger em read-only, conferir PRE/POST e capacidade real de recuperação.
+   As provas descartáveis já integradas não substituem essas evidências.
+3. Revisar um pacote concreto de schema antes da autorização específica de
+   promoção; o caminho automático de Quality permanece sem escrita de schema.
+4. Reconciliar #523 com a base integrada, revalidar os gates do próprio SHA,
+   integrar o candidato verde e conferir deploy. Sem amostra humana, priorizar
+   coerência, projeção pública dos observatórios, compartilhamento e SEO;
+   convites e dados privados continuam respeitando autorização.
+5. Depois das provas técnicas, ensaiar recebimento/retorno com pessoas e
+   dispositivos reais. Isso continua pendente e não é substituído por CI.
+
+### Sequência de integração — 08/10/2026
+
+Primeiro tijolo integrado: #522, merge normal
+`2d21df3de4da10851840529a639944ee22141377`, árvore idêntica ao candidato
+read-only revisado. O caminho automático de Quality deixa de transportar schema.
+Na consulta desta preparação, o deploy Vercel informou success e os checks
+pós-merge ainda executavam; certificação completa não presumida. Quality
+`37811285564` confirmou inspeção de schema read-only verde e falhou depois no
+seletor antigo da busca (cópia oculta de streaming). Integrar a correção focal
+já validada no #523 antes de considerar a base certificada.
+
+O #523 permanece draft em `ec849235b1fa33dd4dad959a4748b6ddff438bfd`.
+Quality e Civic Intelligence concluíram success; consulta completa: 49 success,
+6 failure, 87 skipped, nenhuma pendência. As seis falhas seguem bloqueadas pela
+release da Escola; skipped não é aprovação. As descrições anteriores de #522
+draft e Quality pendente abaixo são históricas.
+
+O próximo pacote separado é a [revisão da release Escola](comun-escola-release-review.md):
+bytes/catálogo imutáveis, captura preliminar read-only e prova PostgreSQL
+descartável. Publicar a ferramenta não promove schema. O manifest permanece
+local_candidate e remotePromotionAllowed=false. Baseline completo, transporte
+atômico, POST e recuperação ainda precisam de prova antes de uma promoção.
+
+Ordem: certificar #522 → integrar preparação da Escola → revisar/promover schema
+em etapa própria → revalidar seis gates → integrar #523 → certificar deploy.
+Ativação e ensaio humano seguem depois. Novas frentes de produto devem usar
+essa base integrada, preservando as dependências e a distinção código/schema/flag.
+
+O roadmap passa a tratar o COMUN também como infraestrutura para uma estrutura política permanente ligada à APS, à VR Abandonada e a organizações aliadas. Núcleos, estratégia, formação, competências, fábrica, Minha Participação, inteligência cívica, observatórios e ação institucional formam um ciclo organizativo: evidência → prioridade coletiva → formação e responsabilidade voluntária → ação → devolutiva → memória e renovação de capacidades.
+
+Essa conexão existia distribuída em frentes do roadmap, mas não estava explícita como objetivo integrador nem como contrato de produto. O novo [49-E0 — contrato de produto único](comun-one-product-contract-49-e0.md) fixa os princípios e inclui a camada **49-M — Organização política permanente**. O E0 é um candidato em implementação; não altera o estado da V1, a autorização de lançamento nem a indexação atual.
+
+| Trilha                                     | Papel no produto inteiro                                                                                                        | Estado do trabalho sem amostra humana                                                                                              |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **49-E0 — COMUN ONE PRODUCT CONTRACT**     | Gramática comum, superfície pública, compartilhamento, busca, privacidade, continuidade e fricção                               | Contrato e testes focais aprovados localmente; prova renderizada ampliada no 49-E2 abaixo; adoção em todas as rotas ainda pendente |
+| **49-M — Organização política permanente** | Vincula APS, VR Abandonada e aliadas a núcleos, decisões, tarefas, formação, ação institucional, prestação de contas e sucessão | Arquitetura e limites registrados; governança, pessoas e responsabilidades reais exigem validação da organização                   |
+| **50 — COMUN UNO**                         | Ensaio da experiência completa, inclusive a relação com estrutura e ação política                                               | Etapa final; depende de jornadas com pessoas, dispositivos e operação reais                                                        |
+
+## Produto e estrutura política permanente
+
+O objetivo do COMUN é apoiar uma organização popular que aprenda, escolha prioridades, forme pessoas, atue no território e nas instituições, avalie consequências e transmita capacidade para novas lideranças. A associação e a VR Abandonada são parte da estrutura política do projeto; o COMUN é sua infraestrutura comum e também uma porta pública de conhecimento, participação e prestação de contas. O aplicativo não substitui a organização nem decide sua linha política.
+
+“Máquina política” fica definida como capacidade coletiva organizada e durável: vínculo voluntário, responsabilidade clara, formação prática, decisão rastreável, trabalho público, resultados conferíveis e sucessão. O produto não converte participação em pontuação, não monitora militantes e não usa dados políticos para microsegmentação ou pressão.
+
+## Próxima estrutura do roadmap integral
+
+### Diretriz incorporada — movimento social moderno
+
+O COMUN combina ferramenta pública, participação voluntária e organização com
+formação permanente. **Usar, participar e organizar** são caminhos com valor
+próprio, não categorias de pessoas ou uma progressão obrigatória. A pessoa pode
+resolver uma necessidade sem se vincular; pode contribuir pontualmente; ou
+construir continuidade num núcleo. Convites são contextuais e responsabilidades
+dependem de aceite explícito.
+
+| Entrega                                                     | Relação com o roadmap | Prova necessária                                                                         |
+| ----------------------------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------- |
+| Inventário de entradas, utilidade e convites                | 49-E0 / 49-E          | Rotas e barreiras reais; funções públicas preservadas sem adesão                         |
+| Orientação → prática → devolutiva → retomada                | 49-C / 49-F           | Materiais e registros conectados; formação não atribui tarefa nem função automaticamente |
+| Núcleo → decisão → tarefa → ação → resultado → substituição | 49-A / 49-B / 49-M    | Responsáveis e vínculos concretos; memória e continuidade com substitutos                |
+| Jornadas de uso pontual, contribuição e organização         | 50 COMUN UNO          | Provas técnicas e ensaio humano dos três caminhos, incluindo saída e retorno             |
+
+VR Abandonada comunica e mobiliza; APS e aliadas dão base associativa e
+capacidade de execução; COMUN conecta conhecimento, formação e continuidade;
+atuação institucional encaminha demandas e devolve resultados à rede. São
+papéis previstos no desenho, com responsabilidades reais ainda a confirmar.
+O [contrato 49-E0](comun-one-product-contract-49-e0.md) detalha os critérios.
+
+Esta diretriz está registrada na arquitetura candidata. Não significa que
+convites, integrações ou núcleos já estejam implementados. O próximo trabalho
+é inventariar as superfícies existentes antes de expandir telas ou cadastros.
+Maturidade exige capacidade coletiva continuada, além das métricas de acesso.
+
+O fechamento da V1 permanece prioritário e não se confunde com a visão futura. Depois dele, os tijolos 49-A a 49-L podem avançar em paralelo sob o contrato 49-E0: núcleos permanentes; ciclo estratégico; Escola e competências; Fábrica; Reflexo COMUN; continuidade; inteligência cívica; distribuição; páginas de referência e SEO; serviços e controle popular; observatórios; plataforma física/digital. A trilha 49-M integra essas capacidades à organização permanente. O 50 COMUN UNO fecha com coerência integral de jornadas, módulos, canais, estratégia organizativa, acessibilidade, privacidade, compartilhamento, SEO e operação.
+
+O [contrato 49-E0](comun-one-product-contract-49-e0.md) descreve as relações entre os tijolos, a jornada político-organizativa, os limites de privacidade e os critérios de saída. Suas metas de baixa fricção e experiência humana permanecem metas até serem ensaiadas.
+
 ## Posição geral e fila sem amostra humana — 06/10/2026
+
+### Implementação candidata 49-E1 — entradas e primeira prática
+
+Participar oferece três caminhos independentes: buscar um assunto, conhecer
+ações e conhecer comunidades. O componente serve às experiências canônica e
+legacy. O convite explica que explorar não gera inscrição nem tarefa.
+Participar e Ajuda abrem a orientação pública `/comun/ajuda/primeira-acao`:
+escolher pergunta → conferir fontes → escolher contribuição → voltar ao que
+mudou. Os destinos são rotas já existentes; não há gravação de progresso,
+vínculo, atribuição, nova permissão ou ativação da Escola.
+
+Esta entrega implementa navegação e orientação inicial, não o ciclo formativo
+completo. Progresso privado da Escola, relações entre prática e tarefa, convites
+em detalhes de pautas/ações e operação de núcleos continuam pendentes. A prova
+de navegador deve verificar acesso anônimo, retorno, preservação da experiência,
+acessibilidade, viewport móvel e consulta sem JavaScript; contratos locais não
+substituem essa prova nem ensaio humano.
+
+Validação local: TypeScript, ESLint, dez testes do contrato público, dois de
+coerência e quatro de classificação de superfícies passaram. As duas páginas,
+nas experiências canônica e legacy, responderam HTTP 200 com um h1 e os links
+esperados no HTML servido. Os três testes de navegador foram preparados para
+a suíte existente, mas a tentativa local parou no lançamento: Chromium ausente.
+HTML servidor não comprova contraste, foco, overflow ou interação renderizada.
+
+### Implementação candidata 49-E2 — orientação e retomada privada
+
+Continuação do PR #520 sobre `74cc0ed1779f5432496c3f852ce92bed3524a3a1`,
+preservando seu head inicial `af47674945bed9d9c10a2e499319f61027161683`.
+Candidato funcional `1a46d5550a4ddd98ed467c322dcf1c6e480d4946`, tree
+`fc4dd7095c2098aaf86f5c3db75fb53d0c5fa6c0`. Os comandos e limites da prova
+estão em [evidência 49-E2](../reports/current/comun-49-e2-participation-continuity.md).
+A árvore original com trabalho preexistente não foi modificada; a entrega foi
+feita em worktree isolada. Continua candidata, sem merge, ativação ou lançamento.
+
+Minha participação retoma um registro real da carteira existente e oferece
+orientação conforme seu estado: registrar com cuidado, acompanhar sem confundir
+envio com resultado, ou conferir o que a resposta mudou. O material público
+retorna aos registros privados e oferece contribuição voluntária em Ações.
+Nenhum progresso, tarefa, vínculo, envio, notificação ou resultado é criado
+ao abrir essa jornada. A carteira continua sendo a autoridade do registro.
+Somente uma fase pública allowlisted e `experiencia=legacy` atravessam a URL;
+IDs, protocolos e conteúdo privado não são repassados à orientação.
+
+Carregamento, falha HTTP e resposta inválida agora são estados distintos de
+carteira vazia, com recuperação explícita. Registro retirado não recebe convite
+para retomar. A inspeção renderizada demonstrou e corrigiu contraste no modo
+legacy. A orientação sem JavaScript expôs outra falha: a shell permanecia no
+fallback de carregamento. Orientação e Busca optam agora por conteúdo público
+servido no fallback; nenhum painel privado ativa essa opção. O formulário da
+busca pública também foi exercitado com JavaScript desabilitado.
+
+Escola #503 foi consultada em `a8dbe550583526eae631deafa3c574fbcfb18993`:
+draft aberto, checks concluídos sem falha/pending na consulta, flag desligada.
+O progresso privado e a próxima micro-missão já existem na sua proposta, mas
+não estão integrados em main. Dependências: validar a migração no schema
+canônico completo, integrar a entrega, revisar materiais e autorizar ativação.
+Não se oferece uma rota da Escola indisponível nem se duplica seu progresso.
+Competências #510 (`d1affda48ed9dcf7ae6ea4fbeaf9e920c74de5e6`) e Fábrica
+#514 (`dbf70931d15903ab820de224a017c6f3689e2124`) também continuam abertas;
+seus PRs/Previews não certificam disponibilidade integrada.
+
+Provas locais: 1.407 testes unitários, 50 focais, dois de coerência, quatro de
+classificação de superfícies, 113 Solo, TypeScript, ESLint e build passaram.
+Navegador Chromium: 12 casos de continuidade (360×800 e 1366×768) e seis de
+Participar/orientação, incluindo consulta e busca sem JavaScript, passaram.
+Axe não encontrou findings serious/critical nas superfícies avaliadas.
+A carteira usa respostas interceptadas e exclusivamente sintéticas: os testes
+provam UI, foco, retorno, reload, estados e ausência de chamadas de escrita,
+não persistência, sessão Auth, RLS ou uso real em Production. A suíte pública
+usa a aplicação local. Essa prova não substitui ensaio humano nem dispositivo
+físico. O workflow dedicado preserva esses casos sem secrets Production.
+
+O Solo revelou inventário desatualizado de 16 workflows já integrados; a mesma
+falha foi reproduzida no main limpo `74cc0ed1`. Foram registrados somente esses
+nomes conferidos no histórico e o novo workflow de UI; qualquer nome desconhecido
+continua rejeitado. Nenhum workflow existente foi ativado ou executado por isso.
+
+Próxima frente concreta: reconciliar a Escola com o schema canônico e integrar
+seu progresso privado existente a Minha participação quando seu código estiver
+integrado e a ativação for autorizada. Em paralelo, convites em detalhes de
+ações/pautas podem usar a orientação pública sem atribuir compromisso.
+`pilot_noindex`, gates V1, amostra humana e governança permanecem preservados.
 
 O produto está no fechamento técnico e operacional da V1, antes do ensaio integrado e do lançamento integral. Quatro domínios estão declarados verdes e seis continuam abertos; isso não representa 40% de conclusão. A visão futura e as entregas candidatas devem ser acompanhadas separadamente do que está integrado em produção.
 
@@ -15,7 +448,7 @@ O produto está no fechamento técnico e operacional da V1, antes do ensaio inte
 | Coerência, busca e qualidade, 47.9A/B/C          | CI do #502 passou; busca lexical preservada; embeddings reais continuam bloqueados por capacidade do provedor                                      | Regressões, semântica de filtros, estados vazios, fallback e contratos automatizados                                         | Dispositivos físicos, tecnologia assistiva, compreensão humana; credencial do provedor para embeddings                                                       |
 | Conteúdo e governança, 47.10                     | Revisão editorial e equipe operacional ainda não comprovadas                                                                                       | Manter ajuda, fluxos de revisão, retenção e critérios de evidência consistentes com o comportamento real                     | Pessoas responsáveis, substitutos, direitos e prazos confirmados                                                                                             |
 | Ensaio e lançamento, 47.11                       | Ensaio integrado incompleto; gate integral fechado                                                                                                 | Preparar instrumentos de coleta, verificações sanitizadas e pacote por versão                                                | Três sessões reais, estabilidade medida e decisão final                                                                                                      |
-| Escola COMUN R0                                  | PR #503 aberto, head `a8dbe550583526eae631deafa3c574fbcfb18993` na consulta; 24 micro-missões candidatas, progresso privado, flag desligada        | Finalizar checks globais e validar integração no schema canônico antes de ativar                                             | Ambiente COMUN identificado e revisão humana do material; testes locais não comprovam ativação                                                               |
+| Escola COMUN R0                                  | PR #503 aberto, head `a8dbe550583526eae631deafa3c574fbcfb18993` na consulta; 24 micro-missões candidatas, progresso privado, flag desligada        | Checks concluídos; validar integração no schema canônico e ativação separada                                                 | Ambiente COMUN identificado e revisão humana do material; testes locais não comprovam ativação                                                               |
 | Serviços Públicos                                | PR documental #434 aberto; expansão fora do fechamento V1                                                                                          | Revisar arquitetura e limites da proposta separadamente                                                                      | Decisão de escopo posterior; sem expansão automática                                                                                                         |
 
 ### Evidência técnica já integrada
@@ -216,3 +649,867 @@ O [PR #486](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/
 | Recuperação, conteúdo e ensaio | Critérios existentes preservados                                                                                                               | Cópia durável/restore medidos, conteúdo autorizado, piloto e ensaio integrado com pessoas reais                                                 |
 
 A lista pública de Calçadas permaneceu utilizável após voltar do mapa indisponível e apresentou um registro com localização protegida. Um registro não comprova cobertura da cidade nem conclusão do piloto. A certificação pós-merge atual é a run [37067289731](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/37067289731), concluída com sucesso. CI do merge, jornadas principais e grafo cívico também passaram; a repetição pós-merge de coerência ainda estava em execução no momento deste registro. Provas por versão e limitações estão em [comun-maplibre-security-migration.md](comun-maplibre-security-migration.md). Nenhum domínio foi promovido, nenhum conteúdo foi inventado e nenhuma configuração remota de acesso ou lançamento foi alterada.
+
+## Continuidade candidata da Escola — 07/10/2026
+
+PR #503 permanece separado do PR #520 e ainda não significa integração ou
+ativação. A prova Auth/Postgres/navegador passou na run `37653193110` para
+`3e465262fb60b935c7ff770da0503db58165fda8`: A/B, dados privados não vazios,
+concorrência sincronizada, retomada e reload móvel/desktop, limpeza sintética e
+zero findings. O SHA/tree efetivamente testado, equivalência limitada e hash do
+artifact estão em [prova canônica](../reports/current/comun-escola-canonical-auth-proof.md).
+
+A próxima alteração candidata conecta Minha participação à atividade realmente
+iniciada: sessão server-side, snapshot owner e seletor existentes, título/etapa
+mínimos e destino público do catálogo. Prática pendente de envio, revisão,
+ausência de atividade e indisponibilidade têm estados distintos. Não há segundo
+modelo de formação, progresso ou tarefa; abrir a jornada não cria vínculo,
+inscrição, responsabilidade ou resultado. Reflexões/notas/IDs pessoais não são
+repassados à orientação ou URLs. O resumo permanece disponível sem JavaScript.
+
+A prova anterior não valida essa mudança nova: o novo checkpoint deve executar
+Minha participação → resumo A/B → retomada → etapa persistida/reload em stack
+descartável. Até o artifact correspondente, esta ampliação é PENDING.
+Flags, migrations e Production permanecem inalterados. Competências #510 e
+Fábrica #514 seguem dependências abertas, não capacidades presumidamente ativas.
+Revisão editorial/ensaio humano e decisões de integração/ativação são gates
+separados; nenhuma maturidade de domínio é promovida automaticamente.
+
+## Busca pública — candidato reconciliado com a base integrada — 08/10/2026
+
+O #519 incorpora main `3530f8aa` por merge normal, sem rebase/force. O pai
+`7dfa3b29` terminou com 23 checks success, 80 skipped e uma falha Security
+`112793364913`: restore de banco verde, mas
+`COMUN_STORAGE_SIGNED_URL_NOT_ACTIVE` no ensaio antigo de um segundo.
+A base incorpora #518, #528 e #530; a janela do ensaio foi corrigida e passou
+em Supabase descartável no #530. Essa aprovação não é PASS deste candidato.
+
+A implementação de busca e sua prova de integração são idênticas ao pai.
+A run focal `37621724132` comprovou 15 contratos e 25 casos PostgREST reais:
+visibilidade pública do território, publicação da obra e da raiz do Acervo,
+descarte de resposta parcial em onze fontes e fallback do mapa. O controle
+anterior produziu 13 falhas esperadas e 12 aprovações. São evidências do pai;
+esta reconciliação exige novos checks próprios antes de merge. A fixture
+local reduzida não certifica RLS completo nem ausência de vazamento histórico.
+
+O PR continua draft. Nenhuma query canônica, migration Production, flag,
+indexação ou alteração de recuperação do provedor foi executada.
+Skipped e pending não contam como PASS. O registro seguinte é histórico.
+
+## Busca pública — correção candidata de exposição
+
+A busca unificada usa `service_role`. A leitura de territórios não filtrava `visibility=public`, e a leitura de obras filtrava apenas o estado da obra, sem exigir raiz publicada/pública no Acervo. O candidato acrescenta esses filtros. As onze fontes descartam dados parciais quando sua resposta inclui erro; fontes saudáveis e fallback do mapa continuam disponíveis.
+
+Quinze testes da função completa usam respostas de banco simuladas. Na base `74cc0ed1779f5432496c3f852ce92bed3524a3a1`, doze falharam: filtros ausentes e dados parciais consumidos nas onze fontes. Após a correção, os quinze passaram. Isso comprova a regressão e os contratos da consulta, não a ausência de vazamento histórico ou a equivalência de produção. Não houve leitura de dados privados do ambiente canônico. A semântica real dos filtros relacionais ainda deve ser conferida em Supabase descartável e no ambiente autorizado. Não é uma auditoria completa de autorização de todas as fontes de busca.
+
+## Escola: captura real e lacuna de recuperação — 08/10/2026
+
+A senha do banco foi renovada pelo usuário; a conexão read-only foi comprovada.
+O banco real e roles sem senhas foram capturados em arquivos locais cifrados,
+reabertos e ensaiados em cluster offline. O restore exigiu suplemento de bootstrap
+GraphQL capturado da origem. Os dados COPY e sequences conferem; equivalência
+integral do schema, Auth/Storage/Vault e custódia independente continuam BLOCKED.
+Isso não é liberação da Escola nem prova integral de recuperação do projeto.
+
+A correção candidata dos dois leitores de release carrega a CA pública Supabase
+preservando verify-full/hostname. Até integração e certificação, esses caminhos
+não estão certificados. Não houve migration, mudança de flag ou dispensa dos
+seis preflights do #523. Evidências e limites:
+[revisão da captura e TLS](../reports/current/comun-escola-real-capture-and-tls-review.md).
+
+# Evidência adicional Escola — 09/10/2026
+
+A correção TLS #535 foi integrada em `041f6b17`, com deploy Git READY e sete
+smokes GET/SHA servido PASS. A certificação pós-merge permanece BLOCKED por CA
+ausente nos dois scripts CI read-only e duas falhas remotas de navegação em
+Core Journeys. Patch focal de CA preparado separadamente; nenhum gate dispensado.
+
+Recuperação real parcial avançou: 278 tabelas restauradas offline, 2.582 arquivos
+Storage cifrados/restaurados como bytes e cópia privada no Drive verificada; API
+Auth leu os seis usuários restaurados e login sintético/recusas/cleanup passaram
+na segunda cópia offline. Storage API v1.80.2 pinned restaurou/leu todos os 2.582
+objetos e recusou 863 acessos anônimos privados; metadata/history inalterados.
+O bloqueio inicial da imagem 0067 e uma interrupção do executor foram preservados;
+uma retomada limitada comprovou o resultado posterior. Custódia independente da
+chave, CHECK canônico e configuração externa
+continuam BLOCKED/NOT_RUN conforme
+`reports/current/comun-escola-readonly-ci-ca-recovery.md`. Migration Escola
+Production não executada; #523 draft e seis preflights preservados. Não declarar
+liberação, recuperação integral ou conclusão da V1.
+
+## Recuperação em disco E: — 09/10/2026
+
+Dois exports cifrados da cópia anterior foram verificados e restaurados em containers novos offline. PG17.6: 278 tabelas, 6 auth users, fingerprint do restore anterior idêntico, zero findings; Storage: 2582 arquivos/357014118 bytes e size+MD5 conferidos. Comparação integral com o PRE capturado isolou um CHECK reagrupado e oito ACLs owner implícitas: parser 17.6 provou a mesma árvore semântica, com três controles negativos, e os direitos efetivos conferem. Fingerprints brutos continuam distintos; gates Production não foram alterados. Nova chave preservada em Drive privado separado dos ciphertexts E:, readback/descriptografia dos dois exports sem DPAPI PASS. Não é nova captura Production nem prova integral de API/configuração na nova cópia. Crash supautils e configurações externas permanecem abertos; seis preflights #523 preservados. #536 head 98963025 tem Core/Civic/Experience/Full Surface PR verdes; MapLibre 37959856195 tem 49 PASS/1 FAIL no retorno Lista → Mapa, causa UNPROVEN; Quality em execução. Certificação pós-merge permanece pendente. Preparada CA restrita à captura PRE da Escola, com 71 testes Node PASS. Evidências e limites: [relatório CI/recuperação](../reports/current/comun-escola-readonly-ci-ca-recovery.md). Autorização de migration recebida; execução ainda NOT_RUN até cumprir requisitos. Escola não liberada; zero migration Production nesta retomada.
+
+### Escola — recuperação em E: e gates preservados, 09/10/2026
+
+No candidato #536 ce0566d9, captura PRE e ensaio atômico 37962260855 passaram na mesma run, com hash da captura vinculado à prova. Custódia independente da chave e mapping de 2582 objetos restaurados passaram; CHECK/ACLs têm equivalência delimitada, sem mudar fingerprints Production. Biblioteca supautils oficial corrigida passou recusas no laboratório/restauração; imagem antiga continua afetada. Bundle reproduziu SHA/tree fora do produtor; 71 testes no consumidor passaram. Inventário: 41 SUCCESS, 82 SKIPPED separados e Quality ainda em execução na consulta. Autorização da migration recebida; acesso protegido PostgreSQL, configuração externa, renovação do backup de negócio e entrada Production controlada ainda bloqueiam aplicação. Seis preflights #523 preservados; zero escrita Production, flags/indexação intactas. Avisos npm preexistentes foram registrados separadamente, sem atualização automática. Escola não liberada. Este complemento documental não transfere provas para um SHA funcional diferente.
+
+# Atualização Escola — ensaio controlado, 2026-10-09
+
+Complemento posterior: #537 integrado em `c4dfd5a7`, mesma tree do candidato;
+deploy Git READY, SHA servido exato, smokes e CI atual aplicável passaram. Entrada
+Production separada em preparação, com recuperação real e acesso protegido ainda
+bloqueados. D: voltou NTFS/Healthy, sem prova de integridade de cada arquivo e sem
+credencial esperada localizada; execução permanece em E:. Nenhuma migration
+Production aplicada e os seis preflights #523 permanecem obrigatórios. Evidências
+e limites: [entrada Production](../reports/current/comun-escola-production-entry-preparation.md).
+
+PR #536 integrado em `eb2cb0156adf223d608e222677cccc00bf84e071` após 42 SUCCESS / 82 SKIPPED / zero failures/pending. Deploy Git READY, SHA servido confirmado, smokes GET, Quality/Civic/Core pós-merge PASS; Experience ainda pendente na captura. Nenhuma outra integração até certificar o pós-merge aplicável.
+
+Ensaio controlado local provado em `c4f4facafa1674352bd5b93d5c660b3bd4f45b3c`: verificações de catálogo privado e privilégios antes do COMMIT, rollback schema/history/ledger/drift, replay recusado e resposta perdida do COMMIT reconciliada read-only, sem retry de escrita. Nova lane descartável sem secrets Production preparada para repetir essa prova no novo SHA. Evidências e limites em `reports/current/comun-escola-controlled-rehearsal.md`.
+
+Próximo passo: concluir checks pós-merge e do candidato; recuperar acesso PostgreSQL protegido e renovar/ensaiar backup real antes de qualquer schema write. Executor remoto não certificado; migration Escola NOT_RUN; seis preflights do #523 preservados. Recuperação completa, flags, indexação e operação pública continuam não certificadas.
+
+## Escola — novo backup real e restauração isolada, 10/10/2026 UTC
+
+Preparação #538 integrada/certificada em main `400b17b350a00de913b6e802586c890c1e2999d9`, tree igual ao funcional `73d28606`. Acesso protegido E: passou com TLS autenticado; o 28P01 anterior não permanece bloqueante. Novo snapshot real read-only foi cifrado, restaurado e conferido em 278 tabelas, com diferença de collation delimitada. Roles/owners/versões de extensão conferiram. Auth sintético, proteção Google/hCaptcha offline e Storage API/2.582 objetos tiveram provas separadas vinculadas aos respectivos containers. Custódia independente da chave passou no novo backup. Nenhuma escrita Production.
+
+Configuração externa completa continua BLOCKED: capturas cifradas e readback não equivalem à entrega externa de e-mail ou login Google real; o SMTP gerenciado não acompanha o dump. Crash original supautils permanece aberto. A nova captura PRE mantém fingerprints, cinco ledgers aceitos, Escola ausente e zero findings. Nenhum recibo completo foi emitido; migration permanece NOT_RUN e os seis preflights #523 continuam bloqueantes. Próximo elo: fechar recuperação externa, revisar recibo real e renovar os pontos temporais exigidos antes da aplicação única autorizada. Não contratar plano nem alterar flags/indexação. Evidências e limites: [recuperação real atualizada](../reports/current/comun-escola-fresh-real-recovery-20261010.md).
+
+Continuação: seis templates restaurados e convite enviado pelo Auth real a SMTP loopback PASS; entrega externa NOT_RUN. Tentativa OAuth combinada falhou e permanece separada, com discovery externo indisponível no namespace sem rede. Fixtures removidas; todas as 27 tabelas Auth conferem com o snapshot original. 24 testes de entrada passaram, sem alterar controles. #523 continua draft/CONFLICTING, cf0e8e41, 45 SUCCESS/76 SKIPPED/seis FAILURE na consulta atual; Quality SUCCESS. Backup de 00:41Z excedeu uma hora e deverá ser renovado antes de escrita. [Decisão gratuita de recuperação externa](../reports/current/comun-escola-external-recovery-free-decision.md) preparada sem contratação ou alteração Production. Migration ainda NOT_RUN.
+
+Passada autônoma seguinte: redirect Google HTTP302 passou com discovery real em
+laboratório vazio, sem dados do backup e sem abrir a rede do restore. Login/callback
+aprovado e entrega externa continuam NOT_RUN. Auditoria preservou 16 artifacts e
+17 capturas cifradas; identificou três parâmetros numéricos capturados como
+`<redacted>` (mínimo de senha, limite de e-mail, OTP de MFA telefone). Labels foram
+recapturados read-only, sem salvar Source; nenhum default substituiu os números.
+Finding `CONFIG_CAPTURE_VALUES_REDACTED` impede replay completo. SMTP independente,
+configuração externa e renovação do backup continuam bloqueantes; migration NOT_RUN.
+
+Suplemento posterior resolveu autonomamente os três parâmetros pela UI visual,
+com imagens cifradas, sem alterar valores ou capturas antigas. Laboratório vazio
+iniciou Auth com os 16 parâmetros e AAL1 15m; redirect Google real novamente PASS.
+O finding dos números mascarados está resolvido por suplemento, mas entrega SMTP,
+callback/login nominal e recuperação externa completa continuam não certificados.
+Nenhuma migration ou configuração Production alterada.
+
+Em 10/10 às 22:53 UTC, uma única mensagem sintética autorizada passou SMTP Brevo
+e chegou à caixa de entrada Gmail, com identidade/texto conferidos. Entrega direta
+PASS; entrega pelo Auth restaurado NOT_RUN. Remetente reescrito e pixel do provedor
+impedem inferir configuração de autenticação certificada. Google Cloud continua
+bloqueado pela exigência de duas etapas; login/callback não provados. Recuperação
+externa integral BLOCKED, backup precisa renovação antes da entrada controlada,
+recibo/permit não emitidos. Migration NOT_RUN; seis preflights #523 preservados.
+Provas sanitizadas e limites no [relatório atual](../reports/current/comun-escola-fresh-real-recovery-20261010.md).
+
+Continuação às 20:12 BRT: titular ativou duas etapas e acesso Google PASS. Cliente
+Production consultado e preservado; novo cliente exclusivo do laboratório criado
+com autorização específica, credencial cifrada/readback PASS. Docker recuperado
+pelo comando oficial; Auth vazio pinned passou discovery/redirect com esse cliente.
+Login/callback/troca de código NOT_RUN; ensaio representativo não equivale a replay
+da credencial Production. Recuperação externa integral permanece BLOCKED, sem
+recibo/permit, migration ou alterações Supabase. Seis preflights preservados.
+
+Às 20:23 BRT, login Google especificamente autorizado no laboratório vazio passou
+callback/troca de código, `/user` e logout; uma identidade de ensaio, zero sessões
+ao final. Primeiro 504 preservado e causa exata não comprovada; uma retomada com
+fluxo novo passou. Dump privado cifrado e containers removidos. Cliente separado
+é prova representativa, não replay Production. Próximo gate preparado: convite
+Auth com template capturado → Brevo → Gmail → confirmação local, autorizado
+e executado no ensaio registrado abaixo. Recuperação integral ainda BLOCKED, recibo
+não emitido, migration NOT_RUN e seis preflights preservados.
+
+Convite adicional especificamente autorizado foi enviado uma única vez pelo Auth
+do laboratório vazio via relay Brevo e recebido no Gmail. Confirmação local e
+logout PASS; nenhum acesso ao backup real/Production, containers removidos.
+Assunto textual mascarado limita fidelidade: suplemento visual read-only resolveu
+o valor original, sem repetir envio. SMTP substituto não é replay do gerenciado;
+outros cinco fluxos externos NOT_RUN. Recuperação integral NOT_CERTIFIED, backup
+expirado, migration NOT_RUN e seis preflights intactos. Evidências e limites no
+relatório atualizado.
+
+Continuação de 10/10: CI do #540 terminou 8 SUCCESS/34 SKIPPED; não é liberação
+da Escola. Guard de captura passou 13 testes e recusou assuntos mascarados em
+convite/mudança de e-mail. MIME recebido comprovou reescrita do link Auth pelo
+tracking Brevo; a confirmação local usou o link original. Recuperação externa
+integral permanece NOT_CERTIFIED. Sessão do dashboard expirada bloqueia recaptura
+do assunto restante. Resolver fidelidade e contratos externos antes de renovar
+backup, emitir permit ou executar a única migration autorizada condicionalmente.
+Em paralelo, #523 foi reconciliado com main em worktree isolada; seu novo
+checkpoint exige gates próprios. Sem nova funcionalidade, flags ou indexação.
+
+Preparação API de recuperação — 11/10: o segundo MIME SMTP recebido ainda prova
+reescrita Auth após configuração salva. Implementado relay API exclusivo do
+laboratório com tracking false, destinatário único, aprovação vinculada ao link e
+marcador persistente sem retry após resultado incerto. 90 testes locais PASS,
+zero skipped; isso não substitui entrega externa. Chave API exclusiva autorizada,
+cifrada e validada read-only no plano Free, sem mudança de transporte Production.
+Convite API único especificamente autorizado foi aceito e recebido, mas também
+teve link reescrito e duas imagens: FAIL de fidelidade externa, confirmação do
+link recebido NOT_RUN e nenhum reenvio. Laboratório arquivado/limpo, zero sessões.
+18 contratos adicionais passaram em Linux sem rede; CI inclui o novo adaptador,
+sem secrets Production. Assunto change-email Source, demais fluxos e recuperação
+integral continuam bloqueados/não executados;
+backup expirado, permit não emitido, migration NOT_RUN e seis preflights preservados.
+Evidências e limites no [relatório de recuperação](../reports/current/comun-escola-fresh-real-recovery-20261010.md).
+
+Autocorreção do transporte — 11/10: changelog Brevo esclarece que false anonimiza
+métricas, sem desligar tracking; não repetir SMTP/API nem atribuir bug ao provedor
+sem prova. #540/4cbab9ed terminou 11 SUCCESS e 78 SKIPPED, zero failure/pending.
+Adaptador do Gmail já conectado preparado sem conta/credencial/scope novo, com
+21 testes focais PASS. Convite Gmail único especificamente autorizado passou
+recebimento, link exato sem tracking e confirmação real desse link no Auth local,
+logout e zero sessões. Laboratório cifrado/limpo; 93 contratos locais passaram.
+Isso não equivale a recuperação durável integral da configuração. Migration permanece
+NOT_RUN até fechar recibo integral, backup renovado e PRE fresco.
+
+### 49-E3 — porta de entrada e organização disponível (13/10/2026)
+
+Implementação #544 sobre main `b9c78c2c5c0affc5ee452010da0185747534eae9`.
+Home canônica, home legacy pública e Participar reutilizam os três caminhos:
+usar fontes/busca, participar de ações existentes e aprender a organizar.
+Organizar leva à orientação pública existente, depois a comunidades, com retorno
+pelo navegador e endereço público favoritado. Não há armazenamento de identidade,
+progresso, inscrição, tarefa ou responsabilidade nesta navegação.
+
+A orientação informa o limite real desta entrada: não cria nem administra núcleos.
+É um passo 49-E0/E em direção a 49-M, não implementação de governança ou operação
+de núcleos. Formação permanente completa e responsabilidades reais continuam
+pendentes. A Escola #523 e recuperação #542 permanecem independentes e bloqueadas;
+nenhuma migration, flag ou indexação foi alterada.
+
+Provas e estados: [relatório 49-E3](../reports/current/comun-49-e3-entry-paths.md).
+
+O preflight A7 mantém a inspeção de metadados e ledger somente leitura. Sua
+validação específica reconhece apenas a única migration Escola R0 já classificada
+como fora do escopo A7, com SQL e manifest fixados por hash. O plano registra essa
+pendência; bytes alterados, duplicatas, migrations adicionais, saída inválida ou
+operações de escrita bloqueiam. Os planners compartilhados mantêm seu contrato
+anterior. A liberação da Escola continua dependendo dos gates próprios.
+
+## Consolidação canônica — rede social, convivência e atratividade (14/10/2026)
+
+> Este registro integra ao **roadmap único** as conclusões de concepção do COMUN discutidas em outubro de 2026. Não abre outro roadmap, não altera a ordem dos gates V1/49/50, não declara funcionalidades prontas e não autoriza merge, migration, flags, indexação ou lançamento. Diferenciar sempre **princípio de produto**, **hipótese a validar**, **capacidade existente** e **entrega certificada**.
+
+### Tese de produto e critérios inegociáveis
+
+**O COMUN é uma infraestrutura digital de convivência, descoberta, cultura, reciprocidade, conhecimento e organização coletiva.** Não é apenas uma plataforma de campanhas, denúncias ou gestão cívica, tampouco uma cópia do feed comercial. Sua utilidade e sua atratividade devem existir também para quem não deseja atuar politicamente. O propósito é ampliar possibilidades da vida, não maximizar tempo de tela nem converter lazer em militância.
+
+1. **Direito de simplesmente estar.** Conversar, criar, guardar, explorar, divertir-se ou não participar são escolhas legítimas. Não exigir produtividade social, sequência diária, cadastro prematuro ou compromisso político.
+2. **Autonomia e fricção mínima.** Conteúdo público útil sem login; pedir identificação somente quando a operação realmente exigir. Nenhum fluxo deve depender de conhecer a arquitetura interna, ser rápido apenas na primeira tela ou afirmar persistência não comprovada.
+3. **Expressão sem placar humano.** Permitir criações, perfis e acompanhamento de autores, sem comprar alcance, ranquear pessoas por seguidores, exigir viralização ou transformar popularidade em poder deliberativo.
+4. **Convivência e organização distintas, interoperáveis.** Conversas livres, construção coletiva de conhecimento e decisões formais têm competências, direitos e procedimentos diferentes. A praça não deve se tornar assembleia obrigatória.
+5. **Segurança e direitos antes de crescimento.** Privacidade, acessibilidade, proteção de dados sensíveis, recurso de moderação, autoria, consentimento, saída e portabilidade são critérios de aceitação, não diferenciais de marketing.
+
+### Mapa de decisões e hipóteses — reaproveitar módulos existentes
+
+- **Entrada e experiência inicial.** Oferecer descoberta prazerosa, utilidade cotidiana, troca e participação, sem remover o atalho de relato urgente. Uma visita curta pode terminar satisfatoriamente.
+  - **Estado e cautela:** Hipótese de reorganização visual; 49-E3 já fornece caminhos cívicos, não valida prazer social.
+- **Descoberta e recomendação.** Evoluir exploração pública por interesses declarados, cronologia opcional e diversidade, sem perfilamento sensível, compra de alcance ou feed infinito obrigatório. Preservar escolha e explicabilidade.
+  - **Estado e cautela:** Auditar primeiro fontes públicas e permissões; recomendação algorítmica sofisticada não é pré-requisito.
+- **Convivência espontânea.** Permitir expressão cultural, humor, fotografias, conversas e vínculos sem vincular tudo a pautas ou tarefas.
+  - **Estado e cautela:** Hipótese de produto; não presumir rede social espontânea implementada.
+- **Feirinha popular.** Reutilizar ofertas, necessidades, organizações e conexões privadas existentes. Reduzir o caminho do cartão até 'Tenho interesse' / 'Posso ajudar', com flags e autorização respeitadas. Avaliar depois publicações por moradores individuais.
+  - **Estado e cautela:** Há base de Feirinha organizacional; interação popular geral e jornada completa ainda precisam de prova real.
+- **Cultura e prazer.** Dar visibilidade a Acervo, Rádio, Arte, história local, jogos leves, coleções e criações, valorizados por si, nunca como isca para mobilização.
+  - **Estado e cautela:** Curadoria, licenças, fontes reais, conteúdo suficiente e desempenho são gates.
+- **Praça e jardim.** Combinar novidades e conversas passageiras com conteúdos duráveis, coleções, memória revisável e descoberta transversal.
+  - **Estado e cautela:** Não criar sistema novo de coleções sem auditar salvar/publicar/Acervo existentes.
+- **Identidade e vínculos.** Pessoa com apresentação controlável, pseudônimo/contextos distintos quando seguro, comunidades e papéis de representação separados. Possibilidade de acompanhar pessoas, assuntos, lugares e iniciativas.
+  - **Estado e cautela:** Não misturar vínculo público, autorização deliberativa e dado sensível.
+- **Reconhecimento e confiança.** Agradecimentos e sinais contextuais de transação/colaboração; sem score global de pessoas, reputação política nem privilégio de voto por seguidores.
+  - **Estado e cautela:** Sempre permitir correção/contestação e evitar avaliações como prova universal de honestidade.
+- **Conversa e inteligência coletiva.** Expressão livre com opções progressivas (experiência, pergunta, fonte, proposta). Preservar originais, conflitos, fontes, revisões, propostas, responsáveis e resultados.
+  - **Estado e cautela:** Não obrigar classificação nem converter contagem de reação em decisão; IA auxilia, não arbitra fatos ou consensos.
+- **Territórios e segurança.** Proximidade voluntária/geral, nunca endereço residencial obrigatório; separar canais de denúncia sensível de convivência comum.
+  - **Estado e cautela:** Pseudônimo não garante anonimato forte; acesso e retenção devem ser auditados.
+- **Governança e moderação.** Regras comuns, competência local delimitada, transparência, recursos e redução progressiva da concentração técnica/institucional; comunidade não pode votar para retirar direitos fundamentais.
+  - **Estado e cautela:** Governança participativa não substitui resposta técnica a incidente nem validação social.
+- **Sustentabilidade.** Participação básica gratuita; vedar comercialização de dados, anúncios comportamentais e compra de autoridade. Examinar contribuições, serviços opcionais, financiamento diversificado e remuneração operacional.
+  - **Estado e cautela:** Separar contas da associação, recursos vinculados, contratos e dados protegidos; não assumir receita sem demanda.
+- **Crescimento orgânico.** Priorizar densidade de relações em território/assunto, utilidade individual desde o primeiro acesso, primeiro vínculo completo e compartilhamento externo de conteúdos públicos úteis.
+  - **Estado e cautela:** Não fabricar usuários, interações, eventos, avaliações ou conteúdo; não forçar convites nem abrir grupos vazios por categoria.
+- **Design e acessibilidade.** Base Zen Brutalista coerente e acessível, com apresentações adequadas a leitura, cultura, Feirinha e denúncias. Teclado, leitor de tela, contraste, zoom e baixo desempenho são obrigatórios.
+  - **Estado e cautela:** A identidade gráfica das campanhas não deve impor sensação permanente de urgência a todo o aplicativo.
+- **Dados e IA.** Minimização, finalidade específica, transparência de fontes e do trabalho automatizado, direito de corrigir; não encaminhar dados privados a serviços externos sem salvaguardas adequadas.
+  - **Estado e cautela:** Não inferir opiniões ou filiações, não apresentar síntese da IA como verdade/consenso e não criar observabilidade invasiva.
+
+### Execução no roadmap existente — uma etapa de cada vez
+
+**Ordem sugerida, sujeita aos gates e à auditoria U0–U8 já estabelecida no #546; estes itens não são novo eixo de releases:**
+
+1. **Integridade da base e desbloqueios já existentes.** Concluir a revisão de privacidade/continuidade, diferenciar falhas próprias dos PRs e migração pendente da Escola. Nenhuma dispensa de gate, push de schema ou merge implícito.
+2. **U0: inventário e experiência solitária.** Verificar no código e no ambiente disponível como pessoa sem conta encontra conteúdo público real e útil; checar estados vazios, autoria, datas, licenças, navegação e retorno. Nunca inventar movimento social.
+3. **Primeiro vínculo completo na Feirinha.** Auditar todas as flags, rotas e permissões; tratar falhas de armazenamento de rascunho, contato e consentimento; permitir chamada direta do item apenas quando a rota real está habilitada; validar fluxo de oferta/necessidade a acompanhamento.
+4. **Descoberta transversal mínima.** Selecionar conteúdos públicos publicados e elegíveis de Acervo, Rádio, Feirinha, comunidades e informações territoriais; mostrar exemplos reais, com diversidade e links contextuais, sem novo feed infinito, ranking ou schema antecipado.
+5. **Convivência, identidade e memória.** Auditar recursos atuais de publicação, conversa, perfis, salvar e histórico. Acrescentar somente lacunas demonstradas. Separar claramente conversa, interpretação coletiva e deliberação vinculante.
+6. **Coleções, criação e cultura.** Validar valor individual de guardar/revisitar e possibilidade de criação compartilhada; preservar autoria e permissões. Jogos e gamificação somente por prazer/uso demonstrado, nunca obrigação ou pontos cívicos.
+7. **Autonomia comunitária e sustentabilidade.** Implementar progressivamente governança, portabilidade, custo operacional e prestação de contas quando houver requisitos reais; financiamento não compra visibilidade nem decisão.
+8. **Integração e aferição 50 COMUN UNO.** Ensaiar todos os caminhos do mesmo produto com acessibilidade, segurança, operação e conteúdo reais. Não converter checks automatizados em prova de confiança, pertencimento ou adoção humana.
+
+**Critério transversal de aceite:** verificar valor para uma pessoa sozinha, interação completa entre duas pessoas, descoberta/compartilhamento público seguro, retorno contextual, autonomia dos espaços e ausência de pressão artificial para permanecer online. Medir tarefas concluídas, reciprocidade, resultados externos, diversidade das oportunidades, acessibilidade e concentração de visibilidade; tempo de sessão não é objetivo máximo. Instrumentar de forma agregada e mínima. Validação humana permanece pendente até acontecer.
+
+### Relação com os PRs e limites conhecidos em 14/10/2026
+
+- [#544](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/544) integrou os três caminhos públicos de entrada. Isso não confirma uma experiência social/cultural atrativa.
+- [#545](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/545) trata continuidade de navegação de comunidades. Preservar seus gates, sem duplicar solução.
+- [#546](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/546) reúne inventário U0 e revisão de continuidade/privacidade. É a trilha de auditoria já aberta; não presumir que mudanças candidatas estão em produção.
+- [#547](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/547) foi fechado sem merge como substituído pelo #546. Seus cinco arquivos foram preservados naquele candidato. O #546 é a única frente de integração da correção; não reabrir trabalho concorrente nem considerar a solução integrada à main.
+- A migration da Escola `20261006134804_comun_learning_r0.sql` permanece bloqueio separado. Este registro é exclusivamente documental, sem autorização para alterar schema, flags, indexação ou abrir piloto.
+
+### Últimas decisões estruturais para encerrar a fase conceitual aberta
+
+Este bloco registra decisões de **arquitetura de experiência**, não comprova
+implantação. A descoberta concreta no código prevalece sobre pressupostos.
+Novas ideias devem ser vinculadas a estes identificadores e não virar um
+backlog paralelo. Após esta consolidação, voltar à execução sequencial.
+
+- **SOC-D01 — Relação mínima completa, antes de um feed social.** A unidade
+  central da experiência não é a postagem nem a organização: é uma interação
+  voluntária que pode começar em conteúdo, pessoa, objeto, tema ou lugar,
+  receber uma resposta e alcançar um desfecho compreensível. Deve existir
+  valor mesmo sem reciprocidade, quando a interação não pede resposta.
+  **Decidido como critério de produto; modelo de dados e UI a auditar.**
+  Prova inicial: uma pessoa sozinha consegue descobrir algo útil; duas pessoas
+  conseguem realizar uma troca ou conversa com retorno e encerramento.
+- **SOC-D02 — Direito à ausência, ao silêncio e à saída.** Não criar mecanismos
+  para punir inatividade, produzir culpa, forçar convites, exigir presença
+  contínua, disparar notificações excessivas ou tornar o feed interminável por
+  padrão. A pessoa controla assuntos, notificações e vínculos; exportação,
+  exclusão e revogação respeitam retenção legítima, segurança e direitos de
+  terceiros. **Princípio decidido; contratos de produto e lei a verificar.**
+  Prova: sair da jornada, voltar depois e silenciar um espaço não devem causar
+  perda indevida de conteúdo ou direitos.
+- **SOC-D03 — Conflitos, danos e confiança operacional.** Antes de abrir troca
+  entre desconhecidos e espaços públicos amplos, definir o menor circuito de
+  denúncia de abuso, bloqueio/silenciamento, análise responsável, sanções
+  proporcionais, recurso e registro auditável. Abranger assédio, perseguição,
+  discriminação, golpes em trocas, divulgação de endereço e abuso de poder
+  local; prever limites da moderação voluntária e segurança de menores.
+  Não oferecer mediação obrigatória entre vítimas e possíveis agressores.
+  **Diretriz decidida; capacidade operacional e regras detalhadas pendentes.**
+  Prova: pessoa pode se proteger e contestar decisões sem expor dados privados.
+- **SOC-D04 — Vida fora da tela e circulação sem aprisionamento.** O objetivo
+  não é substituir todos os grupos de WhatsApp, redes sociais e encontros
+  existentes. Páginas públicas autorizadas devem circular em links claros,
+  com contexto, direitos, datas e acessibilidade. Encontros e iniciativas
+  podem ter resultado presencial sem exigir que as pessoas voltem ao COMUN
+  para provar participação. **Decidido como critério transversal.**
+  Prova: link recebido fora do COMUN funciona sem login indevido, e a pessoa
+  consegue concluir sua finalidade sem ser empurrada para outra tarefa.
+- **SOC-D05 — Disciplina contra proliferação de funcionalidades.** Antes de
+  aprovar qualquer recurso novo, demonstrar: necessidade cotidiana concreta,
+  reuso ou lacuna comprovada nos módulos existentes, percurso mínimo de
+  ponta a ponta, ausência de exposição de dados, acessibilidade, custos de
+  manutenção/moderação, caminho de saída e teste verificável. Preferir remover
+  fricção a criar módulo. O que falhar nesses critérios fica como hipótese,
+  não como compromisso de entrega nem nova migration. **Regra decidida.**
+  Prova: a proposta especifica qual experiência real melhora e o que não será
+  construído.
+- **SOC-D06 — Origem, autoria e preservação de conteúdo.** Toda descoberta
+  editorial, acervo, evento e oferta deve distinguir fonte, autor, data,
+  atualidade, licença/consentimento e condição de publicação; conteúdo
+  comunitário e dado científico não possuem o mesmo tipo de validação.
+  Criação coletiva preserva crédito, versões e possibilidade de contestação.
+  **Princípio decidido; mecanismos específicos a auditar.**
+  Prova: um conteúdo pode ser entendido, atribuído, corrigido ou retirado
+  sem falsificar o histórico.
+- **SOC-D07 — Critério de sucesso e parada.** Uma hipótese social só vira
+  funcionalidade prioritária quando melhora uma experiência identificável
+  sem piorar segurança, compreensão ou autonomia. Para o próximo ciclo,
+  concentrar-se em: valor sem conta, primeira relação completa, descoberta
+  pública contextual e operação sustentável. Evitar novas especulações de
+  interface até registrar evidência técnica ou humana relevante.
+  **Prioridade de execução decidida, não resultado de pesquisa de usuários.**
+
+### Protocolo permanente de registro de decisões
+
+Cada nova conversa sobre o COMUN que produza decisão relevante deve atualizar
+**este mesmo arquivo** (ou o PR que o modifica até a integração), registrando
+identificador estável, data, escopo, hipótese ou decisão, razão e contrapartida,
+módulo reutilizado, critério verificável, risco/limite e estado do trabalho.
+Estados admitidos: `HIPÓTESE`, `PRINCÍPIO DECIDIDO`, `PLANEJADO`,
+`CANDIDATO EM PR`, `INTEGRADO`, `PRODUÇÃO VERIFICADA` e
+`VALIDAÇÃO HUMANA`; jamais tratá-los como equivalentes.
+
+- **Decidir não é implementar.** Não marcar código ou experiência como pronta
+  porque esta documentação mudou.
+- **PR aberto não é roadmap integrado na main.** Até merge certificado,
+  comunicar explicitamente que o conteúdo está proposto na branch.
+- **Não multiplicar documentos concorrentes.** Relatórios/ADRs de evidência
+  podem complementar, mas o ponto de entrada e as prioridades ficam aqui.
+- **Decisão contestável.** Mudanças futuras podem revisar princípios,
+  desde que registrem a razão, o impacto e o que foi substituído.
+
+### Checkpoint de execução e contrato da primeira conexão — 14/10/2026
+
+Consulta direta ao GitHub nesta passada: #548 e #545 abertos, prontos para
+revisão; #546 draft; #547 fechado como substituído. Nenhum deles integrado.
+Os seis workflows retornados para #548 em `d074c768` concluíram: quatro
+SUCCESS e dois SKIPPED. Este inventário não substitui regras/check-runs
+completos nem certificação pós-merge.
+
+No #546, `415d916e`, Experience Coherence concluiu SUCCESS. Quality
+`38593422354`, job `115957725094`, passou nas jornadas integrais,
+smokes, acessibilidade, PWA, performance e regressões estáticas; falhou
+na formatação de `lib/comun-pwa.test.ts`. A asserção foi formatada no
+candidato `acfad9ab`, sem alterar seu comportamento. Todos os gates do
+novo SHA precisam de resultado próprio; não transportar aprovações.
+Os cinco preflights da Escola permanecem bloqueios separados.
+
+**SOC-D08 — Rascunho de conexão não autoriza compartilhar contato.**
+Estado: `PRINCÍPIO DECIDIDO`; implementação e validação pendentes na
+jornada existente da Feirinha. Razão: recuperar texto deve facilitar a
+continuidade sem confundir a identidade atual com quem escreveu antes.
+Reutilizar formulário, Auth, action e Minha Participação existentes.
+
+- Não persistir nem restaurar contato ou consentimento no rascunho.
+  Exigir contato informado e consentimento explícito na submissão atual.
+- Restaurar mensagem somente por escolha explícita e quando sua origem
+  puder ser vinculada com segurança à jornada e à identidade compatível.
+  Mensagens também podem conter dados pessoais: não tratá-las como públicas.
+- Definir prazo e descarte verificáveis antes da implementação; limpar
+  rascunhos incompatíveis, antigos e o formato legado. A saída pela interface
+  real deve impedir que outra conta receba o rascunho da conta anterior.
+- Falha de storage mantém texto em memória enquanto a página estiver aberta,
+  informa a ausência de persistência e não bloqueia navegação ou submissão.
+- Retomar após Auth exige nova validação de item, organização e autorização.
+  Conexão enviada, aceita ou recusada não prova compra, reserva ou entrega.
+
+Critérios mínimos antes de ampliar os cartões públicos: storage recusado;
+retorno Auth; duas identidades sintéticas no mesmo navegador e item;
+logout pela interface/action reais; outro item; item despublicado;
+submissão duplicada; aceite, recusa e retirada segundo permissões.
+Não filtrar pageerror nem substituir logout por mensagem direta ao worker.
+Provas sintéticas não equivalem a troca real entre moradores.
+
+**Próximo incremento único:** concluir a certificação do #546 no SHA novo
+ou preservar o bloqueio exato; depois implementar esta continuidade da
+Feirinha antes das chamadas diretas dos cartões. Descoberta cultural segue
+na sequência já registrada. Nenhuma migration, flag ou indexação autorizada
+por este checkpoint; compreensão e atratividade humanas continuam pendentes.
+
+### SOC-D09 — Jogos no COMUN: brincar, criar e publicar em comunidade
+
+**Data:** 14/10/2026. **Estado:** `PRINCÍPIO DECIDIDO` para integrar
+jogos à experiência do COMUN; `HIPÓTESE/PLANEJADO` para interface,
+publicação de terceiros e arquitetura executável. Não implementado.
+
+**Decisão de produto:** reservar um destino reconhecível **Jogos**,
+integrado à descoberta cultural e aos perfis do mesmo COMUN, e não
+uma rede, login, moeda, reputação ou produto paralelo. O acesso deve
+oferecer diversão independente de ativismo ou de tarefas educativas.
+A entrada pode ter destaque próprio na navegação quando houver
+catálogo real e experiência jogável; não criar aba vazia.
+
+- **Primeiro jogo de referência: `Cidade em Disputa`.** RPG autoral
+  sobre Volta Redonda, não reduzido a propaganda eleitoral.
+  Respeitar três jornadas iniciais já definidas: **História de
+  Volta Redonda**, **Meio Ambiente** e **Política**. Priorizar
+  exploração, escolhas e consequências, preservando criatividade,
+  livre interpretação e prazer de jogar. Distinguir fonte científica
+  ou documental de ficção e hipótese; identificar artigos e datas
+  para afirmações factuais. Não exigir adesão ideológica nem
+  pontuar jogador por opiniões políticas. Inspirar-se em exploração
+  retrô sem reutilizar assets protegidos de jogos comerciais.
+  A beta web existente deve ser auditada e reutilizada, não refeita:
+  a distribuição e os limites de mobile não equivalem a integração
+  certificada no COMUN. Preservar distinção entre a build atual
+  e as três jornadas conceituais, sem anunciá-las como concluídas.
+- **Jogos com finalidades diversas.** Abranger narrativas, puzzles,
+  estratégia, humor, aventuras, jogos cooperativos e experiências
+  de curta duração. Não reduzir a aba a quizzes cívicos,
+  gamificação da militância ou missões da Escola.
+- **Integração social com baixo atrito.** Cada jogo pode ter página
+  pública com descrição, imagens autorizadas, créditos, autoria,
+  requisitos, idioma, acessibilidade, idade/conteúdo, fonte e
+  links de compartilhamento. Pessoas podem descobrir o criador,
+  conversar, guardar e divulgar se os recursos existentes
+  permitirem; o jogo permanece útil sem respostas ou cadastro.
+  Conquistas e progresso são privados por padrão; compartilhar
+  é opt-in, sem placar moral, pontuação cívica ou seguidores
+  convertidos em autoridade.
+- **Criação comunitária com autonomia.** Qualquer criador elegível
+  pode propor um jogo próprio, inclusive não educativo.
+  Publicação deve seguir processo de proposta/triagem,
+  demonstração verificável, revisão de autoria e direitos,
+  segurança e acessibilidade, decisão motivada, publicação,
+  denúncia e eventual retirada/recurso. Critérios públicos
+  protegem pluralidade estética e de ideias; não usar curadoria
+  para exigir alinhamento político.
+- **Segurança de código de terceiros: limite inegociável.**
+  Na fase inicial, aceitar apenas metadados, imagens permitidas
+  e link externo previamente revisado para jogo hospedado
+  pelo criador, deixando claro quando se sai do COMUN.
+  Não aceitar/executar uploads de HTML, JavaScript, ZIP,
+  binários, Unity WebGL ou outras aplicações arbitrárias no
+  mesmo domínio/ambiente privilegiado. Futuro embed/hosting
+  só após arquitetura de origem isolada, CSP, sandbox efetivo,
+  verificação de arquivos, limites de recursos, proibição
+  de acesso a sessão/cookies/identidade do COMUN,
+  revisão de dependências e mecanismos de desligamento.
+  Iframe isolado por si só não prova segurança.
+- **Privacidade e acesso.** Jogar conteúdo público sem cadastro
+  quando tecnicamente possível; nenhum rastreador de
+  terceiros oculto, monetização predatória, compras de
+  influência ou anúncios comportamentais. Não ceder dados
+  de membros a criadores. Controles mobile, teclado,
+  leitura alternativa para quem não consegue jogar,
+  opção de reduzir movimento/sons, baixo consumo de dados
+  e estados de carregamento/erro são critérios de qualidade.
+  Jogos com chat, multiplayer, menores ou pagamentos
+  requerem avaliação e regras próprias; não pertencem ao MVP.
+
+**Implantação incremental dentro de 49-E / U0–U8 / 50 COMUN UNO:**
+
+1. **Inventariar antes de construir.** Localizar jogos existentes
+   e suas licenças, builds e compatibilidade mobile/web.
+   A árvore `app/comun` não possuía rota `jogos` na consulta
+   de 14/10; não declarar o RPG ou outros jogos integrados.
+2. **Experiência piloto sem schema novo.** Prototipar página
+   `/comun/jogos` com 1 jogo real autorizado e jogável
+   ou demonstração efetiva claramente identificada, créditos,
+   condições de acesso e retorno ao COMUN. Reutilizar
+   navegação, descoberta, acervo e compartilhamento;
+   se não houver jogo elegível, manter a hipótese no roadmap
+   em vez de mostrar acervo fictício.
+3. **Curadoria comunitária controlada.** Validar pequena
+   seleção de jogos de terceiros por link, antes de permitir
+   submissão aberta. Medir demanda, moderação, qualidade,
+   custo operacional e capacidade de retirada.
+4. **Proposta de publicação.** Somente após critérios
+   comprovados, disponibilizar envio de metadados
+   e link de demonstração, com fila de revisão,
+   comunicação do estado e recurso; sem upload executável.
+5. **Evolução social e técnica.** Avaliar comentários,
+   coleções, colaboração criativa, jogar em grupo,
+   hospedagem isolada e ferramentas de criação apenas
+   diante de demanda real e testes de segurança.
+
+**Critério de aceite:** alguém consegue encontrar e iniciar
+um jogo real, entender quem o criou, jogá-lo com os
+controles disponíveis e retornar ao COMUN sem exposição
+indevida; um criador consegue submeter e acompanhar uma
+proposta sem abrir superfície para execução de código
+desconhecido. Reprovar experiência ruim em celular,
+conteúdo artificial, autoria falsa, ausência de moderação
+ou pressão para participar politicamente.
+
+**Evidência existente reconciliada (14/10/2026):**
+a beta pública do RPG já foi entregue fora do COMUN, na landing
+`landingmissao`, pelo
+[PR #36](https://github.com/alexandrevrabandonada-oss/landingmissao/pull/36)
+(merged). Entrada:
+[VR: Cidade em Disputa — Beta](https://www.alexandrevrabandonada.online/jogar/cidade-em-disputa).
+A aplicação carrega um runtime Unity/WebGL separado após o clique,
+pela origem `jogo.alexandrevrabandonada.online`, com manifesto de
+versão, controles mobile e desktop, feedback e save no navegador.
+O código da landing não comprova que o jogo já esteja dentro
+do COMUN nem que as jornadas História/Meio Ambiente/Política
+estejam completas. Ver
+[`docs/GAME_BETA_RELEASE.md`](https://github.com/alexandrevrabandonada-oss/landingmissao/blob/main/docs/GAME_BETA_RELEASE.md).
+Ensaios em viewports Chrome existem; aparelho físico e leitor de tela
+continuam sem certificação específica.
+
+**SOC-D09.A — Primeira experiência integrada, sem duplicar runtime.**
+Estado: `PLANEJADO`, sem implementação COMUN. Primeiro publicar
+na descoberta/aba Jogos um cartão de jogo **real**, com imagem
+autorizada, autoria, indicação de beta, objetivo, controles,
+compatibilidade, limitações e ação direta **Jogar**.
+No primeiro ciclo, a ação aponta à entrada pública já existente
+com link externo claro e retorno previsível ao COMUN; não duplicar
+o player em outra rota ou origem nem carregar WASM no feed inicial.
+Se houver uma futura incorporação, verificar CSP, origem,
+permissões, foco, fullscreen, performance, isolamento e
+persistência de save em dispositivos reais.
+Não pressupor transferência de saves entre hosts/domínios,
+não exigir login COMUN e não sincronizar escolhas narrativas
+ou inferências políticas com o perfil.
+
+**SOC-D09.B — Comunidade de criadores, não depósito de arquivos.**
+Estado: `PRINCÍPIO DECIDIDO` para experiência;
+`HIPÓTESE` para infraestrutura. A página de cada jogo mostra
+quem criou, autoria e licença, atualizações, suporte e formas
+de contato opcionais. O criador pode propor, revisar,
+despublicar e recorrer; pessoas podem descobrir e divulgar
+o projeto sem pontuação competitiva obrigatória. Divulgação
+editorial não é endosso da qualidade factual ou de segurança
+e nunca deve ser comprada.
+
+**SOC-D09.C — Ordem de investimento e critérios de promoção.**
+Estado: `PLANEJADO`. O primeiro jogo publicado serve como
+caso de teste técnico e de atratividade: descoberta pública
+sem conta; jogo abre a partir do celular; não baixa runtime
+antes da escolha explícita; retorno à plataforma; save
+preservado no mesmo host; aviso de saída externa e privacidade;
+créditos/licenças presentes; opção de feedback clara.
+Depois de uma jornada demonstrada, selecionar poucos
+jogos comunitários com curadoria. Não publicar formulário
+aberto de submissão de jogos, embutir código de terceiros,
+criar chat/multiplayer ou mover o save para a conta COMUN
+antes de testar necessidade, custos e segurança.
+
+**Distinção histórica:** o RPG Unity/WebGL já publicado
+não deve ser confundido automaticamente com propostas
+separadas de city-builder/RTS sobre Volta Redonda.
+Mecânicas de construção, multiplayer, política territorial
+ou conteúdo novo do RPG exigem evidência própria;
+não integrar projetos diferentes por similaridade de nome.
+
+**SOC-D09.D — Candidato técnico de entrada pública (15/10/2026).**
+Estado: `CANDIDATO EM PR`, não integrado. O
+[PR #551](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/551)
+introduz a rota `/comun/jogos` e o cartão de uma beta real,
+acessível pelo Explorar legado e App V2 com retorno preservado.
+A ação de jogar abre a landing pública externa em nova aba,
+sem iframe, sem carregar Unity antes da escolha e sem
+transferência de dados de conta ou save pelo COMUN.
+Atualiza a matriz de superfícies para reconhecer a rota
+`public_web` e 241 páginas, preservando as outras regras
+e casos negativos. Ensaio de navegador avalia os viewports,
+contraste, foco, link/retorno e ausência de preload externo.
+
+**Gate:** o #551 depende deste contrato SOC-D09, dos
+workflows aplicáveis e de revisão antes de qualquer merge.
+Falhas de preflight remoto por CA, migration da Escola e
+bloqueios de #546/#549 continuam independentes; não dispensar
+nem confundir sucesso local com Produção ou prova humana.
+Este é um incremento de descoberta, não uma comunidade de
+criadores já operacional nem hospedagem de jogos.
+
+**SOC-D09.E — Contrato de publicação comunitária (15/10/2026).**
+Estado: `PRINCÍPIO DECIDIDO`; fluxo público e
+infraestrutura ainda `PLANEJADOS`.
+
+O criador conserva a autoria e os direitos sobre seu jogo;
+publicá-lo no catálogo do COMUN **não** implica cessão
+exclusiva, transferência de código, licenciamento aberto
+obrigatório ou acesso a dados dos participantes. A licença
+de divulgação necessária para título, descrição, imagens
+autorizadas, créditos e link é específica e revogável,
+respeitadas obrigações legítimas de auditoria/retenção.
+
+A proposta de jogo deve poder informar: nome e contato
+protegido do responsável; link externo de demonstração
+funcional; descrição, gênero e idioma; plataformas,
+controles e recursos de acessibilidade; licença de
+imagens/músicas e demais terceiros; conteúdo sensível/faixa
+etária indicada; publicidade, compras e coleta de dados
+existentes no destino; e canal para correção/retirada.
+Contato privado do criador não deve aparecer na vitrine.
+
+A curadoria é **prévia à exposição pública** e baseada em
+segurança, autenticidade de autoria, direitos, qualidade
+mínima de funcionamento, compatibilidade e regras claras.
+Ela não exige concordância política nem preferência
+estética institucional. Informar o motivo da recusa,
+permitir correções e recurso; não oferecer publicação
+automática, aprovação por popularidade ou prazo fictício.
+A moderação só poderá escalar quando houver capacidade
+humana de analisar e remover jogos com prontidão.
+
+Estados mínimos da futura proposta: `rascunho`,
+`enviada`, `em_revisao`, `ajustes_solicitados`,
+`aprovada`, `publicada`, `retirada` ou
+`recusada`. Estes estados são especificação conceitual,
+**não** tabelas ou endpoints autorizados.
+
+**Gate de continuidade:** antes de desenvolver formulário,
+reutilizar serviços de propostas/curadoria já existentes
+somente se oferecerem o mesmo contrato de privacidade,
+autoria, recurso e operação. Se não houver equipe para
+moderar, manter convite privado e seleção manual de poucos
+jogos, sem criar superfície pública de submissão.
+Não construir hospedagem executável no mesmo domínio.
+
+**SOC-D09.F — Auditoria de reaproveitamento da curadoria cultural (15/10/2026).**
+Estado: `AUDITORIA DE CÓDIGO`; implicações arquiteturais
+`PRINCÍPIO DECIDIDO`; integração técnica `NÃO IMPLEMENTADA`.
+
+A mesa existente `/comun/admin/curadoria` agrega filas
+específicas de `comun_archive_submissions` (foto/documento),
+`comun_archive_artwork_submissions` (arte),
+`comun_archive_oral_history_suggestions` (história oral)
+e `comun_radio_contributions` (rádio).
+O tipo `CulturalSpecialization` e o projetor de
+`lib/archive/cultural-curation-worklist.ts` possuem
+essas quatro especializações; nenhuma é "jogo".
+
+Reaproveitáveis conceitualmente e após testes:
+
+- Separação de contribuição privada, revisão de direitos,
+  avaliação de risco, preparação editorial e publicação
+  explicitamente autorizada.
+- Fila com status, visibilidade do próximo passo, motivos
+  de bloqueio, responsabilidades e possibilidade de retirada.
+- Contratos `lib/editorial-operation.ts`, critérios de
+  autoria e direitos de `docs/acervo-artistas-locais.md`
+  e proteção de contatos/sanitização de `docs/operacao-comun.md`.
+- Princípios de limites de envio e protocolo de recebimento
+  sem promessa de publicação vistos no Acervo.
+
+**Não reaproveitar sem adaptação e revisão:**
+
+- `/api/comun/archive/submissions` recebe fotografia e
+  requer um envelope de upload, direitos e vínculo ao
+  acervo fotográfico; um link de jogo não é uma fotografia.
+- `/api/comun/archive/suggestions` complementa um item
+  de Acervo já publicado; não cria um jogo candidato.
+- O fluxo save-first de contribuição cultural possui
+  intenções pré-definidas e flag própria; a opção
+  genérica "não sei" não pode converter silenciosamente
+  uma submissão em jogo nem aprovar link executável.
+- A fila `/comun/admin/curadoria` não pode exibir
+  contribuições de jogos sem fonte autorizada, estados,
+  papéis e auditoria específicos. Reutilizar componentes
+  de UI é diferente de compartilhar tabelas ou grants.
+
+**Menor caminho honesto sem migration:**
+
+1. Certificar primeiro o catálogo #551 e sua navegação,
+   preservando bloqueios de CI/ambiente.
+2. Convidar manualmente poucos desenvolvedores com
+   critérios públicos, por canais existentes e controlados;
+   não dizer "envie seu jogo" com um botão inoperante.
+3. Curar somente metadados públicos e links de destinos
+   externos avaliados, com autoria/licença, adequação
+   etária, avisos de privacidade/monetização e processo
+   claro de retirada. Não usar contas ou contatos pessoais
+   de outras fontes sem finalidade compatível.
+4. Quando existir capacidade de curadoria e necessidade
+   observada, propor **um único fluxo** de indicação de
+   jogo com rascunho privado, protocolo, avaliação e
+   resultado comunicável. Antes de migrations, provar
+   que as abstrações editoriais existentes podem ser
+   reutilizadas sem compartilhar schemas indevidos.
+5. Manter jogos comunitários independentes de
+   verificação de identidade civil pública, de
+   posição política e de exigência de código aberto.
+
+**Checklist de revisão futura para publicador humano:**
+direito autoral e assets; link de origem íntegro;
+demonstração efetivamente carregável; privacidade
+e rastreadores do destino; acessibilidade e controles;
+classificação de conteúdo e menores; monetização
+informada; risco de fraude/malware; canal de retirada;
+conflito de interesse na curadoria. Aprovação editorial
+não equivale a auditoria de segurança universal nem
+endosso sobre afirmações narrativas do jogo.
+
+**SOC-D09.G — Evidência dos PRs, sem perder o bloqueio.**
+Na consulta de 15/10/2026, o PR documental #550 havia
+passado seus checks mas seguia aberto; o PR de entrada
+#551 estava em draft. O #551 possuía três checks falhos:
+`remote-read-only-preflight` (ausência de certificado CA),
+`COMUN Quality / isolated a11y` (limitação de pulls
+Docker seguida de porta local ocupada) e `pr-lane`
+(erro HTTP 502 do Supabase local após reset descartável).
+Isso não é comprovação de falha funcional da nova
+rota, mas **impede certificação do PR**. Não desligar
+TLS, não falsear resultado, não contornar QA. Os
+demais checks aprovados valem apenas para seus
+próprios escopos e SHA.
+Quando os estados mudarem, atualizar este registro
+com evidence link e SHA, sem reescrever a história.
+
+**Relações canônicas:** SOC-D01 (experiência e relação),
+SOC-D02 (ausência e saída), SOC-D03 (segurança),
+SOC-D05 (anti-proliferação), SOC-D06 (autoria),
+SOC-D07 (evidência). Não interromper a prioridade atual
+de privacidade/continuidade da Feirinha, os PRs em curso,
+ou a migration pendente da Escola. Nenhuma alteração
+de schema, flags, Production ou indexação autorizada.
+
+### SOC-D09.H — Encaixe definitivo de Jogos na arquitetura COMUN
+
+**Decisão em 15/10/2026:** Jogos é uma **experiência cultural e social**
+transversal, não um novo produto, uma escola disfarçada nem um catálogo de
+executáveis. Existe para divertir, criar, descobrir pessoas e obras, por livre
+iniciativa de jogadores e autores. A finalidade cultural independe da adesão
+política e da produção de dados para a rede. Estado: `PRINCÍPIO DECIDIDO`;
+arquitetura de publicação de terceiros: `HIPÓTESE`; primeira rota do catálogo:
+`CANDIDATO EM PR #551`, não integrada.
+
+**Arquitetura de experiência e responsabilidades (sem duplicação):**
+
+- **Descobrir / Cultura:** principal porta para jogos publicados. A vitrine
+  `/comun/jogos` é destino específico, acessível a partir de Explorar e links
+  públicos; a primeira presença na navegação principal **não é obrigatória**
+  enquanto a experiência ainda for estreita. Promover um atalho principal
+  somente se houver conteúdo verdadeiro, continuidade e demanda observada.
+  Não criar página vazia nem alimentar a home com jogos fictícios.
+- **Jogos:** ficha pública da obra e lançamento explícito do jogo, com
+  créditos, estágio de desenvolvimento, requisitos e informação sobre saída
+  externa. Um jogo é um **conteúdo cultural interativo**, não é por si só
+  uma tarefa, denúncia, miniapp cívico, curso ou comunidade política.
+- **Pessoas / Comunidades:** descobrir o autor e, com consentimento, conversar,
+  compartilhar a experiência ou colaborar. Jogar não concede associação,
+  papel, competência, reputação cívica nem permissão administrativa.
+  Não criar segundo perfil social especializado para jogos.
+- **Escola / Fábrica:** oferecem aprendizagem de criação digital e
+  colaboração em projetos **por opção do criador**. Um curso não publica
+  jogo automaticamente; um jogo publicado não cria competência certificada.
+  Reutilizar apenas capacidades existentes e autorizadas.
+- **Acervo / Curadoria:** inspiração para direitos, proveniência, revisão,
+  retirada e recurso. Não inserir links de games nas tabelas de fotos,
+  arte e áudio como se fossem registros da mesma natureza. O editor de
+  jogos exigirá contrato específico antes de qualquer submissão pública.
+- **Miniapps:** permanecem ferramentas para necessidades práticas;
+  não se confundem com jogos, mesmo quando uma interação usa mecânicas
+  lúdicas. Não abrir motor universal de plugins por causa da aba Jogos.
+
+**Contrato de entrada em jogo (versão inicial):** abrir uma ficha sem login,
+informar beta/autoria/origem externa e acionar `Jogar` voluntariamente.
+Somente após esse ato a pessoa deixa o domínio COMUN e carrega o runtime
+externo. Não injetar SDK, sessão, pixel, token ou identificador de integrante
+do COMUN no jogo. Não transferir escolhas políticas, comportamento,
+salvamento local ou estatísticas individuais do RPG para o perfil social.
+Oferecer alternativa informativa de conteúdo quando a execução exigir
+hardware, dados, movimento ou controles não disponíveis. Não prometer
+que a abertura em nova aba preserva contexto de todos os navegadores:
+validar celular, foco e retorno.
+
+**Curadoria e pluralidade:** publicação aberta significa critérios
+transparentes e tratamento imparcial, **não** upload automático. O criador
+conserva seus direitos e pode solicitar retirada, correções e recurso.
+Jogo não precisa ensinar política, ser de código aberto ou concordar com o
+COMUN. Conteúdo de terceiros continua sob responsabilidade do publicador
+original; informações sobre monetização, trackers e faixa etária são
+visíveis antes do clique. Ao encontrar conteúdo possivelmente perigoso,
+não promovê-lo sem revisão. Não declarar jogos externos "seguros" apenas
+porque o link foi aprovado editorialmente.
+
+**Ritmo de execução, subordinado ao roadmap 49-E / U0–U8 / 50:**
+
+1. **Fechamento técnico existente:** preservar prioridade de integridade,
+   privacidade, Feirinha e bloqueios certificados da Escola; #550 é
+   documentação e #551 permanece separado e bloqueado até gates completos.
+2. **Caso de referência:** demonstrar em Preview a jornada completa:
+   `Explorar → Jogos → Cidade em Disputa → Jogar → Retornar`.
+   Testar mobile, ausência de pré-carregamento, acessibilidade básica,
+   memória/autoria verificáveis e convite sem login. Não afirmar
+   sucesso humano com teste automatizado.
+3. **Catálogo editorial mínimo:** selecionar poucos jogos realmente
+   acessíveis por link, manualmente, com diversidade de estilos,
+   autoria e condições de publicação revisadas. Validar capacidade
+   de checar links, reclamações e retiradas.
+4. **Criação comunitária:** só então ensaiar em operação o contrato
+   `SOC-D09.E/F` de proposta e revisão. Se o fluxo não puder ser
+   atendido, manter curadoria por convite em vez de abrir fila pública
+   sem acompanhamento.
+5. **Experiência coletiva avançada:** avaliar salvar, perfis de
+   criadores, comentários, multiplayer e eventual embed isolado
+   com evidência de valor, riscos e custo. Sem migrations especulativas,
+   feed infinito, gamificação da participação ou loja paralela.
+
+**Critérios de promoção:** a pessoa consegue jogar por prazer sem contribuir;
+o catálogo exibe somente obras autorizadas, com acessibilidade e autoria
+claras; os links não recebem dados do COMUN; decisões editoriais podem
+ser corrigidas e revertidas; a operação de curadoria tem responsável e
+capacidade real; custos de suporte não inviabilizam a Feirinha ou
+a organização de base. Se a primeira jornada não funcionar, **não**
+abrir o fluxo de publicações de terceiros nem colocar Jogos como
+prioridade máxima da navegação.
+
+**Decisão de não fazer agora:** não hospedar jogos arbitrários; não
+lançar loja, criador monetizado pela atenção, recompensas por convites,
+ranking público ou sincronização de progresso; não abrir submissões
+automáticas, chat infantil ou eventos multiplayer. Nenhuma destas
+exclusões impede pesquisa futura com nova evidência e revisão formal
+neste mesmo documento.
+
+### Regra antidesvio
+
+**Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.

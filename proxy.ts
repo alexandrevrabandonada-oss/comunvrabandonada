@@ -20,6 +20,8 @@ import { updateSession } from "@/lib/supabase/middleware";
 function shouldRefreshCommunitySession(pathname: string) {
   return (
     pathname === "/comun/entrar" ||
+    pathname.startsWith("/comun/escola") ||
+    pathname === "/api/comun/escola" ||
     pathname === "/comun/criar-conta" ||
     pathname === "/comun/onboarding" ||
     pathname === "/comun/minha-participacao" ||

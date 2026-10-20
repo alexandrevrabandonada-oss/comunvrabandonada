@@ -6,6 +6,12 @@ export const metadata = { title: "Ajuda | COMUN" };
 
 const topics = [
   {
+    title: "Do assunto à primeira ação",
+    text: "Escolha uma pergunta, confira as fontes e encontre uma contribuição possível. Uma orientação pública para aprender fazendo, no seu tempo.",
+    href: "/comun/ajuda/primeira-acao",
+    action: "Abrir orientação prática",
+  },
+  {
     title: "Encontrar e entender uma pauta",
     text: "Use Explorar ou Buscar. Cada pauta mostra seu estado, a próxima ação e as fontes públicas disponíveis.",
     href: "/comun/explorar",

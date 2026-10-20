@@ -52,6 +52,9 @@ export function ComunAppV2Home({
     .filter((item: any) => !item.read_at)
     .sort((a: any, b: any) => priority(b.priority) - priority(a.priority));
   const firstPauta = center?.memberships?.[0]?.pauta ?? pautas[0];
+  const featuredPublicPauta =
+    pautas.find((pauta: any) => pauta.source === "remote") ??
+    pautas.find((pauta: any) => pauta.source === "editorial_fallback");
   const firstAction = center?.actions?.[0] ?? actions[0];
   const firstTask = center?.tasks?.[0];
   const firstResult = center?.results?.[0] ?? results[0];
@@ -91,6 +94,19 @@ export function ComunAppV2Home({
         <ArrowRight className="shrink-0" aria-hidden="true" />
       </Link>
 
+      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+        <Link
+          href={withComunAppV2("/comun/buscar")}
+          prefetch={false}
+          className="inline-flex min-h-11 items-center gap-2 text-sm font-black underline underline-offset-4"
+        >
+          Buscar um assunto <ArrowRight size={16} aria-hidden="true" />
+        </Link>
+        <p className="text-sm text-comun-black/70">
+          Você pode explorar sem criar uma conta.
+        </p>
+      </div>
+
       <section aria-labelledby="home-next-paths" className="mt-6">
         <h2 id="home-next-paths" className="comun-v2-section-title">
           O que você quer fazer?
@@ -118,6 +134,68 @@ export function ComunAppV2Home({
             );
           })}
         </div>
+      </section>
+
+      <p className="mt-3 text-sm text-comun-black/70">
+        Nenhum caminho exige adesão a uma organização.{" "}
+        <Link
+          href={withComunAppV2("/comun/ajuda/primeira-acao#organizar")}
+          prefetch={false}
+          className="inline-flex min-h-11 items-center font-black underline underline-offset-4"
+        >
+          Aprender a organizar
+        </Link>
+      </p>
+
+      <section
+        aria-labelledby="home-first-pauta"
+        className="mt-7"
+        data-comun-home-featured-source={featuredPublicPauta?.source ?? "empty"}
+      >
+        <h2 id="home-first-pauta" className="comun-v2-section-title mb-3">
+          Uma pauta para conhecer
+        </h2>
+        {featuredPublicPauta ? (
+          <>
+            {featuredPublicPauta.source === "editorial_fallback" ? (
+              <p className="mb-3 text-sm text-comun-black/70">
+                Destaque editorial do COMUN. Não indica resultados ou
+                participações já verificados.
+              </p>
+            ) : null}
+            <ComunPautaCard
+              href={withComunAppV2(`/comun/pautas/${featuredPublicPauta.slug}`)}
+              title={featuredPublicPauta.title}
+              summary={
+                featuredPublicPauta.public_synthesis ??
+                featuredPublicPauta.summary ??
+                "Processo em acompanhamento."
+              }
+              status={publicPautaStatusLabel(
+                featuredPublicPauta.public_status ??
+                  featuredPublicPauta.status ??
+                  "",
+              )}
+              nextAction={
+                featuredPublicPauta.next_step ?? "Acompanhar atualização"
+              }
+            />
+          </>
+        ) : (
+          <div className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4">
+            <p className="text-sm text-comun-black/70">
+              Ainda não há uma pauta disponível neste destaque.
+            </p>
+            <Link
+              href={withComunAppV2("/comun/pautas")}
+              prefetch={false}
+              className="mt-2 inline-flex min-h-11 items-center gap-2 font-black underline underline-offset-4"
+            >
+              <span>Explorar pautas públicas</span>
+              <ArrowRight size={17} aria-hidden="true" />
+            </Link>
+          </div>
+        )}
       </section>
 
       {civicIntelligencePilot ? (
@@ -158,7 +236,7 @@ export function ComunAppV2Home({
             </h2>
             <Link
               href={withComunAppV2("/comun/caixa-de-entrada")}
-              className="inline-flex min-h-11 items-center text-sm font-black underline"
+              className="inline-flex min-h-11 items-center text-sm font-black underline focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2"
             >
               Ver Caixa
             </Link>
@@ -166,7 +244,7 @@ export function ComunAppV2Home({
           {attention[0] ? (
             <Link
               href={withComunAppV2(attention[0].action_url)}
-              className="surface-alert flex min-h-24 items-center gap-4 rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
+              className="surface-alert flex min-h-24 items-center gap-4 rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2"
             >
               <span className="grid size-12 shrink-0 place-items-center rounded-full bg-comun-yellow text-xl font-black">
                 !
@@ -192,19 +270,12 @@ export function ComunAppV2Home({
         </section>
       ) : null}
 
-      {center ? (
+      {center && !attention[0] && (firstTask || firstAction) ? (
         <section aria-labelledby="home-next" className="mt-7">
           <h2 id="home-next" className="comun-v2-section-title mb-3">
             Próxima ação
           </h2>
-          {attention[0] ? (
-            <ComunActionCard
-              href={withComunAppV2(attention[0].action_url)}
-              title={attention[0].title}
-              description={attention[0].summary}
-              action={attention[0].action_label ?? "Abrir pedido"}
-            />
-          ) : firstTask ? (
+          {firstTask ? (
             <ComunActionCard
               href={withComunAppV2(
                 firstTask.action_url ??
@@ -260,7 +331,9 @@ export function ComunAppV2Home({
           Acompanhamentos
         </h2>
         <div className="grid gap-4 lg:grid-cols-2">
-          {firstPauta ? (
+          {center &&
+          firstPauta &&
+          firstPauta.slug !== featuredPublicPauta?.slug ? (
             <ComunPautaCard
               href={withComunAppV2(`/comun/pautas/${firstPauta.slug}`)}
               title={firstPauta.title}
@@ -343,7 +416,7 @@ function Shortcut({
     <Link
       href={withComunAppV2(href)}
       prefetch={false}
-      className="flex min-h-24 min-w-24 snap-start flex-col items-center justify-center gap-2 rounded-[var(--comun-radius-card)] border border-comun-black/20 bg-comun-paper p-3 text-center text-xs font-black"
+      className="flex min-h-24 min-w-24 snap-start flex-col items-center justify-center gap-2 rounded-[var(--comun-radius-card)] border border-comun-black/20 bg-comun-paper p-3 text-center text-xs font-black focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2"
     >
       <span className="grid size-10 place-items-center rounded-[var(--comun-radius-control)] bg-comun-black text-comun-paper [&>svg]:size-5">
         {icon}

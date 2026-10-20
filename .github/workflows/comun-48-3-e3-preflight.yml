@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "scripts/ci/readonly-reconciled-migration-plan*"
+      - "scripts/ci/classify-migration-lane*"
       - ".github/workflows/comun-48-3-e3-*.yml"
       - "app/comun/pautas/**"
       - "components/comun-pauta*.tsx"
@@ -27,6 +28,15 @@ jobs:
         with: { fetch-depth: 0 }
       - uses: supabase/setup-cli@v1
         with: { version: 2.113.0 }
+      - name: Classify changed migration ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+          node scripts/ci/classify-migration-lane.mjs --lane 48-3-e3 --files "${changed[@]}" | tee "$RUNNER_TEMP/48-3-e3-ownership.txt"
+          grep -Eq '^COMUN_MIGRATION_LANE_MODE=(none|candidate|not_applicable)$' "$RUNNER_TEMP/48-3-e3-ownership.txt"
+          cat "$RUNNER_TEMP/48-3-e3-ownership.txt" >> "$GITHUB_ENV"
+
       - name: Inspect canonical metadata without business content
         shell: bash
         run: |
@@ -68,6 +78,7 @@ jobs:
           require('node:fs').writeFileSync('.ci-artifacts/48-3-e3-preflight/mode', promoted?'promoted':'candidate');
           NODE
       - name: Prove exact migration plan
+        if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail

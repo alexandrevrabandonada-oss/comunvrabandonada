@@ -1,0 +1,95 @@
+{
+  "status": "REPRODUCED_OPEN_NOT_FIXED",
+  "syntheticOnly": true,
+  "productionInspected": false,
+  "image": "docker.io/supabase/postgres@sha256:8002645276dc3431d55a5049721a879e4d11c34177086dc0f13b61d98cff1e52",
+  "binarySha256": "209eeaec7971b525ac5661f50ead35b10dbba6c25537200538745db75de7afe3",
+  "sourceSettings": {
+    "dynamic_library_path": "$libdir",
+    "jit": "on",
+    "local_preload_libraries": "",
+    "search_path": "\"\\$user\", public, auth, extensions",
+    "server_version": "17.6",
+    "session_preload_libraries": "supautils",
+    "shared_preload_libraries": "pg_stat_statements, pgaudit, plpgsql, plpgsql_check, pg_cron, pg_net, pgsodium, auto_explain, pg_tle, plan_filter, supabase_vault",
+    "supautils.hint_roles": "anon, authenticated, service_role"
+  },
+  "cleanFinalSettings": {
+    "dynamic_library_path": "$libdir",
+    "jit": "on",
+    "local_preload_libraries": "",
+    "search_path": "\"$user\", public",
+    "server_version": "17.6",
+    "session_preload_libraries": "/nix/store/jljnrlc8r14n3zh2a4bqic91yzih59hl-supautils/lib/supautils.so",
+    "shared_preload_libraries": "",
+    "supautils.hint_roles": ""
+  },
+  "matrix": [
+    {
+      "supautils": "loaded",
+      "hintRoles": "anon, authenticated, service_role",
+      "environment": "default image",
+      "result": "SIGSEGV_11"
+    },
+    {
+      "supautils": "not loaded",
+      "hintRoles": "source config",
+      "environment": "same default cluster, connection session preload empty",
+      "result": "SQLSTATE_42501"
+    },
+    {
+      "supautils": "not loaded",
+      "hintRoles": "absent",
+      "environment": "clean cluster",
+      "result": "SQLSTATE_42501"
+    },
+    {
+      "supautils": "loaded",
+      "hintRoles": "empty",
+      "environment": "clean cluster, same library",
+      "result": "SQLSTATE_42501"
+    },
+    {
+      "supautils": "loaded",
+      "hintRoles": "anon",
+      "environment": "same clean cluster after restart",
+      "result": "SIGSEGV_11"
+    },
+    {
+      "supautils": "loaded",
+      "hintRoles": "empty",
+      "environment": "same clean cluster after second restart",
+      "result": "SQLSTATE_42501"
+    }
+  ],
+  "minimumCase": "one PLpgSQL function returns 1, EXECUTE revoked; BEGIN SET LOCAL ROLE anon; SELECT function();",
+  "sanitizedLogs": [
+    [
+      " 2026-10-09 01:30:30.498 UTC [1] LOG:  server process (PID 522) was terminated by signal 11: Segmentation fault",
+      " 2026-10-09 01:31:13.437 UTC [1] LOG:  server process (PID 699) was terminated by signal 11: Segmentation fault",
+      " 2026-10-09 01:31:13.437 UTC [1] DETAIL:  Failed process was running: select public.recovery_crash_minimal();",
+      "[local] 2026-10-09 01:31:41.171 UTC [818] supabase_admin@postgres ERROR:  permission denied for function recovery_crash_minimal",
+      "[local] 2026-10-09 01:33:04.921 UTC [1193] supabase_admin@postgres ERROR:  permission denied for function recovery_crash_minimal"
+    ],
+    [
+      "2026-10-09 01:32:29.013 UTC [1046] ERROR:  permission denied for function recovery_crash_minimal",
+      "2026-10-09 01:32:45.026 UTC [1110] ERROR:  permission denied for function recovery_crash_minimal",
+      "2026-10-09 01:33:05.165 UTC [1207] ERROR:  permission denied for function recovery_crash_minimal",
+      "2026-10-09 01:33:39.324 UTC [1351] LOG:  server process (PID 1364) was terminated by signal 11: Segmentation fault",
+      "2026-10-09 01:33:39.324 UTC [1351] DETAIL:  Failed process was running: select public.recovery_crash_minimal();",
+      "2026-10-09 01:34:24.445 UTC [1561] ERROR:  permission denied for function recovery_crash_minimal"
+    ]
+  ],
+  "rawLogHashes": {
+    "source": "e43c702a6808239f35019f654f8ff83064d592ceb94e14bd72bafbd0403abec6",
+    "clean": "4e7898ebb102d68b22759f4b102cd8e24c1f3020631e62f7114c83734f09bb70"
+  },
+  "upstreamIssue": "https://github.com/supabase/supautils/issues/214",
+  "limitations": [
+    "No Production call or config change",
+    "No patched binary tested",
+    "No stack trace or exact upstream source commit established",
+    "PGOPTIONS hint_roles experiment warned cannot be changed now; excluded as causal proof",
+    "Controlled hint_roles comparisons use local config file and server restart"
+  ]
+}

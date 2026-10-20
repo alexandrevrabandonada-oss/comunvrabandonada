@@ -23,6 +23,7 @@ import {
   withComunJourneyContext,
 } from "@/lib/comun-journey-context";
 import { isComunSolidarityEconomyPublicCoreEnabled } from "@/lib/comun-solidarity-economy";
+import { ComunParticipationPaths } from "@/components/comun-participation-paths";
 
 const ways = [
   {
@@ -227,6 +228,7 @@ export default async function ParticiparPage({
             </p>
           </header>
 
+          <ComunParticipationPaths appV2={true} />
           {intentionGroups.map((group) => (
             <section className="comun-intention-group" key={group.id}>
               <header>
@@ -297,6 +299,7 @@ export default async function ParticiparPage({
         </p>
       </Section>
       <Section>
+        <ComunParticipationPaths appV2={false} />
         <ComunSectionHeader
           title="Formas de participação"
           intro="Não é um mural genérico: cada contribuição entra em um processo definido."

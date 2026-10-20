@@ -1,3 +1,4 @@
+import { ComunParticipationPaths } from "@/components/comun-participation-paths";
 import Link from "next/link";
 import { ArrowRight, Check, MapPin, Route } from "lucide-react";
 import { ComunShell, PrimaryLink } from "@/components/comun-shell";
@@ -74,14 +75,16 @@ export default async function ComunHomePage({
 
   if (appV2)
     return (
-      <ComunShell>
-        <ComunAppV2Home
-          pautas={pautas}
-          actions={activeActions}
-          results={results}
-          memory={experience.memory}
-          civicIntelligencePilot={civicIntelligencePilot}
-        />
+      <ComunShell publicReadOnlyFallback>
+        <div className="min-h-screen bg-comun-paper text-comun-black">
+          <ComunAppV2Home
+            pautas={pautas}
+            actions={activeActions}
+            results={results}
+            memory={experience.memory}
+            civicIntelligencePilot={civicIntelligencePilot}
+          />
+        </div>
       </ComunShell>
     );
 
@@ -93,6 +96,9 @@ export default async function ComunHomePage({
         currentHref="/comun"
       >
         <ComunJourneyEvent event="home_viewed" surface="home:publica" />
+        <ComunSection>
+          <ComunParticipationPaths appV2={false} />
+        </ComunSection>
         <ComunSection className="pb-7 pt-8 sm:pt-12">
           <div className="grid gap-8 lg:grid-cols-[1.25fr_.75fr] lg:items-end">
             <div>

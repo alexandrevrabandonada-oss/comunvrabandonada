@@ -223,7 +223,9 @@ test("alias, filtros, retorno e rollback legado preservam contexto", async ({
     page.locator('[data-comun-legacy-boundary="active"]'),
   ).toBeVisible();
   await page.goto("/comun");
-  await expect(page.locator('[data-comun-app-v2-page="home"]')).toBeVisible();
+  await expect(
+    page.getByRole("main").locator('[data-comun-app-v2-page="home"]'),
+  ).toBeVisible();
 });
 
 test("teclado, redução de movimento e zoom continuam funcionais", async ({
@@ -231,6 +233,10 @@ test("teclado, redução de movimento e zoom continuam funcionais", async ({
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/comun");
+  await expect(
+    page.getByRole("main").locator('[data-comun-app-v2-page="home"]'),
+  ).toBeVisible();
+  await page.waitForLoadState("networkidle");
   await page.keyboard.press("Tab");
   await expect(page.locator(":focus-visible")).toBeVisible();
   const motion = await page.evaluate(() => {
