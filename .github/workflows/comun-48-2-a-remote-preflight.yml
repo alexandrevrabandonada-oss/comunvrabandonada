@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/comun-48-2-a-remote-preflight.yml"
+      - "scripts/diagnostics/verify-ci-source-identity.mjs"
+      - "tests/ci/ci-source-identity.node-test.mjs"
       - "app/api/comun/observatorios/**"
       - "app/comun/observatorios/**"
       - "app/comun/explorar/page.tsx"
@@ -39,6 +41,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.18.0
+
+      - name: Test sanitized CI source identity contract
+        run: node --test tests/ci/ci-source-identity.node-test.mjs
+
+      - name: Verify canonical CI source identity without exposing connection data
+        run: node scripts/diagnostics/verify-ci-source-identity.mjs
 
       - name: Validate bounded scope and configured transport
         shell: bash
