@@ -21,8 +21,14 @@ for (const javaScriptEnabled of [true, false]) {
       await page.keyboard.press("Enter");
 
       await expect(page).toHaveURL(/\/comun\/ajuda#conexao$/);
-      const guidance = page.locator("#conexao");
+      // Suspense SSR can retain both fallback and resolved copies without JS.
+      // Use the visible accessible region, not a strict CSS id selector.
+      const guidance = page.getByRole("region", {
+        name: "Se a conexão cair",
+        exact: true,
+      });
       await expect(guidance).toBeVisible();
+      await expect(guidance).toHaveAttribute("id", "conexao");
       await expect(guidance).toHaveAttribute(
         "aria-labelledby",
         "comun-ajuda-conexao-titulo",
