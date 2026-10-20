@@ -8,6 +8,7 @@ const manifestHash =
   "3b598bc6b3ea3dfe462ba205b6747016aace52de87c87dec332ecbb1a567d4de";
 const lanes = new Set([
   "48-2-a",
+  "p6c-c",
   "48-3-a1",
   "48-3-b1",
   "48-3-c1",

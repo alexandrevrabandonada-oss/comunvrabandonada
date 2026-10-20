@@ -210,6 +210,7 @@ console.log(process.env.TEST_METADATA);`,
       "48-3-e2",
       "48-3-e3",
       "p1g",
+      "p6c-c",
       ...Array.from({ length: 6 }, (_, i) => `48-4-a${i + 1}`),
     ]) {
       const workflow = parse(

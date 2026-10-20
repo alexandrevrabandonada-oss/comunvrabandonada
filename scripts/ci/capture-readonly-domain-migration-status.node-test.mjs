@@ -193,6 +193,7 @@ test("historical pauta and Auth transport scopes keep verified TLS and their sch
     "48-3-e2",
     "48-3-e3",
     "p1g",
+    "p6c-c",
   ]) {
     const workflow = load(
       readFileSync(`.github/workflows/comun-${lane}-preflight.yml`, "utf8"),

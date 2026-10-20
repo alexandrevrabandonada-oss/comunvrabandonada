@@ -52,6 +52,7 @@ test("historical domains preserve the exact deferred migration and external reco
     "48-3-e2",
     "48-3-e3",
     "p1g",
+    "p6c-c",
     "48-4-a1",
     "48-4-a2",
     "48-4-a3",
