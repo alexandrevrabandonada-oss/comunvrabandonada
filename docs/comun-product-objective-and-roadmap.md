@@ -1,5 +1,21 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Checkpoint manual de integração — 19/10/2026
+
+**Fonte de verdade:** `main` em `11c3bc362f8d14c0972f949e369b7cfa9f2a22ec` (merge #545); 20 PRs abertos na consulta GitHub. Esta seção foi **proposta no PR #554**, não integrada em `main`. A certificação do SHA final desta revisão permanece `PENDING/NOT_RUN`, não é Production.
+
+**Decisão de execução:** executar manualmente por trilhas, com assistência de ferramentas e CI acionada pelas alterações reais, **sem ativar ou agendar ORCH-V2**. O #556 permanece draft e sua integração ao agendador/launcher Windows não está comprovada. Manter três pessoas reais para o ensaio final 47.11/50 COMUN UNO; antes disso utilizar navegadores, contratos, Auth/RLS em laboratório, teclado, axe, network e cenários sintéticos. Teste automatizado não substitui entendimento/consentimento das pessoas e ensaio final não autoriza ignorar gates técnicos.
+
+### Trilha operacional única — reduzir WIP e integrar valor verificável
+
+1. **P0 — continuidade e descoberta na Home (#554, draft):** um conjunto principal de entradas, acesso anônimo à busca e relato, conteúdo público com origem `remote/editorial_fallback/empty` distinguível, ausência de feed fictício, `legacy` preservada. No HEAD `0f0df307`: Experience Coherence passou; Quality/Performance `39335839689` terminou **230 PASS / 1 FAIL** no navegador (360×800, `?experiencia=legacy`, JS ativo). O trace textual registra navegação com `q=` vazio após digitar `comunidade-inexistente-49e`; origem precisa ainda não certificada. COST-02 `39335839634` **FAIL** (`preview-not-valid-for-checkpoint`). **Não fazer merge.** Revisão focal `8c010505` torna o contrato explícito: espera a shell interativa estabilizar e exige que o valor digitado conste na URL submetida. Isso NÃO comprova cura da perda de texto durante hidratação precoce; exigir regressão no SHA novo e investigação separada se voltar a falhar.
+2. **P1 — preservar busca e continuidade privada sem sobreposição:** reconciliar #553 (retorno de filtros; preflights remotos recusam a migration de Escola), #546 (privacidade/continuidade) e #549 (consentimento atual da Feirinha) com o mesmo `main`. Revisar conflitos de `components/comun-app-v2-home.tsx` entre #553 e #554 antes de integrar. PRs abertos não equivalem a funcionalidades publicadas; nunca transportar verdes entre SHAs.
+3. **P2 — descoberta cultural e relações com baixo atrito:** #552 (curadoria pública) e #551 (Jogos/Cidade em Disputa) continuam candidatos. Só promover quando catálogo, autoria, direitos, retorno, segurança e gates de cada SHA forem comprovados. Fábrica/competências (#511–#515), Editais #524 e módulos futuros não antecedem o fechamento das jornadas básicas e bloqueios críticos.
+4. **Proteções não negociáveis:** Escola `20261006134804_comun_learning_r0.sql` continua dependente de recuperação real, autorização e preflights; **sem schema write, migração remota, flags, Production, indexação, alteração de TLS, remoção de checks, force-push ou merge automático** para obter verde. COST-02 e Preview do SHA exato são portas independentes. `SKIPPED`, `QUEUED` e `PENDING` não significam `PASS`.
+5. **Saída desta trilha:** filtro e retorno em mobile/desktop, JS ligado/desligado, busca pública, teclado/foco e privacidade verdes no SHA integrado; Preview Git e COST-02 certificados; sem P0/P1; revisão técnica final e pós-merge. Só então declarar incrementos `INTEGRADO`; `PRODUÇÃO VERIFICADA` exige deploy/observação da própria `main`. Avaliação com as três pessoas fica no gate final, não é improvisada em PR intermediário.
+
+**Estado desta passada:** teste endurecido no PR #554 e checkpoint da auditoria proposto no mesmo documento canônico. Nenhum merge, publicação, schema ou agendamento executado. Próxima ação única: conferir CI do novo HEAD, diagnosticar eventual perda de `q` e classificar COST-02/Preview; não forçar entrega incompatível com segurança.
+
 > **Atualização transversal (14/10/2026):** [Consolidação de rede social, convivência, atratividade e sustentabilidade](#consolidação-canônica--rede-social-convivência-e-atratividade-14102026). Esta seção integra decisões e hipóteses ao roadmap único; não significa implementação nem lançamento.
 
 ## 49-E4 — candidato de continuidade em comunidades — 14/10/2026
@@ -16,6 +32,116 @@ O primeiro candidato remoto `ddbb4118` revelou bloqueio real sem JavaScript:
 quatro casos falharam com a shell presa no carregamento. Correção opta pelo
 fallback público existente apenas na lista de comunidades, sem mudar painéis
 privados. Falhas preservadas; novos gates do SHA corrigido PENDING.
+
+## Piloto UX da Home — descoberta familiar e conteúdo real (15/10/2026)
+
+**Estado: CANDIDATO EM PR; não integrado nem validado com pessoas.** Vinculado a
+SOC-D01 (valor sem reciprocidade), SOC-D05 (reutilizar antes de criar), SOC-D07
+(medir uma jornada real), SOC-D09 (descoberta cultural) e ao inventário U0. Este
+checkpoint é parte do roadmap único e não inicia outro programa de redesign.
+
+### Problema observado no código e hipótese
+
+A Home App V2 de `components/comun-app-v2-home.tsx` apresenta a entrada "Vi um
+problema", três portas de intenção ("O que você quer fazer?") e depois três
+cartões "Você escolhe como usar", antes de destacar uma pauta. A repetição exige
+interpretação de caminhos parecidos antes de oferecer conteúdo concreto.
+**Hipótese, não achado de ensaio humano:** reduzir entradas repetidas e
+antecipar um conteúdo público elegível melhora compreensão e vontade de explorar
+sem desorientar quem chega para relatar algo.
+
+### Incremento piloto estritamente delimitado
+
+1. **Home App V2:** manter "Vi um problema" como CTA primário, acrescentar
+   acesso explícito à busca pública, preservar três portas e substituí-las como
+   único grupo de escolha inicial; "Aprender a organizar" fica como link discreto,
+   sem duplicar a coleção completa de cartões. A coleção existente continua em
+   `/comun/participar` e na Home legacy para compatibilidade.
+2. **Conteúdo antes de catálogo:** antecipar uma pauta pública com
+   `source=remote`, quando houver, a partir do leitor existente. Se houver
+   somente o fallback editorial canônico de Calçadas, exibir essa origem e
+   esclarecer que ela não comprova participação nem resultados. Sem qualquer
+   item elegível, explicitar ausência e oferecer o catálogo; não fabricar
+   fotos, histórias, atividade, resultados ou contagens. Preservar em
+   Acompanhamentos a pauta pessoal distinta quando a pessoa estiver logada,
+   sem duplicar exatamente a mesma pauta.
+3. **Sem novos poderes:** nenhum novo endpoint, autenticação, tabela, migration,
+   feed, perfilamento, like, alteração de elegibilidade, ranking, telemetria,
+   permissão, jogo, publicação, mensagem ou mudança em Production.
+4. **Cuidado com conflito:** #553 também modifica este componente da Home
+   (form da Busca Viva) e o próprio roadmap. Reconciliar os commits depois da
+   conclusão de #553; não mesclar o piloto automaticamente. #550/#552 também
+   propõem mudanças documentais independentes no roadmap. Preservar as alterações
+   aprovadas ao reconciliar; #546/#549 e Escola seguem seus bloqueios próprios.
+
+### Critérios de aceitação e contraexemplos
+
+- Em `/comun` canônico, busca, relato e exploração continuam acessíveis,
+  há somente um grupo principal de escolhas de intenção e pauta real aparece
+  perto da entrada quando houver item elegível.
+- Em `?experiencia=legacy` e `/comun/participar`, a jornada de orientação
+  anterior e seus links persistem. Os links diretos/teclado continuam válidos.
+- Sem pautas publicáveis ou fallback editorial autorizado, a Home mostra
+  ausência, não uma pauta fictícia. Quando o fallback for usado, ele é
+  identificado como editorial, sem confundir com publicação remota. Nunca
+  expor dados privados ou contornar flags/editoria.
+- Regressões existentes de navegação, browser, WCAG/Axe, foco, mobile 320–390,
+  scroll, abertura/retorno e falta de conexão precisam passar no SHA exato.
+- Antes do ensaio humano final, automatizar a jornada pública em mobile
+  e desktop (inclusive sem JavaScript): descobrir uma pauta elegível ou ausência
+  honesta, buscar, voltar sem perder a orientação e verificar foco/contraste.
+  Os testes não medem compreensão, desejo de voltar nem confiança de pessoas.
+- As três pessoas disponíveis ficam reservadas para o ensaio integrado de
+  fechamento da V1 (47.11 e 50 como avaliação futura, sem antecipar conclusão).
+  Nesse ensaio, verificar descoberta sem login, relato, participação, retorno,
+  explicação de evidências, autonomia e acessibilidade; registrar tarefas,
+  tempos, ajuda, dúvidas e decisão humana. Não declarar a Home aprovada por
+  pessoas apenas porque passou em Playwright.
+
+### Ordem de evolução, sem expansão especulativa
+
+**P0** retirar redundância e apresentar a pauta real; **P1** validar descoberta
+transversal dos leitores públicos propostos em #552, linguagem, hierarquia e
+contraste da Home; **P1** ensaiar busca e retorno do #553; **P2** avaliar cultura,
+Feirinha e jogos com conteúdo real, autoria e direitos; **P2** experimentar
+conversa livre somente depois de fechar a primeira interação de ponta a ponta,
+moderação, saída e proteção de dados. Manter Zen Brutalista com três níveis de
+expressividade (calmo, contextual, cultural), acessibilidade e dispositivos
+populares. Não padronizar interfaces culturais com urgência de denúncia.
+
+**Prova inicial:** alteração isolada em branch, mais teste de continuidade;
+ainda sem testes executados neste registro. Não equivale a merge, Preview READY,
+disponibilidade pública ou validação humana. Próximo bloqueio: classificar CI do
+piloto e coordenar merge/rebase com #553 sem dispensar gates.
+
+### Checkpoint técnico do candidato — 16/10/2026
+
+Branch isolada `codex/comun-home-discovery-pilot-20261015`, PR #554
+draft. O primeiro head `5b9f7a1e` teve Experience Coherence e o
+contrato sintético de continuidade **SUCCESS**, mas Core Journeys falhou
+no Prettier do componente e COST-02 recusou ausência do marcador Preview.
+Essas falhas não são testes verdes. A correção de estilo foi aplicada, assim
+como um atributo público não sensível para distinguir o cartão `remote`,
+o destaque `editorial_fallback` e o estado `empty`. Um teste de navegação
+verifica as três possibilidades sem fabricar conteúdo.
+
+O commit com marcador de Preview apenas solicita o build canônico em Git
+e não comprova Vercel READY, deployment GitHub válido, CI verde, merge,
+atualização de Production ou usabilidade humana. Preservar o bloqueio se
+a CI ou o Preview não comprovarem o SHA exato. Conferir conflito funcional
+com #553 (submissão segura da Busca Viva) antes de integrar. Não substituir
+verificações de aparelhos reais por Playwright.
+
+### Execução sob demanda — validação automatizada antes da coorte final (19/10/2026)
+
+A coorte de três participantes reais não será consumida em cada PR ou
+microcorreção. Ela será convocada quando o ciclo integrado da V1 estiver
+tecnicamente pronto para o ensaio final. Enquanto isso, cada jornada deve
+receber regressões automatizadas verificáveis com o SHA exato e testes de
+navegação sem cadastro, teclado, mobile e comportamento sem JavaScript.
+O piloto da Home permanece **candidato em PR**, não ensaiado com pessoas,
+e a plataforma não ganha autorização de launch_publicly por esta decisão.
+A automação agendada não é necessária para esse fluxo sob demanda.
 
 ## Continuidade independente — 12/10/2026
 

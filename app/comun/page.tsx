@@ -75,14 +75,16 @@ export default async function ComunHomePage({
 
   if (appV2)
     return (
-      <ComunShell>
-        <ComunAppV2Home
-          pautas={pautas}
-          actions={activeActions}
-          results={results}
-          memory={experience.memory}
-          civicIntelligencePilot={civicIntelligencePilot}
-        />
+      <ComunShell publicReadOnlyFallback>
+        <div className="min-h-screen bg-comun-paper text-comun-black">
+          <ComunAppV2Home
+            pautas={pautas}
+            actions={activeActions}
+            results={results}
+            memory={experience.memory}
+            civicIntelligencePilot={civicIntelligencePilot}
+          />
+        </div>
       </ComunShell>
     );
 
