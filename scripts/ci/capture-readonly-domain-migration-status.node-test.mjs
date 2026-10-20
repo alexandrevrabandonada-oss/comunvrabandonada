@@ -183,3 +183,51 @@ test("all workflow routes preserve schema metadata and strict candidate/global p
   assert.match(step.run, /unknown.length \|\| observatoryMigrations.length/);
   assert.match(step.run, /pending.length \|\| unknown.length/);
 });
+
+test("historical pauta and Auth transport scopes keep verified TLS and their schema checks", () => {
+  for (const lane of [
+    "48-3-a1",
+    "48-3-b1",
+    "48-3-c1",
+    "48-3-d1",
+    "48-3-e2",
+    "48-3-e3",
+    "p1g",
+  ]) {
+    const workflow = load(
+      readFileSync(`.github/workflows/comun-${lane}-preflight.yml`, "utf8"),
+    );
+    const steps = Object.values(workflow.jobs).flatMap((job) => job.steps);
+    const plan = steps.find((step) =>
+      step.run?.includes(
+        `capture-readonly-domain-migration-status.mjs ${lane} `,
+      ),
+    );
+    assert.ok(plan, lane);
+    assert.match(plan.run, /COMUN_MIGRATION_LANE_MODE.*none/);
+    assert.match(
+      plan.run,
+      /node scripts\/ci\/readonly-reconciled-migration-plan.mjs/,
+    );
+    const metadata = steps.filter((step) =>
+      step.run?.includes('psql "$SUPABASE_DB_URL"'),
+    );
+    assert.ok(metadata.length, lane);
+    for (const step of [...metadata, plan]) {
+      assert.equal(
+        step.env.PGSSLROOTCERT,
+        "${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt",
+      );
+      assert.equal(step.env.PGSSLMODE, "verify-full");
+      assert.equal(step.env.PGOPTIONS, "-c default_transaction_read_only=on");
+      assert.doesNotMatch(
+        step.run,
+        /sslmode=(disable|require)|NODE_TLS_REJECT_UNAUTHORIZED/,
+      );
+    }
+    for (const step of metadata) {
+      assert.match(step.run, /begin read only;/);
+      assert.match(step.run, /rollback;/);
+    }
+  }
+});

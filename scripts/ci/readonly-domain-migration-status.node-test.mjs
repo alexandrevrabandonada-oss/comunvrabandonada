@@ -42,9 +42,16 @@ const base = {
     "supabase/releases/20261006134804-comun-learning-r0.json",
   ),
 };
-test("seven historical domains preserve the exact deferred migration and external reconciliation", () => {
+test("historical domains preserve the exact deferred migration and external reconciliation", () => {
   for (const lane of [
     "48-2-a",
+    "48-3-a1",
+    "48-3-b1",
+    "48-3-c1",
+    "48-3-d1",
+    "48-3-e2",
+    "48-3-e3",
+    "p1g",
     "48-4-a1",
     "48-4-a2",
     "48-4-a3",

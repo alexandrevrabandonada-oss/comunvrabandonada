@@ -8,6 +8,13 @@ const manifestHash =
   "3b598bc6b3ea3dfe462ba205b6747016aace52de87c87dec332ecbb1a567d4de";
 const lanes = new Set([
   "48-2-a",
+  "48-3-a1",
+  "48-3-b1",
+  "48-3-c1",
+  "48-3-d1",
+  "48-3-e2",
+  "48-3-e3",
+  "p1g",
   ...Array.from({ length: 6 }, (_, i) => `48-4-a${i + 1}`),
 ]);
 const external = new Set([

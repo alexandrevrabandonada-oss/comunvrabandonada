@@ -143,7 +143,7 @@ process.exit(Number(process.env.TEST_EXIT || 0));
             // Exercise the retained strict path, separately from the complete
             // catalog/no-schema-change path tested below.
             COMUN_MIGRATION_LANE_MODE:
-              prefix === "48-4" && lane !== "a7" ? "candidate" : "none",
+              prefix !== "p6c" && lane !== "a7" ? "candidate" : "none",
             RUNNER_TEMP: root,
             GITHUB_STEP_SUMMARY: join(root, "summary"),
             TEST_LEDGER: JSON.stringify(scenario.ledger),
@@ -202,11 +202,19 @@ console.log(process.env.TEST_METADATA);`,
       "#!/usr/bin/env node\nprocess.exit(92);",
       { mode: 0o755 },
     );
-    for (let i = 1; i <= 6; i++) {
-      const lane = `48-4-a${i}`,
-        workflow = parse(
-          readFileSync(`.github/workflows/comun-${lane}-preflight.yml`, "utf8"),
-        );
+    for (const lane of [
+      "48-3-a1",
+      "48-3-b1",
+      "48-3-c1",
+      "48-3-d1",
+      "48-3-e2",
+      "48-3-e3",
+      "p1g",
+      ...Array.from({ length: 6 }, (_, i) => `48-4-a${i + 1}`),
+    ]) {
+      const workflow = parse(
+        readFileSync(`.github/workflows/comun-${lane}-preflight.yml`, "utf8"),
+      );
       const plan = Object.values(workflow.jobs)
         .flatMap((j) => j.steps)
         .find((s) =>
@@ -249,6 +257,7 @@ console.log(process.env.TEST_METADATA);`,
             PGSSLROOTCERT: "synthetic-ca",
             PGOPTIONS: "-c default_transaction_read_only=on",
             COMUN_MIGRATION_LANE_MODE: "none",
+            A1_PREFLIGHT_MODE: "promoted",
             GITHUB_STEP_SUMMARY: join(root, "summary"),
             TEST_CHANGED: changed,
             TEST_METADATA: JSON.stringify(metadata),
