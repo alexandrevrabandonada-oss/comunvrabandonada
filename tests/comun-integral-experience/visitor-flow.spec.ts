@@ -525,6 +525,7 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     }),
   ).toBeVisible();
   await expect(page).toHaveURL(/\/comun\/entrar\?returnTo=/);
+  await expect(page).toHaveTitle("Entrar | COMUN VR Abandonada");
   await auditSurface(page, "acesso-negado", testInfo.project.name);
   await page.goto("/comun/calcadas/registros/fixture-inexistente");
   await expect(
