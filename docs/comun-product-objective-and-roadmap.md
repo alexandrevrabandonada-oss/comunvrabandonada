@@ -1,5 +1,26 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Checkpoint de publicação da Ajuda — 20/10/2026
+
+- Escopo exclusivo do PR #558: orientar a pessoa conectada em
+  `/comun/ajuda#conexao`, sem apresentar `/comun/offline` como diagnóstico.
+- A `main` de referência é `1d41e89ec8a2d5e63361cc797de19e0b15bd57f4`;
+  nela a busca pública #553 foi integrada e Production Vercel está READY.
+- No SHA `16c07654`, os contratos de Ajuda, Coherence, a11y e COST-02
+  passaram; uma lane cívica observou 14/15 testes PASS, com o
+  controle de `semantic=0` não concluído dentro de cinco segundos.
+  Essa falha não foi ignorada nem atribuída à Ajuda sem reprodução.
+- O SHA `9b9fea23` corrigiu somente formatação da página Ajuda.
+  O COST-02 registrou `checkpoint-stale` e o Preview Vercel desse
+  mesmo SHA terminou CANCELED. Isso não habilita merge.
+- A próxima revisão solicita um checkpoint Git/Preview exato,
+  conservando verificadores, testes e os bloqueios de segurança.
+  Somente após CI aplicável completa e Preview READY validar o
+  SHA final será possível integrar a Ajuda por merge normal.
+- Nenhuma migração, recuperação da Escola, alteração de flags,
+  indexação, agendamento recorrente ou escrita no banco é autorizada
+  por este checkpoint. O ensaio humano fica para o gate final.
+
 ## Checkpoint manual — Ajuda de conexão (20/10/2026)
 
 - Base integrada de referência: `1d41e89ec8a2d5e63361cc797de19e0b15bd57f4` (busca pública #553).
