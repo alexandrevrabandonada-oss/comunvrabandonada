@@ -17,7 +17,8 @@ import { LiveSearchResults } from "@/components/civic-intelligence/live-search-r
 
 export const metadata: Metadata = {
   title: "Buscar no COMUN | COMUN VR Abandonada",
-  description: "Busca pública de pautas, territórios, ações e memória no COMUN.",
+  description:
+    "Busca pública de pautas, territórios, ações e memória no COMUN.",
 };
 
 export const dynamic = "force-dynamic";
