@@ -14,6 +14,7 @@ on:
       - "scripts/quality/run-isolated-a11y.mjs"
       - "scripts/ci/read-supabase-local-env.mjs"
       - "scripts/ci/read-supabase-local-env.node-test.mjs"
+      - "scripts/ci/coherence-local-start.node-test.mjs"
       - "tests/quality-performance/**"
       - "tests/comun-pwa-experience/**"
       - "supabase/migrations/**"
@@ -40,6 +41,7 @@ on:
       - "scripts/quality/run-isolated-a11y.mjs"
       - "scripts/ci/read-supabase-local-env.mjs"
       - "scripts/ci/read-supabase-local-env.node-test.mjs"
+      - "scripts/ci/coherence-local-start.node-test.mjs"
       - "tests/quality-performance/**"
       - "tests/comun-pwa-experience/**"
       - "supabase/migrations/**"
@@ -181,10 +183,12 @@ jobs:
           cache: npm
       - uses: supabase/setup-cli@v1
         with:
-          version: 2.111.0
+          version: 2.113.0
       - name: Envelope sanitizado antes da primeira escrita
         run: mkdir -p .ci-artifacts/quality-performance && node -e "require('node:fs').writeFileSync('.ci-artifacts/quality-performance/00-envelope.json',JSON.stringify({status:'started',scope:'disposable_local',containsPersonalData:false,containsQueries:false,containsSecrets:false},null,2))"
       - run: npm ci --ignore-scripts
+      - name: Verify local reset toolchain contract
+        run: node --test scripts/ci/coherence-local-start.node-test.mjs
       - name: Secrets, contratos, corpus e carga sintética
         run: |
           npm run security:secrets
@@ -310,7 +314,7 @@ jobs:
           cache: npm
       - uses: supabase/setup-cli@v1
         with:
-          version: 2.111.0
+          version: 2.113.0
       - run: npm ci --ignore-scripts
       - name: Validar contrato do helper de status local
         run: node --test scripts/ci/read-supabase-local-env.node-test.mjs
@@ -358,7 +362,7 @@ jobs:
           cache: npm
       - uses: supabase/setup-cli@v1
         with:
-          version: 2.111.0
+          version: 2.113.0
       - run: npm ci --ignore-scripts
       - name: Validar contrato do helper de status local
         run: node --test scripts/ci/read-supabase-local-env.node-test.mjs
