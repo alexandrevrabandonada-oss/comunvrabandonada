@@ -525,9 +525,25 @@ test("jornada autenticada canônica percorre fotografia até memória", async ({
     }),
   ).toBeVisible();
   await expect(page).toHaveURL(/\/comun\/entrar\?returnTo=/);
+  await expect(page).toHaveTitle("Entrar | COMUN VR Abandonada");
   await auditSurface(page, "acesso-negado", testInfo.project.name);
   await page.goto("/comun/calcadas/registros/fixture-inexistente");
-  await expect(page.getByText(/não encontr|404/i).first()).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Conteúdo indisponível",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "Este conteúdo pode ter sido retirado ou não estar disponível para consulta pública.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Voltar ao Explorar", exact: true }),
+  ).toHaveAttribute("href", "/comun/explorar");
   await auditSurface(page, "erro-vazio", testInfo.project.name);
   console.log("COMUN_SIDEWALK_PERSONAS_MATRIX_LOCAL_OK");
   console.log("COMUN_SIDEWALK_AXE_INTEGRAL_LOCAL_OK");

@@ -1,3 +1,4 @@
+import { submitPublicSearch } from "@/app/comun/buscar/actions";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireComunAdminProfile } from "@/lib/admin-auth";
@@ -100,7 +101,7 @@ export default async function OperationPage({
                 ou itens da fila.
               </p>
               <form
-                action="/comun/buscar"
+                action={submitPublicSearch}
                 className="mt-3 flex flex-col gap-2 sm:flex-row"
               >
                 {!appV2 ? (
