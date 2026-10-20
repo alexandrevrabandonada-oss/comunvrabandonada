@@ -2,6 +2,20 @@
 
 ## U0 — extração independente de armazenamento PWA (20/10/2026)
 
+- **Falha de certificação e correção focal no #559:** a Quality
+  `39502058415`, SHA `40b57091`, teve SUCCESS nas lanes local/P1T,
+  acessibilidade e rede, mas a `pr-lane` falhou no teste
+  `tests/miniapp-experience/miniapp-experience.spec.ts`, linha 37.
+  O seletor global de `data-comun-app-v2-page="home"` resolveu dois
+  elementos em desktop; a Quality do SHA anterior falhara pelo mesmo
+  motivo em wide. A correção usa `main` como região semântica e
+  **preserva um único home visível no main e uma ação primária**.
+  Não elimina casos, não altera timeout, conteúdo de produto,
+  autorização ou banco. A causa do segundo elemento extra-main
+  ainda não foi demonstrada e não deve ser declarada resolvida.
+  Novos gates completos obrigatórios no SHA corrigido; resultados
+  anteriores são apenas histórico. `[comun-preview]` solicita novo
+  Preview exato sem burlar a classificação COST-02.
 - Checkpoint de Preview necessário: a Vercel ignorou o build anterior pela
   política de branch Codex; o commit documental marcado solicita Preview novo
   sem alterar runtime ou dispensar os checks do SHA resultante.
