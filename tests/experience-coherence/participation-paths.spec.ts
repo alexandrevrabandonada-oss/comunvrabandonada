@@ -307,14 +307,13 @@ for (const viewport of [
 // merging the compact public Home with contextual search. Navigation remains
 // public and must not create API writes or silently drop the legacy boundary.
 for (const mode of ["", "&experiencia=legacy"]) {
-  test(`Home -> busca pública preserva consulta ${mode || "canônica"}`, async ({
-    page,
-  }) => {
+  test(`Home mantém q e modo ${mode || "padrão"}`, async ({ page }) => {
     const writes: string[] = [];
     page.on("request", (request) => {
       if (
         !["GET", "HEAD"].includes(request.method()) &&
-        new URL(request.url()).pathname.startsWith("/api/comun")
+        new URL(request.url()).pathname.startsWith("/api/comun") &&
+        new URL(request.url()).pathname !== "/api/comun/quality-metrics"
       )
         writes.push(request.url());
     });

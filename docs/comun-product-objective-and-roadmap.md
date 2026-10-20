@@ -1,5 +1,33 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Atualização operacional — 19/10/2026
+
+**Integrado e verificado:** o PR #554 foi incorporado à `main` no commit
+`64133f0a004846c03ef559f89c8bc47067ff04ec`. Os 35 checks exigidos
+concluíram com sucesso; a Vercel registrou deployment Production `READY`
+para esse SHA. A validação humana com três pessoas permanece para o final.
+
+**Busca pública (#553):** continua candidata, em PR draft, reconciliada
+com `main`. O contrato de consulta/contexto, Home e modo legado tem testes
+em desenvolvimento; no SHA `9db6c2bf` as falhas locais específicas foram
+uma asserção que contava `/api/comun/quality-metrics` como escrita de
+domínio, formatação do teste e tipos temporários `.next/dev` inválidos.
+A revisão seguinte isola métricas técnicas e reutiliza limpeza descartável
+já protegida por testes. O status CI desse novo SHA permanece pendente.
+
+**Bloqueios remotos independentes:** `COMUN_48_2_A_BLOCKED_REMOTE_SCHEMA_DRIFT`,
+`REMOTE_MIGRATION_PLAN_NOT_EMPTY:20261006134804_comun_learning_r0.sql`
+e COST-02 sem checkpoint Preview recente. Não promover o #553 ou alterar
+banco, flags, indexação e Production para contorná-los. O projeto COMUN
+não foi identificado na conexão Supabase disponível na verificação.
+
+**Execução:** continuar manualmente, por trilhas, sem agendamento ORCH-V2;
+a verificação de navegador e os ensaios dos três participantes continuam
+distintos de CI, deployment `READY` e certificação V1 global.
+
+Os checkpoints antigos abaixo são histórico, não o estado operacional
+vigente. Esta atualização prevalece quando houver conflito de status.
+
 ## Checkpoint manual de integração — 19/10/2026
 
 **Fonte de verdade:** `main` em `11c3bc362f8d14c0972f949e369b7cfa9f2a22ec` (merge #545); 20 PRs abertos na consulta GitHub. Esta seção foi **proposta no PR #554**, não integrada em `main`. A certificação do SHA final desta revisão permanece `PENDING/NOT_RUN`, não é Production.
