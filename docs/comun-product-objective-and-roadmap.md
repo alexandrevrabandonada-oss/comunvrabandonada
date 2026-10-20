@@ -1,5 +1,23 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Correção de escopo dos preflights — 20/10/2026
+
+Estado: CANDIDATO EM PR #553. A identidade CI no checkpoint `bd915b0d`
+retornou MATCH, e os metadados exigidos pelo 48.2-A passaram. A pendência
+`20261006134804_comun_learning_r0.sql` recusou a exigência global de plano vazio.
+Os domínios já instalados agora podem receber certificado de metadados próprio,
+somente sem alteração de migrations, com catálogo completo de 116 arquivos e
+manifesto da Escola fixados por hash, ledger Hardening válido e transporte
+read-only/TLS verificado. Schema ausente, drift desconhecido, catálogo alterado
+ou migration do domínio pendente continuam recusados. Candidatos de schema
+mantêm o caminho estrito anterior. A prova registra a Escola pendente e não
+certifica plano global vazio, promoção, recuperação ou autorização de migration.
+
+Esta separação remove acoplamento indevido da busca à promoção da Escola;
+não remove os requisitos da Escola nem a avaliação final com três pessoas.
+Gates remotos e Preview do candidato consolidado ainda precisam de provas
+próprias antes de integrar. Automação permanece suspensa.
+
 ## Checkpoint de integração — 20/10/2026
 
 **Linha integrada:** `main` no commit `28b5cb6ea2ce901a880679709ace26a023d3b4e9`

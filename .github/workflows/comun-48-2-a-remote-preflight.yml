@@ -15,6 +15,7 @@ on:
       - "reports/current/comun-48-2-a-observatory-foundation.md"
       - "scripts/ci/classify-migration-lane.mjs"
       - "scripts/ci/readonly-reconciled-migration-plan*"
+      - "scripts/ci/*readonly-domain-migration-status*"
       - "tests/ci/readonly-observatory-migration-metadata.node-test.mjs"
   workflow_dispatch:
 
@@ -151,6 +152,12 @@ jobs:
           const observatoryMigrations = execFileSync('git', ['diff', '--name-only', 'origin/main...HEAD', '--', 'supabase/migrations'], { encoding: 'utf8' })
             .trim().split('\n').filter(Boolean);
           const required = ['dbTransportAvailable', 'psqlReadOnlyAvailable', 'p4ProjectionPresent', 'p4ProjectionRlsEnabled', 'p4PublicGeometryPresent', 'p6cCApplied', 'transactionReadOnly'];
+          if (pending.includes('20261006134804')) {
+            if (required.some((key) => schema[key] !== true) || schema.businessRowsRead !== false || unknown.length || observatoryMigrations.length) throw new Error('COMUN_48_2_A_BLOCKED_REMOTE_SCHEMA_DRIFT');
+            const {captureDomainStatus} = await import('./scripts/ci/capture-readonly-domain-migration-status.mjs');
+            const proof = captureDomainStatus({lane:'48-2-a'});
+            fs.writeFileSync('.ci-artifacts/48-2-a-preflight/migration-proof.json',JSON.stringify({...proof,schema})+'\n');
+          } else {
           if (required.some((key) => schema[key] !== true) || schema.businessRowsRead !== false || pending.length || unknown.length || observatoryMigrations.length) {
             throw new Error('COMUN_48_2_A_BLOCKED_REMOTE_SCHEMA_DRIFT');
           }
@@ -167,6 +174,7 @@ jobs:
             businessRowsRead: false,
             result: 'COMUN_48_2_A_REMOTE_PLAN_EMPTY_GREEN'
           }) + '\n');
+          }
           NODE
 
       - uses: actions/upload-artifact@v4
@@ -182,6 +190,8 @@ jobs:
         run: |
           if test "${COMUN_MIGRATION_LANE_MODE:-}" = not_applicable; then
             echo COMUN_48_2_A_UNRELATED_MIGRATION_NOT_APPLICABLE >> "$GITHUB_STEP_SUMMARY"
+          elif grep -q domain-current-with-deferred-learning .ci-artifacts/48-2-a-preflight/migration-proof.json; then
+            echo COMUN_DOMAIN_METADATA_CURRENT_LEARNING_DEFERRED >> "$GITHUB_STEP_SUMMARY"
           else
             echo COMUN_48_2_A_REMOTE_PLAN_EMPTY_GREEN >> "$GITHUB_STEP_SUMMARY"
           fi

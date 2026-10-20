@@ -15,6 +15,7 @@ on:
       - "lib/supabase-database-tls.ts"
       - "tests/ci/readonly-database-ca.node-test.mjs"
       - "scripts/ci/readonly-reconciled-migration-plan*"
+      - "scripts/ci/*readonly-domain-migration-status*"
       - "scripts/security/supabase-prod-ca-2021.crt"
   workflow_dispatch:
 
@@ -30,4 +31,4 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22.19.0", cache: npm }
       - run: npm ci --ignore-scripts
-      - run: node --test tests/ci/readonly-database-ca.node-test.mjs
+      - run: node --test tests/ci/readonly-database-ca.node-test.mjs scripts/ci/readonly-domain-migration-status.node-test.mjs scripts/ci/capture-readonly-domain-migration-status.node-test.mjs
