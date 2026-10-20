@@ -1,5 +1,25 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## U0 — extração independente de armazenamento PWA (20/10/2026)
+
+- Estado: **CANDIDATO EM BRANCH/PR, NÃO PRODUÇÃO**. Base exata `main`:
+  `9b8612398d9d80f4e0ea2ac2c9b8874d567e419c`, após Ajuda #558.
+- Problema delimitado: `sessionStorage` e `localStorage` podem lançar
+  `SecurityError`; uma falha de persistência opcional não deve derrubar
+  a navegação pública, nem inventar restauração da última rota.
+- Mudança isolada do U0 #546: funções de leitura, escrita e remoção
+  tolerantes à recusa em `lib/comun-pwa.ts`; integração em
+  `components/comun-pwa-runtime.tsx` e `app/comun/offline/page.tsx`;
+  contratos unitários e regressão Playwright em Ajuda/offline com storage negado.
+- **Não inclui** `app/comun/pautas/**`, formulário de pauta, filtros de tarefas,
+  Escola, preflights A1/C1/D1/E2/E3, migração, tabela, RPC, Storage remoto,
+  flags, Auth, busca, indexação, automação ou mudança no produto em produção.
+  Os caminhos bloqueados permanecem no U0 #546; Feirinha #549 não muda de base.
+- Não considerar `SKIPPED` como `SUCCESS`. Exigir CI aplicável no
+  SHA final, Preview exato, revisão de regressões e leitura pós-merge da Vercel.
+  Sem prova humana/aparelho físico nesta extração. O merge deste recorte
+  **não libera** nem modifica os gates de recuperação/migration da Escola.
+
 ## Checkpoint de publicação da Ajuda — 20/10/2026
 
 - Escopo exclusivo do PR #558: orientar a pessoa conectada em
