@@ -3,6 +3,59 @@
 Preparação apenas. Nenhuma operação abaixo está autorizada por este documento.
 Sem contratação, recurso pago, exportação privada, restore ou migration nesta rodada.
 
+## Estado operacional reconciliado — 20/10/2026
+
+Esta seção consolida o estado posterior à proposta abaixo. O planejamento A/B/C
+não deve ser lido como ausência de toda execução real. A fonte de evidência é
+[recuperação real de 10/10 e suas continuações](comun-escola-fresh-real-recovery-20261010.md).
+As provas históricas não certificam disponibilidade atual dos arquivos privados
+nem satisfazem automaticamente os gates temporais do executor.
+
+- **Banco e Storage:** houve dump cifrado e restauração offline reais, com
+  subcontratos de integridade registrados. Os ensaios de banco e Storage têm
+  identificadores próprios; não transferir PASS entre clusters ou snapshots.
+- **Custódia:** houve readback histórico da chave independente no Drive.
+  Artifacts e executor privados foram mantidos em E:, fora do Git; sua
+  disponibilidade nesta sessão ainda não foi verificada.
+- **Configuração externa:** o convite recebido via Gmail preservou o link e
+  passou confirmação no laboratório. Esse envio único já foi consumido.
+  Os demais cinco fluxos externos e a captura do assunto Source de mudança de
+  e-mail continuam sem cobertura completa no relatório; não repetir envios
+  nem presumir autorização para novas mensagens.
+- **Janela de promoção:** o snapshot histórico está fora da janela de uma hora.
+  PRE utilizável exige idade máxima de cinco minutos. Recibo completo e permit
+  não foram emitidos; migration Production continua NOT_RUN.
+- **Catálogo de 20/10:** legibilidade é evidência adicional de pré-captura,
+  não substitui as provas históricas nem certifica recuperação integral.
+
+**Próxima sequência:** recuperar o inventário e a proveniência dos artifacts
+privados existentes, conferir sua disponibilidade/custódia e retomar somente os
+contratos externos faltantes. Não construir outro executor de dump ou renovar
+backup antes de fechar essas lacunas. Após cobertura completa, renovar as
+evidências temporais e revisar recibo/permit pelo executor existente
+[`production-entry.mjs`](../../scripts/learning/production-entry.mjs).
+Não ampliar janelas, fabricar equivalências ou dispensar os preflights.
+
+A/B permanecem alternativas futuras sem contratação comprovada. A rota C tem
+execução parcial histórica; este documento não revoga nem amplia autorizações
+anteriores. Novas operações devem respeitar seu escopo e os requisitos aplicáveis.
+Estado atual: **RECOVERY_PARTIAL_HISTORICAL_EXTERNAL_CONFIGURATION_INCOMPLETE**;
+Escola e promoção remota permanecem bloqueadas.
+
+### Identidade pública atual de Production
+
+Em 20/10/2026, 15:00 UTC, HEAD de `https://comunsocial.online/comun`
+retornou HTTP 200 e header `Content-Security-Policy-Report-Only` com
+`connect-src` e `img-src` apontando a
+`https://nvmdszymrtacfehdynpg.supabase.co`. A configuração pública coincide
+com o projeto Nika acessível na organização indicada. O
+[`next.config.mjs`](../../next.config.mjs) compõe esse header a partir de
+`NEXT_PUBLIC_SUPABASE_URL`.
+
+Limite: essa observação não comprova a URL secreta de conexão usada pela CI,
+credenciais server-side ou uma jornada funcional ao banco. Não foram lidos
+valores secretos para obter esta evidência.
+
 ## Destino nominal e cobertura
 
 Destino proposto: **comun-escola-recovery-drill-20261009**, projeto Supabase novo,
