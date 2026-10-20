@@ -74,10 +74,7 @@ export default function HelpPage() {
           tabIndex={-1}
           className="mt-10 max-w-3xl scroll-mt-24 border-2 border-comun-yellow bg-comun-paper p-5 text-comun-black sm:p-7"
         >
-          <h2
-            id="comun-ajuda-conexao-titulo"
-            className="text-2xl font-black"
-          >
+          <h2 id="comun-ajuda-conexao-titulo" className="text-2xl font-black">
             Se a conexão cair
           </h2>
           <p className="mt-3">
