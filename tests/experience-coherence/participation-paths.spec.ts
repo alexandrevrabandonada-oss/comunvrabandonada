@@ -325,7 +325,16 @@ for (const experience of ["", "?experiencia=legacy"]) {
       await expect(
         page.getByRole("link", { name: "Buscar um assunto", exact: true }),
       ).toHaveAttribute("href", "/comun/buscar");
+      // A server-rendered public fallback can briefly coexist with the
+      // hydrated shell during the Suspense handoff. Assert the final DOM has
+      // exactly one shell and featured section instead of reading either copy.
+      // This still fails if a duplicate persists after hydration.
+      await expect(page.locator("[data-comun-shell-mode]")).toHaveCount(1);
       const featured = page.locator("[data-comun-home-featured-source]");
+      await expect(featured).toHaveCount(1);
+      await expect(
+        page.getByRole("heading", { name: "Uma pauta para conhecer" }),
+      ).toHaveCount(1);
       await expect(
         page.getByRole("heading", { name: "Uma pauta para conhecer" }),
       ).toBeVisible();
