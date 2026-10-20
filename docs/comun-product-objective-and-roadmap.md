@@ -1,5 +1,34 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Checkpoint de integração — 20/10/2026
+
+**Linha integrada:** `main` no commit `28b5cb6ea2ce901a880679709ace26a023d3b4e9`
+incorpora a Home #554, a preparação read-only de recovery da Escola #557
+e contratos de competências/Fábrica até #515. Isto não declara
+migração ou ativação da Escola ou da Fábrica em Production.
+
+**Busca pública:** PR #553 ainda `DRAFT`, integração funcional candidata.
+No SHA `3292ecd5`, todos os 104 checks chegaram à conclusão:
+48 `SUCCESS`, 48 `SKIPPED`, 8 `FAILURE`. As oito falhas são
+sete preflights remotos por drift/migração pendente da Escola e COST-02
+(`checkpoint-stale`; Preview desse SHA não `READY`). Browser,
+contrato V1, CI cívica e integração concluíram `SUCCESS` nesse SHA.
+
+**Conciliação com a nova main:** preservadas integralmente as três
+inserções canônicas de 49-C3/49-D1/D1.1/D1.2/D1.3 da `main`
+e os incrementos de busca/regressão registrados na branch #553.
+O merge técnico é distinto do merge do PR em Production.
+
+**Próximo gate real:** concluir a reconciliação do PR com a nova `main`,
+observar CI do SHA reconciliado, identificar projeto Supabase COMUN
+autorizado, regularizar drift/migração na trilha de recovery com
+backup/validação e obter Preview exato válido. Não dispensar checks,
+agendar ORCH-V2, aplicar SQL remoto, ativar flags ou antecipar o
+ensaio final com três participantes.
+
+Os checkpoints anteriores abaixo são históricos; não revogam o
+estado e as restrições deste checkpoint.
+
 ## Atualização operacional — 19/10/2026
 
 **Integrado e verificado:** o PR #554 foi incorporado à `main` no commit
@@ -566,6 +595,8 @@ As frentes abaixo não alteram o gate de lançamento da V1. Contratos, documenta
 
 **49-C2 — Experiência de competências.** Apresenta estados, privacidade, publicação e matching dentro de Minha Participação. Reutiliza 49-C1 e Minha Participação. Avança com view model sanitizado, atenção priorizada e publicação e matching separados; conexão real somente após schema e RLS.
 
+**49-C3 — Sugestões privadas de tarefas.** Usa competências demonstradas com consentimento de matching para sugerir tarefas canônicas em ações elegíveis. Não atribui pessoas, não cria ranking e não copia tarefas. Avança somente com requisitos de competência explícitos, capacidade preservada e aceite pelo fluxo canônico.
+
 **49-D — Fábrica COMUN.** Converte problemas reais em prática, protótipo, solução aberta e capacidade comunitária. Reutiliza 49-C, 49-C1, 49-C2, comunidades, Pautas, Ações, Tarefas, Observatórios e Memória. Avança quando o piloto provar demanda e reuso antes de qualquer schema fabril, sem criar segunda hierarquia social ou educacional.
 
 ### 49-C1 — Competências com Evidência
@@ -588,11 +619,29 @@ As frentes abaixo não alteram o gate de lançamento da V1. Contratos, documenta
 
 **Ativação:** o painel ainda não é conectado à superfície real. Isso só ocorre depois de schema/RLS, loader owner-only, mutations auditáveis e feature flag OFF-by-default. Ver [comun-competency-experience.md](comun-competency-experience.md).
 
+### 49-C3 — Sugestões privadas de tarefas
+
+**Regra:** matching produz sugestão, nunca assignment. A pessoa continua assumindo a tarefa pelo fluxo canônico de Ações.
+
+**Escopo inicial:** somente tarefas abertas/em andamento, com vaga, não vencidas, dentro de ações elegíveis e com requisitos de competência explicitamente revisados.
+
+**Privacidade:** perfil público não é requisito; matching privado exige opt-in. A projeção de sugestão não contém userId, reviewer, sourceId ou evidência privada.
+
+**Persistência:** requisitos de competência por tarefa continuam fora do banco até 49-C1/C2 estarem integrados e existir autoria/RLS definidos. Ver [comun-competency-task-suggestions.md](comun-competency-task-suggestions.md).
+
 ### 49-D — Fábrica COMUN
 
 **49-D0 — Contrato canônico.** A Fábrica é módulo do COMUN, não segundo sistema. Entrada futura: “Tenho um problema”, “Quero fazer” e “Quero aprender”. Ver [comun-fabrica-canonical-integration.md](comun-fabrica-canonical-integration.md).
 
 **49-D1 — Piloto sem novo schema fabril.** Executar casos reais usando Pauta/Tarefa/Ação e Escola; registrar manualmente custo, risco, versões e resultado. Gate mínimo: 10 casos iniciados, 5 resolvidos e lacunas de dados demonstradas. Checkpoint ampliado FC-MVP-25: 25 casos, 15 resolvidos, 5 projetos abertos, 3 operadores autônomos, 5 pessoas em formação, 1 escola, 1 projeto de acessibilidade, 1 tecnologia ambiental e 1 solução reutilizada.
+
+O contrato candidato do piloto está em [comun-factory-pilot-contract.md](comun-factory-pilot-contract.md). O Caso FC é projeção técnica: trabalho real de design, protótipo, teste, fabricação ou instalação exige Tarefa canônica. R2/R3 exigem evidência de teste para instalação; R3 exige aprovação qualificada para fabricar/instalar; R4 fica bloqueado no fluxo comunitário comum.
+
+**49-D1.1 — Playbook e evidência do piloto.** Os dez desafios iniciais e o ritual operacional estão em [comun-factory-pilot-playbook.md](comun-factory-pilot-playbook.md). O avaliador `comun-factory-pilot-evaluation.ts` separa o gate D1 mínimo do FC-MVP-25 e nunca converte fixtures em execução real. D1 mínimo exige 10 casos iniciados, 5 resolvidos, ao menos um caso de não fabricação, ao menos uma revisão real e registros consistentes de custo e versão.
+
+**49-D1.2 — Entrada e triagem.** A Fábrica não cria segundo intake cívico. Problema da cidade segue para o Relata; reparo/objeto ou pedido de protótipo entra em triagem privada; aprendizagem retorna à Escola; componente crítico exige encaminhamento qualificado. Nenhuma entrada persiste Caso FC automaticamente. Ver [comun-factory-intake-routing.md](comun-factory-intake-routing.md).
+
+**49-D1.3 — Autorização de máquinas.** Competência demonstrada não libera equipamento automaticamente. Uso exige briefing de segurança, autorização humana escopada e vigente e compatibilidade com o risco do Caso FC. R3 força supervisão qualificada; R4 fica bloqueado. Ver [comun-factory-machine-authorization.md](comun-factory-machine-authorization.md).
 
 **49-D2 — Extensão mínima orientada por evidência.** Só depois do piloto, considerar estado técnico do caso, versões/BOM e rastreabilidade. Nunca duplicar Pauta, Ação, Tarefa, Resultado, Comunidade, competência, progresso da Escola ou identidade.
 
