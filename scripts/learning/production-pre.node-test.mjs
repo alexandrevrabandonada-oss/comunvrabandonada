@@ -9,6 +9,8 @@ import {
   scopeSql,
   privateCatalogSql,
   migrationVersion,
+  recoveryCatalogSql,
+  classifyRecoveryCatalog,
 } from "./production-pre.mjs";
 import { validateRemoteTarget } from "../security/comun-security-contract.mjs";
 
@@ -282,4 +284,58 @@ test("disposable receives only this run artifact, never Production credentials",
   assert.match(fixture, /postgres@sha256:[a-f0-9]{64}/);
   assert.match(fixture, /owned_exec\(\) \{ owned; docker exec/);
   assert.match(fixture, /127\.0\.0\.1:55432:5432/);
+});
+
+test("recovery catalog covers six schemas but never certifies a restore", () => {
+  const good = {
+    readOnly: true,
+    databaseBytes: 54553747,
+    schemas: [
+      "public",
+      "private",
+      "auth",
+      "storage",
+      "vault",
+      "supabase_migrations",
+    ].map((name) => ({ name, relations: 3, selectable: 3, sequences: 0 })),
+  };
+  const result = classifyRecoveryCatalog(good);
+  assert.equal(result.status, "COMUN_RECOVERY_CATALOG_READABLE_ONLY");
+  assert.deepEqual(result.reasons, []);
+  assert.equal(result.relationsInspected, 18);
+  for (const key of [
+    "businessRowsRead",
+    "logicalExportPerformed",
+    "storageBytesInventoried",
+    "independentKeyRecoveryVerified",
+    "isolatedRestoreVerified",
+    "recoveryCertified",
+    "remotePromotionAllowed",
+  ])
+    assert.equal(result[key], false);
+
+  const cases = [
+    { ...good, readOnly: false },
+    { ...good, databaseBytes: null },
+    { ...good, schemas: good.schemas.slice(1) },
+    { ...good, schemas: [...good.schemas, good.schemas[0]] },
+    { ...good, schemas: [{ name: "untrusted", relations: 1, selectable: 1, sequences: 0 }, ...good.schemas] },
+    { ...good, schemas: good.schemas.map((s, i) => (i ? s : { ...s, selectable: 2 })) },
+    { ...good, schemas: good.schemas.map((s, i) => (i ? s : { ...s, relations: -1 })) },
+    { ...good, schemas: null },
+  ];
+  for (const candidate of cases) {
+    const blocked = classifyRecoveryCatalog(candidate);
+    assert.equal(blocked.status, "COMUN_RECOVERY_CATALOG_BLOCKED");
+    assert.ok(blocked.reasons.length > 0);
+    assert.equal(blocked.remotePromotionAllowed, false);
+  }
+});
+
+test("recovery catalog SQL is read-only and never selects user/business rows", () => {
+  assert.match(recoveryCatalogSql, /pg_catalog\.pg_class/);
+  assert.match(recoveryCatalogSql, /has_table_privilege\(current_user/);
+  assert.match(recoveryCatalogSql, /current_setting\('transaction_read_only'\)/);
+  assert.doesNotMatch(recoveryCatalogSql, /\b(insert|update|delete|create|alter|drop|grant|revoke|load)\b/i);
+  assert.doesNotMatch(recoveryCatalogSql, /from\s+(?:public\.|private\.|auth\.|storage\.|vault\.)/i);
 });

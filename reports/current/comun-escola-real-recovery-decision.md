@@ -112,3 +112,23 @@ interrompem o procedimento, sem alterar expectativas nem Production.
 
 Estado: **REAL_RECOVERY_AUTHORIZATION_PACKAGE_PREPARED_EXECUTION_BLOCKED**.
 Os seis preflights e o #523 draft permanecem. Escola não liberada; V1 incompleta.
+
+## Checkpoint técnico: cobertura de catálogo para a alternativa C — 20/10/2026
+
+A pré-captura da Escola foi ampliada **em PR separada** para consultar apenas
+catálogo PostgreSQL, tamanho do banco e permissões de SELECT nos seis esquemas
+public/private/auth/storage/vault/supabase_migrations, dentro de transação
+REPEATABLE READ READ ONLY já existente. Não lê linhas de negócio, Auth/Storage,
+secret nem conteúdo de arquivos. Um esquema ausente, duplicado, contagem inválida
+ou privilégio insuficiente bloqueia este preflight.
+
+Teste remoto de leitura antes da mudança: PostgreSQL 17.6, 54.553.747 bytes no
+banco, 289/289 relações/seqüências legíveis para postgres. NÃO é prova de
+pg_dump integral, exportação cifrada, backup off-site, chaves Vault,
+arquivos Storage, APIs Auth/Storage, isolamento de restore, autorização
+ou orçamento. O resultado é COMUN_RECOVERY_CATALOG_READABLE_ONLY,
+nunca READY; os campos recoveryCertified e remotePromotionAllowed continuam
+sempre false. O executor de promoção exige ISOLATED_LOCAL e recibo fresco:
+o clone gerenciado B não deve ser falsamente declarado equivalente. A rota C
+permanece bloqueada até autorização de cópia privada, escrow de chaves,
+responsáveis e teste de recuperação.
