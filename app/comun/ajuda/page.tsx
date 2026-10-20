@@ -39,7 +39,7 @@ const topics = [
 
 export default function HelpPage() {
   return (
-    <ComunShell>
+    <ComunShell publicReadOnlyFallback>
       <ComunSection>
         <ComunBreadcrumbs
           items={[{ label: "Início", href: "/comun" }, { label: "Ajuda" }]}
