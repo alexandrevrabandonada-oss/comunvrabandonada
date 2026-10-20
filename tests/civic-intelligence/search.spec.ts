@@ -52,6 +52,9 @@ test("@a11y lexical aparece primeiro e semântica pode ser desligada", async ({
         document.documentElement.clientWidth,
     ),
   ).toBe(true);
+  // The semantic-mode navigation must settle with an accessible page title.
+  // Axe must inspect the complete, titled document rather than a transition.
+  await expect(page).toHaveTitle("Buscar no COMUN | COMUN VR Abandonada");
   const audit = await new AxeBuilder({ page }).analyze();
   expect(
     audit.violations.filter((item) =>

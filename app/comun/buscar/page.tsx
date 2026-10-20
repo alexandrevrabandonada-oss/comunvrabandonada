@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { ComunShell } from "@/components/comun-shell";
 import { ComunBreadcrumbs, ComunSection } from "@/components/comun-ui";
 import { redirect } from "next/navigation";
@@ -13,6 +14,11 @@ import {
 import { submitPublicSearch } from "./actions";
 
 import { LiveSearchResults } from "@/components/civic-intelligence/live-search-results";
+
+export const metadata: Metadata = {
+  title: "Buscar no COMUN | COMUN VR Abandonada",
+  description: "Busca pública de pautas, territórios, ações e memória no COMUN.",
+};
 
 export const dynamic = "force-dynamic";
 export default async function Page({
