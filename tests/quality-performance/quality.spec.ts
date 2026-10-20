@@ -85,7 +85,7 @@ test("@a11y autenticação aceita gerenciador, colagem e retorno explícito", as
   );
 });
 
-test("@network busca preserva fallback quando enriquecimento falha", async ({
+test("@network busca distingue indisponibilidade sem ressuscitar snapshot", async ({
   page,
 }) => {
   await page.route("**/api/comun/civic-search**", (route) =>
@@ -106,7 +106,12 @@ test("@network busca preserva fallback quando enriquecimento falha", async ({
     .filter({ visible: true });
   await expect(status).toHaveCount(1);
   await expect(status).toHaveAttribute("role", "status");
-  await expect(status).toContainText(/resultados iniciais preservados/i);
+  await expect(status).toContainText(/Busca indisponível/i);
+  await expect(status).toContainText(/não significa ausência de resultados/i);
+  await expect(main.locator("a[id^='resultado-']")).toHaveCount(0);
+  await expect(
+    main.getByRole("button", { name: "Tentar novamente" }),
+  ).toBeVisible();
   await expect(
     main.getByText(/buscando relações/i).filter({ visible: true }),
   ).toHaveCount(0);

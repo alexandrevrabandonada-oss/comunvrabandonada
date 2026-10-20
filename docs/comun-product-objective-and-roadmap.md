@@ -1,5 +1,80 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Correção de escopo dos preflights — 20/10/2026
+
+Estado: CANDIDATO EM PR #553. A identidade CI no checkpoint `bd915b0d`
+retornou MATCH, e os metadados exigidos pelo 48.2-A passaram. A pendência
+`20261006134804_comun_learning_r0.sql` recusou a exigência global de plano vazio.
+Os domínios já instalados agora podem receber certificado de metadados próprio,
+somente sem alteração de migrations, com catálogo completo de 116 arquivos e
+manifesto da Escola fixados por hash, ledger Hardening válido e transporte
+read-only/TLS verificado. Schema ausente, drift desconhecido, catálogo alterado
+ou migration do domínio pendente continuam recusados. Candidatos de schema
+mantêm o caminho estrito anterior. A prova registra a Escola pendente e não
+certifica plano global vazio, promoção, recuperação ou autorização de migration.
+
+Esta separação remove acoplamento indevido da busca à promoção da Escola;
+não remove os requisitos da Escola nem a avaliação final com três pessoas.
+Gates remotos e Preview do candidato consolidado ainda precisam de provas
+próprias antes de integrar. Automação permanece suspensa.
+
+## Checkpoint de integração — 20/10/2026
+
+**Linha integrada:** `main` no commit `28b5cb6ea2ce901a880679709ace26a023d3b4e9`
+incorpora a Home #554, a preparação read-only de recovery da Escola #557
+e contratos de competências/Fábrica até #515. Isto não declara
+migração ou ativação da Escola ou da Fábrica em Production.
+
+**Busca pública:** PR #553 ainda `DRAFT`, integração funcional candidata.
+No SHA `3292ecd5`, todos os 104 checks chegaram à conclusão:
+48 `SUCCESS`, 48 `SKIPPED`, 8 `FAILURE`. As oito falhas são
+sete preflights remotos por drift/migração pendente da Escola e COST-02
+(`checkpoint-stale`; Preview desse SHA não `READY`). Browser,
+contrato V1, CI cívica e integração concluíram `SUCCESS` nesse SHA.
+
+**Conciliação com a nova main:** preservadas integralmente as três
+inserções canônicas de 49-C3/49-D1/D1.1/D1.2/D1.3 da `main`
+e os incrementos de busca/regressão registrados na branch #553.
+O merge técnico é distinto do merge do PR em Production.
+
+**Próximo gate real:** concluir a reconciliação do PR com a nova `main`,
+observar CI do SHA reconciliado, identificar projeto Supabase COMUN
+autorizado, regularizar drift/migração na trilha de recovery com
+backup/validação e obter Preview exato válido. Não dispensar checks,
+agendar ORCH-V2, aplicar SQL remoto, ativar flags ou antecipar o
+ensaio final com três participantes.
+
+Os checkpoints anteriores abaixo são históricos; não revogam o
+estado e as restrições deste checkpoint.
+
+## Atualização operacional — 19/10/2026
+
+**Integrado e verificado:** o PR #554 foi incorporado à `main` no commit
+`64133f0a004846c03ef559f89c8bc47067ff04ec`. Os 35 checks exigidos
+concluíram com sucesso; a Vercel registrou deployment Production `READY`
+para esse SHA. A validação humana com três pessoas permanece para o final.
+
+**Busca pública (#553):** continua candidata, em PR draft, reconciliada
+com `main`. O contrato de consulta/contexto, Home e modo legado tem testes
+em desenvolvimento; no SHA `9db6c2bf` as falhas locais específicas foram
+uma asserção que contava `/api/comun/quality-metrics` como escrita de
+domínio, formatação do teste e tipos temporários `.next/dev` inválidos.
+A revisão seguinte isola métricas técnicas e reutiliza limpeza descartável
+já protegida por testes. O status CI desse novo SHA permanece pendente.
+
+**Bloqueios remotos independentes:** `COMUN_48_2_A_BLOCKED_REMOTE_SCHEMA_DRIFT`,
+`REMOTE_MIGRATION_PLAN_NOT_EMPTY:20261006134804_comun_learning_r0.sql`
+e COST-02 sem checkpoint Preview recente. Não promover o #553 ou alterar
+banco, flags, indexação e Production para contorná-los. O projeto COMUN
+não foi identificado na conexão Supabase disponível na verificação.
+
+**Execução:** continuar manualmente, por trilhas, sem agendamento ORCH-V2;
+a verificação de navegador e os ensaios dos três participantes continuam
+distintos de CI, deployment `READY` e certificação V1 global.
+
+Os checkpoints antigos abaixo são histórico, não o estado operacional
+vigente. Esta atualização prevalece quando houver conflito de status.
+
 ## Checkpoint manual de integração — 19/10/2026
 
 **Fonte de verdade:** `main` em `11c3bc362f8d14c0972f949e369b7cfa9f2a22ec` (merge #545); 20 PRs abertos na consulta GitHub. Esta seção foi **proposta no PR #554**, não integrada em `main`. A certificação do SHA final desta revisão permanece `PENDING/NOT_RUN`, não é Production.
@@ -1513,3 +1588,66 @@ neste mesmo documento.
 ### Regra antidesvio
 
 **Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.
+
+### Incremento ordenado — continuidade da busca pública — 15/10/2026
+
+Estado: `CANDIDATO EM PR`, não integrado. Decisão: preservar a intenção na busca
+existente `/comun/buscar`, no detalhe e no retorno. Base main `8b0ba0d2`, sem
+alterar ou depender do #552; não cria identificador SOC, outra busca ou feed.
+Reutiliza leitores híbrido/lexical, filtros públicos e shell existente. Consulta,
+tipo, pauta e território acompanham retorno local validado; retirada é reconsultada;
+falha parcial não vira vazio. Limpar filtros mantém consulta. Paginação/ordenação
+não existem nesta superfície e não foram inventadas.
+
+Privacidade: padrão existente de consulta pública em URL, com aviso. Formulários
+validam navegação POST antes do GET; padrões evidentes de contato, UUID e segredo
+são recusados, sem prometer detectar todo dado pessoal. Contextos usam slugs
+públicos, resolvidos no servidor. Sem storage de consulta ou telemetria nova.
+Entrada sensível digitada fora do formulário já pode ter chegado ao histórico ou
+provedor: a aplicação não pode apagá-la retroativamente.
+
+Critério: filtros → detalhe → retorno/histórico, foco, nova aba/link direto,
+retirada, vazio/falha total/parcial, teclado/axe e móvel. Navegador controlado não
+certifica Auth/RLS nem conteúdo real. Comandos, evidências e limites em
+`reports/current/comun-search-context-20261015.md`.
+
+Dependências: #552 draft independente; Escola/#523/#542 preservados, sem migration
+nem dispensa dos preflights. Próximo bloqueio único: certificar gates remotos e
+Preview do novo SHA. Aparelhos reais e validação humana continuam NOT_RUN.
+
+Evidência do incremento de busca: #553 draft, funcional `ca4e7325`;
+46 focais/adjacentes, 16 browser local, 16 browser remoto e Auth/Postgres A/B
+com limpeza PASS (run 38792046636). Matriz disclosure/controle negativo PASS
+(run 38792046468). Preview Git/GitHub no SHA funcional comprovado. Não é integração,
+Production ou validação humana. Bloqueio observado em 48.2-A: CA TLS ausente no
+runner antes de SQL, separado da dependência Escola; não enfraquecer TLS ou gates.
+Checks posteriores à atualização documental exigem inventário próprio no PR.
+
+Autocorreção de busca na mesma frente: logs de Civic/Quality demonstraram perda
+de foco ao alternar semântica e expectativa legada de preservar snapshot na falha
+de rede. Controle agora mantém foco; teste de rede exige indisponibilidade, zero
+resultado obsoleto e retry. 18 browser locais PASS no diff corrigido, sem remover
+os casos anteriores. CI e Preview do novo commit exigem certificação própria.
+
+### Execução permanente por ciclos — 15/10/2026
+
+Decisão operacional, sem alterar a estratégia: cada ciclo iniciado pelo orquestrador
+lê este roadmap e `reports/current/comun-execution-checkpoint.json`, reconcilia o
+estado vivo, escolhe uma entrega elegível, implementa a menor solução suficiente,
+valida regressões e registra provas/commits antes de reavaliar a fila. Não cria
+outro roadmap, timer ou processo residente. Máximo de uma entrega por ciclo e duas
+tentativas equivalentes de correção por finding; bloqueio externo ou limite exige
+estado recuperável, não falsa conclusão global. Estes limites regulam a execução,
+não substituem critérios de aceitação.
+
+Retomada #553 no head `f2aaea03`: browser/Auth-Postgres run 38795799390 e CA contract
+38795799146 PASS; COST-02 do contrato vigente PASS. Sem reviews; draft mantido.
+Preflights alcançam os bloqueios de schema depois da correção TLS; não repetir
+provas aprovadas nem tratar skipped/pending como PASS. Quality/Civic ainda exigem
+resultado próprio. Próxima ação: concluir sua classificação e só então reavaliar
+uma entrega independente. Escola #542: Source Subject já resolvido; falta o par
+Turnstile exclusivo do laboratório, CAPTCHA humano e cinco fluxos. Gmail 0/6;
+backup só após esses requisitos. Não procurar segredos nem renovar provas temporais
+neste ciclo. Nenhum merge, schema write, deployment Production, flag ou gasto.
+
+Nota de conciliação (19/10/2026): as regras históricas de ciclos acima não reativam nenhum agendamento; a execução atual do COMUN continua manual por trilha, mediante comando explícito, sem ORCH-V2 agendado. A busca do PR #553 permanece candidata até cumprir gates remotos e certificação no novo SHA.

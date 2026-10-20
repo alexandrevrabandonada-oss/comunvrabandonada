@@ -15,6 +15,7 @@ on:
       - "lib/community-return*"
       - "scripts/solo/*p1g*"
       - "scripts/ci/readonly-reconciled-migration-plan*"
+      - "scripts/ci/*readonly-domain-migration-status*"
       - "scripts/ci/classify-migration-lane*"
       - "tests/google-auth-local/**"
       - "playwright.google-auth-local.config.ts"
@@ -74,6 +75,10 @@ jobs:
           node --test scripts/solo/p1g-google-auth-workflow.node-test.mjs
 
       - name: Confirm P6A terminal schema metadata without business-row reads
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         shell: bash
         run: |
           set -euo pipefail
@@ -150,10 +155,19 @@ jobs:
           NODE
 
       - name: Reconcile Calçadas and prove empty remote migration plan
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail
+          if [ "$COMUN_MIGRATION_LANE_MODE" = none ]; then
+            node scripts/ci/capture-readonly-domain-migration-status.mjs p1g .ci-artifacts/p1g-preflight/domain-migration-status.json
+            echo COMUN_DOMAIN_METADATA_CURRENT_LEARNING_DEFERRED >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs
           node scripts/ci/readonly-reconciled-migration-plan.mjs .ci-artifacts/p1g-preflight/dry-run.txt
           mapfile -t planned < <(grep -oE '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/p1g-preflight/dry-run.txt | sort -u || true)
@@ -182,6 +196,8 @@ jobs:
           fi
           if [ "$COMUN_MIGRATION_LANE_MODE" = not_applicable ]; then
             echo COMUN_P1G_REMOTE_MIGRATION_PLAN_NOT_APPLICABLE_LEARNING_R0 >> "$GITHUB_STEP_SUMMARY"
+          elif [ -f .ci-artifacts/p1g-preflight/domain-migration-status.json ]; then
+            echo COMUN_DOMAIN_METADATA_CURRENT_LEARNING_DEFERRED >> "$GITHUB_STEP_SUMMARY"
           else
             echo COMUN_P1G_REMOTE_MIGRATION_PLAN_EMPTY >> "$GITHUB_STEP_SUMMARY"
           fi

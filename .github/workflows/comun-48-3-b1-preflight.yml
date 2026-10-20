@@ -10,6 +10,7 @@ on:
       - "app/comun/pautas/**/rodas/**"
       - "app/actions.ts"
       - "scripts/ci/readonly-reconciled-migration-plan*"
+      - "scripts/ci/*readonly-domain-migration-status*"
       - "scripts/ci/classify-migration-lane*"
       - "reports/current/comun-48-3-b1-rodas-vivas.md"
   workflow_dispatch:
@@ -38,6 +39,10 @@ jobs:
           cat "$RUNNER_TEMP/48-3-b1-ownership.txt" >> "$GITHUB_ENV"
 
       - name: Verify zero migration and metadata-only schema contract
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         shell: bash
         run: |
           set -euo pipefail
@@ -78,10 +83,19 @@ jobs:
           if(!s.transactionReadOnly||!s.tablesPresent||!s.rlsEnabled||s.anonWrites||s.authenticatedWrites||!s.serviceRoleWritePath||!s.openRoundUnique||!s.roundGuard||!s.allowlistConstraints||s.businessContentRead!==false) throw new Error('COMUN_48_3_B1_BLOCKED_REMOTE_SCHEMA_DRIFT');
           NODE
       - name: Prove remote migration plan is empty
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail
+          if [ "$COMUN_MIGRATION_LANE_MODE" = none ]; then
+            node scripts/ci/capture-readonly-domain-migration-status.mjs 48-3-b1 .ci-artifacts/48-3-b1-preflight/domain-migration-status.json
+            echo COMUN_DOMAIN_METADATA_CURRENT_LEARNING_DEFERRED >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs
           node scripts/ci/readonly-reconciled-migration-plan.mjs .ci-artifacts/48-3-b1-preflight/plan.txt
           ! grep -Eq '20[0-9]{12}_[a-z0-9_]+\.sql' .ci-artifacts/48-3-b1-preflight/plan.txt

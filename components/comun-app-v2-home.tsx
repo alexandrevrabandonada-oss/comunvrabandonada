@@ -1,3 +1,4 @@
+import { submitPublicSearch } from "@/app/comun/buscar/actions";
 import { publicPautaStatusLabel } from "@/lib/comun-public-labels";
 import Link from "next/link";
 import {
@@ -211,7 +212,7 @@ export function ComunAppV2Home({
             públicas; não cria feed nem perfil de interesses.
           </p>
           <form
-            action="/comun/buscar"
+            action={submitPublicSearch}
             className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]"
           >
             <label className="sr-only" htmlFor="home-civic-search-v2-input">

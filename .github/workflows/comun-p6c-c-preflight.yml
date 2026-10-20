@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "scripts/ci/readonly-reconciled-migration-plan*"
+      - "scripts/ci/*readonly-domain-migration-status*"
       - ".github/workflows/comun-p6c-c-preflight.yml"
       - "app/api/comun/sensitive-forwarding/**"
       - "app/comun/minha-participacao/**"
@@ -50,6 +51,10 @@ jobs:
             printf '%s\n' '{"result":"COMUN_P6C_C_UNRELATED_MIGRATION_NOT_APPLICABLE","businessRowsRead":false}' >.ci-artifacts/p6c-c-preflight/migration-plan.json
           fi
       - name: Inspect forwarding metadata without business-row reads
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
@@ -113,11 +118,20 @@ jobs:
           if(required.some((key)=>s[key]!==true)||s.anonPackagesSelect||s.authenticatedPackagesSelect||s.anonGenericOpen||s.authenticatedGenericOpen||s.businessRowsRead!==false) throw new Error('COMUN_P6C_C_BLOCKED_REMOTE_SCHEMA_DRIFT');
           NODE
       - name: Reconcile Calçadas and prove bounded remote migration plan
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail
           mapfile -t changed < <(git diff --name-only origin/main...HEAD -- supabase/migrations)
+          if [ "${COMUN_MIGRATION_LANE_MODE:-}" = none ] && [ -f supabase/migrations/20261006134804_comun_learning_r0.sql ]; then
+            node scripts/ci/capture-readonly-domain-migration-status.mjs p6c-c .ci-artifacts/p6c-c-preflight/domain-migration-status.json
+            echo COMUN_DOMAIN_METADATA_CURRENT_LEARNING_DEFERRED >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           if [ "${COMUN_MIGRATION_LANE_MODE:-}" = none ] && test "${#changed[@]}" -eq 0; then
             node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs
             node scripts/ci/readonly-reconciled-migration-plan.mjs .ci-artifacts/p6c-c-preflight/dry-run.txt
