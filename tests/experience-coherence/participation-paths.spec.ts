@@ -320,17 +320,13 @@ for (const mode of ["", "&experiencia=legacy"]) {
 
     await page.goto(`/comun?inteligencia=busca-viva${mode}`);
     await page.waitForLoadState("networkidle");
-    const input = page.getByRole("textbox", {
-      name: "Necessidade ou assunto",
-    });
+    const input = page.getByLabel("Necessidade ou assunto");
     await expect(input).toHaveCount(1);
     await input.fill("calçadas");
     await expect(input).toHaveValue("calçadas");
     await page.getByRole("button", { name: "Buscar", exact: true }).click();
 
-    await expect
-      .poll(() => new URL(page.url()).pathname)
-      .toBe("/comun/buscar");
+    await expect(page).toHaveURL(/\/comun\/buscar\?/);
     await expect
       .poll(() => new URL(page.url()).searchParams.get("q"))
       .toBe("calçadas");
