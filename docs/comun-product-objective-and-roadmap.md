@@ -1494,7 +1494,6 @@ neste mesmo documento.
 
 **Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.
 
-
 ### Incremento ordenado — continuidade da busca pública — 15/10/2026
 
 Estado: `CANDIDATO EM PR`, não integrado. Decisão: preservar a intenção na busca
