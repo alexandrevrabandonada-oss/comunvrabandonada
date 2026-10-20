@@ -20,6 +20,102 @@ export const manifests = [
 ];
 
 // Catalogs only. In particular, no SELECT from private collective/business tables.
+// Read-only catalog inventory. No business rows, dump, credentials or release permit.
+export const recoveryCatalogSql = `select json_build_object(
+  'readOnly', current_setting('transaction_read_only')='on',
+  'databaseBytes', pg_database_size(current_database()),
+  'schemas', coalesce((
+    select json_agg(json_build_object(
+      'name', t.schema_name, 'relations', t.relation_count,
+      'selectable', t.selectable_count, 'sequences', t.sequence_count
+    ) order by t.schema_name)
+    from (
+      select n.nspname as schema_name,
+        count(*)::integer as relation_count,
+        count(*) filter (where pg_catalog.has_table_privilege(current_user, c.oid, 'SELECT'))::integer as selectable_count,
+        count(*) filter (where c.relkind='S')::integer as sequence_count
+      from pg_catalog.pg_class c
+      join pg_catalog.pg_namespace n on n.oid=c.relnamespace
+      where n.nspname in ('public', 'private', 'auth', 'storage', 'vault', 'supabase_migrations')
+        and c.relkind in ('r', 'p', 'm', 'S')
+      group by n.nspname
+    ) t
+  ), '[]'::json)
+) as value`;
+
+const recoverySchemas = Object.freeze([
+  "public",
+  "private",
+  "auth",
+  "storage",
+  "vault",
+  "supabase_migrations",
+]);
+
+export function classifyRecoveryCatalog(catalog) {
+  const reasons = [];
+  if (catalog?.readOnly !== true) reasons.push("RECOVERY_CATALOG_NOT_READ_ONLY");
+  if (
+    !Number.isSafeInteger(catalog?.databaseBytes) ||
+    catalog.databaseBytes <= 0
+  )
+    reasons.push("RECOVERY_DATABASE_SIZE_UNAVAILABLE");
+
+  const entries = Array.isArray(catalog?.schemas) ? catalog.schemas : [];
+  if (!Array.isArray(catalog?.schemas))
+    reasons.push("RECOVERY_SCHEMA_INVENTORY_UNAVAILABLE");
+
+  const seen = new Set();
+  let relationsInspected = 0;
+  for (const entry of entries) {
+    if (
+      !entry ||
+      !recoverySchemas.includes(entry.name) ||
+      seen.has(entry.name)
+    ) {
+      reasons.push("RECOVERY_SCHEMA_INVENTORY_INVALID");
+      continue;
+    }
+    seen.add(entry.name);
+    if (
+      !Number.isSafeInteger(entry.relations) ||
+      entry.relations < 1 ||
+      !Number.isSafeInteger(entry.selectable) ||
+      entry.selectable < 0 ||
+      entry.selectable > entry.relations ||
+      !Number.isSafeInteger(entry.sequences) ||
+      entry.sequences < 0 ||
+      entry.sequences > entry.relations
+    ) {
+      reasons.push("RECOVERY_RELATION_COUNT_INVALID");
+      continue;
+    }
+    relationsInspected += entry.relations;
+    if (entry.selectable !== entry.relations)
+      reasons.push("RECOVERY_SELECT_PRIVILEGE_INCOMPLETE");
+  }
+  if (recoverySchemas.some((schema) => !seen.has(schema)))
+    reasons.push("RECOVERY_REQUIRED_SCHEMA_MISSING");
+
+  return {
+    status: reasons.length
+      ? "COMUN_RECOVERY_CATALOG_BLOCKED"
+      : "COMUN_RECOVERY_CATALOG_READABLE_ONLY",
+    reasons: [...new Set(reasons)],
+    databaseBytes: Number.isSafeInteger(catalog?.databaseBytes)
+      ? catalog.databaseBytes
+      : null,
+    relationsInspected,
+    businessRowsRead: false,
+    logicalExportPerformed: false,
+    storageBytesInventoried: false,
+    independentKeyRecoveryVerified: false,
+    isolatedRestoreVerified: false,
+    recoveryCertified: false,
+    remotePromotionAllowed: false,
+  };
+}
+
 export const scopeSql = `select json_build_object(
   'database', current_database(), 'serverVersion', current_setting('server_version'),
   'readOnly', current_setting('transaction_read_only'), 'currentUser', current_user,
@@ -202,6 +298,13 @@ export async function captureProductionPre(db, inputs) {
     const snapshot = await readAtomicSnapshot(db);
     const metadata = (await db.query(metadataSql, ["20261006134804"])).rows[0];
     const privateCatalog = (await db.query(privateCatalogSql)).rows[0]?.value;
+    const recoveryCatalog = (await db.query(recoveryCatalogSql)).rows[0]?.value;
+    const recoveryAssessment = classifyRecoveryCatalog(recoveryCatalog);
+    assert.equal(
+      recoveryAssessment.status,
+      "COMUN_RECOVERY_CATALOG_READABLE_ONLY",
+      "LEARNING_RECOVERY_CATALOG_COVERAGE_INCOMPLETE",
+    );
     assert.ok(
       privateCatalog && Object.values(privateCatalog).every(Array.isArray),
       "LEARNING_PRIVATE_CATALOG_INVALID",
@@ -212,6 +315,7 @@ export async function captureProductionPre(db, inputs) {
       metadata,
       scope,
       privateCatalog,
+      recoveryAssessment,
       canonicalSectionHashes: Object.fromEntries(
         Object.entries(snapshot.compact.canonical).map(([k, v]) => [
           k,
