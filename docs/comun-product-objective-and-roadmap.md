@@ -2,6 +2,9 @@
 
 ## U0 — extração independente de armazenamento PWA (20/10/2026)
 
+- Checkpoint de Preview necessário: a Vercel ignorou o build anterior pela
+  política de branch Codex; o commit documental marcado solicita Preview novo
+  sem alterar runtime ou dispensar os checks do SHA resultante.
 - Estado: **CANDIDATO EM BRANCH/PR, NÃO PRODUÇÃO**. Base exata `main`:
   `9b8612398d9d80f4e0ea2ac2c9b8874d567e419c`, após Ajuda #558.
 - Problema delimitado: `sessionStorage` e `localStorage` podem lançar
