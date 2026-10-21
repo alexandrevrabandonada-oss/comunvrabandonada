@@ -2626,6 +2626,322 @@ não rearranjo cosmético da home. Sem merge,
 deploy, schema ou lançamento autorizado por
 esta seção documental.
 
+#### SOC-D10.L/P0 — Reconciliação efetiva do passivo de PRs (21/10/2026)
+
+**FATOS CONSULTADOS NO GITHUB / SNAPSHOT, NÃO AUTORIZAÇÃO DE MERGE.**
+Base `main@80e0fce5`; onze PRs abertos, todos `draft`
+nesta consulta. O fato de um check ser `skipped` não o
+torna prova de execução. Nenhum PR amplo pode ser
+integrado por simples ausência de conflito.
+
+| PR                                                                              | Head consultado | Estado da comparação e gates                                                                               | Tratamento P0                                                                                     |
+| ------------------------------------------------------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| [#564](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/564) | `8e543c3`       | Docs somente, sem conflito; 6 checks `success`, 40 `skipped` no head                                       | Candidato de integração isolada, após conferir revisão/proteções e estado exato                   |
+| [#565](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/565) | `15c9870`       | Dois scripts de auditoria, sem conflito; COST-02 falhou com `preview-not-valid-for-checkpoint`             | Bloquear merge; conferir deploy Preview do mesmo SHA e prova do gate, sem contornar               |
+| [#542](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/542) | `921351c`       | Conflito com main; laboratório da recuperação da Escola em base histórica; COST-02 falhou                  | Preservar prova; extrair delta ainda útil em branch atual antes de ensaio, não integrar como está |
+| [#523](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/523) | `6c52ec9`       | Conflito; grande diff de guia contextual, projeções públicas e workflows                                   | Comparar por arquivo com main atual e recortar o que não estiver integrado                        |
+| [#556](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/556) | `5b936fb`       | Conflito; contrato do PR declara ORCH-V2 fora da fila ativa                                                | Manter draft estacionado; sem lançamento de scheduler ou reconciliador                            |
+| [#551](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/551) | `d35c8b3`       | Conflito; descoberta pública de Jogos, COST-02 falhou                                                      | Reavaliar delta contra navegação SOC-D10; novo Preview e testes humanos antes de integrar         |
+| [#539](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/539) | `0ac5293`       | Conflito; falha COST-02 e em superfícies admin autenticadas                                                | Isolar correção de gate de evidências e dependências; não transferir rótulos de prontidão         |
+| [#524](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/524) | `2f2d8a8`       | Sem conflito imediato, mas COST-02 falhou e jobs foram cancelados; ferramenta Editais desligada por padrão | Preservar como piloto administrativo candidato, fora da liberação social                          |
+| [#517](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/517) | `357f010`       | Conflito; reconciliação SQL da Rádio e contratos                                                           | Verificar equivalência das proteções e compatibilidade real do schema antes de rebase             |
+| [#516](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/516) | `5c658c5`       | Conflito; melhorias de limpeza de ensaios de recuperação                                                   | Comparar com a recuperação já presente na main; preservar apenas lacunas verificadas              |
+| [#436](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/436) | `d222cac`       | Conflito; diff multissuperfície/migrations e base de setembro                                              | NÃO fazer merge em bloco; separar segurança editorial, dados e histórico já integrado             |
+
+**SEQUÊNCIA DE REDUÇÃO DO PASSIVO.** (a) Resolver apenas
+candidatos pequenos com HEAD e gates exatos; (b) classificar
+os PRs conflitantes por mudança ainda ausente na main,
+regressão e dependência; (c) preparar deltas mínimos
+independentes e ensaiá-los em base atual; (d) fechar
+como superseded somente quando a comparação comprovar
+substituição integral e o motivo estiver registrado.
+Uma PR antiga verde na própria base não equivale
+a validação após rebase. Não transformar a triagem
+em liberação de migration, dados sensíveis, indexação
+ou Production. O gate humano de SOC-D10 permanece.
+
+**RAIZ COMPROVADA DA FALHA COST-02 DO #565:**
+job `119281705573`, run `39617337326`,
+`COMUN_COST_02_FAIL:preview-not-valid-for-checkpoint`.
+O marcador `[comun-preview]` está presente no commit,
+logo não presumir ausência de marcador. Investigar
+o Preview válido para o SHA e não executar bypass
+nem rerun indiscriminado.
+
+### SOC-D10.M — Organização viva por escolha, dentro da rede inteira (21/10/2026)
+
+**OBJETIVO / PRINCÍPIO DECIDIDO.** O COMUN também deve sustentar
+um movimento popular permanente e democrático: acolher, formar,
+reunir, distribuir trabalho, decidir, agir, prestar contas e
+renovar a coordenação. Faz isso na **mesma rede social**:
+não há outro login, feed político paralelo, banco de membros
+duplicado ou obrigação de militância para usar outras áreas.
+
+**BASE REAL / AUDITORIA DE CÓDIGO.** O contrato
+[49-E0](comun-one-product-contract-49-e0.md) já fixa
+"Usar → Participar → Organizar" e 49-M. As bases disponíveis
+para auditoria são comunidades, memberships, Pautas, Rodas,
+Ações, Tarefas, Minha Participação, Escola, Fábrica, Resultados
+e Memória. A orientação pública de primeira ação informa que
+ainda não cria nem administra núcleos. A existência de uma
+rota da Escola não certifica liberação, operação ou progresso.
+**Não declarar núcleo, agenda ou trilha já implementados.**
+
+#### Vínculos voluntários, sem classes de pessoas
+
+- **Conviver:** descobrir, criar, conversar, jogar, trocar,
+  aprender e usar ferramentas sem filiação política.
+- **Colaborar:** acompanhar assunto, participar de mutirão,
+  debater, estudar ou aceitar atividade pontual. O convite
+  informa objetivo, tempo, condições, responsável e saída.
+- **Organizar:** solicitar ingresso em associação ou núcleo
+  definido, conhecer regras, participar de decisões,
+  aprender e assumir funções específicas por aceite.
+
+São intenções reversíveis, não uma escada de prestígio,
+um ranking de militantes nem perfis compulsórios.
+Pessoas podem usar diferentes caminhos e sair do
+vínculo preservando o acesso às ferramentas públicas.
+A filiação política é privada por padrão.
+
+#### Núcleo de ação como unidade, não módulo autônomo
+
+**PRINCÍPIO DECIDIDO / 49-A + 49-M.** Um núcleo é um pequeno
+coletivo de responsabilidade continuada, vinculado
+à associação/comunidade existente e organizado por
+território amplo, tema, projeto ou ofício. O termo
+"célula" pode ser usado em práticas organizativas,
+sem implicar vigilância, clandestinidade ou comando
+arbitrário. A comunidade pública acolhe e conversa;
+o núcleo organiza responsabilidades e decisões próprias.
+
+Cada núcleo precisará, após autorização e prova real:
+
+- **Finalidade:** entidade responsável, objetivo, regras
+  de entrada, âmbito territorial amplo e limites públicos.
+- **Papéis:** acolhimento, facilitação, formação, comunicação,
+  cuidado, execução e substituição. Papéis são escopados,
+  revisáveis e nunca derivados do perfil social.
+- **Agenda:** encontros, oficinas e ações com convite
+  compreensível, acessibilidade, mudanças e confirmação
+  voluntária. Endereço reservado só aos autorizados.
+  Não registrar ausência para punir ou pressionar.
+- **Trabalho:** quadro de tarefas canônicas aceitas,
+  responsabilidades, apoio, impedimentos e devolutivas;
+  não criar uma segunda lista de tarefas.
+- **Decisão:** propostas, fontes, divergências, justificativa,
+  regra legítima de deliberação, recurso e revisão.
+  Likes, seguidores ou conclusão de curso não dão voto.
+- **Memória:** atas saneadas, aprendizagem, resultados
+  publicados quando autorizados e passagem de bastão,
+  sem divulgar contatos, filiação ou debates privados.
+
+**HIPÓTESE DE INTERFACE:** a "Mesa do núcleo" mostra
+quatro projeções do mesmo sistema: Próximo encontro,
+Trabalho combinado, Formação e Resultados/decisões.
+Não é outro aplicativo, agenda ou banco de dados.
+
+#### Escola cotidiana com microlições e prática opcional
+
+**PRINCÍPIO DECIDIDO / 49-C.** Aprender com a facilidade
+de um aplicativo de idiomas, sem replicar suas mecânicas
+de retenção compulsiva. Conteúdos públicos autorizados
+ficam disponíveis também fora de uma trilha; quem
+quiser pode seguir microlições curtas, refletir,
+praticar, receber feedback e retomar no próprio ritmo.
+
+- Trilhas iniciais candidatas: acolhimento comunitário,
+  escuta, fontes e pesquisa, facilitação de reuniões,
+  história social, comunicação pública, segurança digital,
+  diálogo e mediação, planejamento, controle de políticas
+  públicas e prestação de contas.
+- Distinguir fontes e fatos, interpretações, propostas
+  e posições organizativas. Formação incentiva autonomia
+  e pensamento crítico, não prova de alinhamento.
+- Exercícios simulados ou tarefas reais podem ser sugeridos;
+  estudo nunca inscreve, atribui trabalho, concede autoridade
+  ou revela opções políticas sem consentimento específico.
+- Mentores e multiplicadores voluntários podem revisar
+  práticas. Progresso é privado; competências precisam de
+  evidência e revisão independente conforme 49-C1.
+- Reforçar conclusão útil, prática concreta e pertencimento
+  saudável, nunca streaks, culpa, ranking de militantes,
+  recompensa por presença ou pressão para retornar.
+
+#### Jornada contínua, iniciada em qualquer ponto da rede
+
+**CONTRATO DE EXPERIÊNCIA PROPOSTO:**
+
+Descobrir tema ou grupo → entender proposta e regras →
+escolher acompanhar, colaborar ou solicitar vínculo →
+confirmar audiência e responsabilidades → encontrar
+agenda e material pertinente → aceitar tarefa específica →
+receber apoio → relatar obstáculos ou conclusão →
+decidir/replanejar → divulgar resultado autorizado →
+preservar memória → transmitir função ou sair.
+
+Uma pessoa que só quer ir a um mutirão não precisa
+passar por todas essas etapas. O contexto oferece
+a próxima ação possível; não há funil obrigatório
+de recrutamento nem conversão automática de cultura
+ou conversa espontânea em militância.
+
+**LIMITE DE IDENTIDADE E DADOS.** Perfil social
+publicável é diferente da área privada e da área
+interna de um núcleo. Nenhum vínculo político, tarefa,
+frequência, endereço, contato, opinião ou curso
+aparece em perfil público, busca, ranking ou
+recomendação sem autorização própria. Não inferir
+filiação de curtidas, leituras ou visitas; não
+operar CRM eleitoral ou mensagens políticas
+personalizadas com base em dados sensíveis.
+Convites são voluntários, contextuais e revogáveis.
+
+#### Como se encaixa na arquitetura já decidida
+
+- **Início, Explorar, Cultura, Jogos e Feirinha:**
+  espaços sociais que têm valor independente.
+  A descoberta de uma iniciativa é opcional.
+- **Comunidades, perfis e territórios:** pertencimento
+  e conversas; ingresso e representação organizativa
+  permanecem relações distintas.
+- **Minha área e Caixa:** encontros aceitos, retornos,
+  responsabilidades voluntárias, estudo e mensagens,
+  com audiência e privacidade compreensíveis.
+- **Escola e Fábrica:** material, prática, mentoria
+  e projetos, sem segundo perfil ou atribuição automática.
+- **Pautas, Rodas, Ações, Tarefas e Resultados:**
+  deliberação, trabalho e prestação de contas que
+  podem nascer de interesses comuns sem capturar
+  a conversa espontânea.
+- **Acervo, Rádio e Memória:** conhecimento e cultura
+  com autoria e direitos, sem converter tudo em propaganda.
+
+#### Fases de execução dentro de 49-A/B/C/D/M e SOC-D10
+
+1. **49-M0 / AUDITORIA PLANEJADA:** inventariar rotas,
+   autorização, memberships, papéis, agenda, tarefas,
+   materiais, curadoria e necessidades de operação.
+   Mapear lacunas antes de sugerir novas tabelas.
+2. **49-M1 / PILOTO PLANEJADO:** com consentimento de um
+   coletivo real, testar convite, um encontro acessível,
+   uma tarefa voluntariamente assumida e uma devolutiva,
+   com facilitador e substituto. Sem perfis fictícios.
+3. **49-M2 / FORMAÇÃO PLANEJADA:** uma trilha curta com
+   materiais revisados e prática opcional. Testar
+   início, pausa, retomada, feedback e vínculo a ação,
+   sem liberar Escola antes de seus gates de recuperação.
+4. **49-M3 / PROTÓTIPO:** Mesa do núcleo agregando
+   agenda, responsabilidades, estudo e resultados,
+   reutilizando entidades canônicas e sem schema
+   novo até necessidade comprovada.
+5. **49-M4 / GOVERNANÇA:** ensaiar rotação de coordenação,
+   acesso autorizado, decisão contestada, moderação,
+   saída do membro e preservação de memória.
+6. **50 / VALIDAÇÃO HUMANA PENDENTE:** percorrer
+   com pessoas reais, no mesmo COMUN, os caminhos
+   de quem convive, colabora pontualmente e
+   organiza um núcleo. Verificar segurança,
+   compreensão, retorno, autonomia, acessibilidade,
+   substituição de liderança e desfechos reais.
+
+#### 49-M0 — inventário inicial e contrato de prova do núcleo
+
+**AUDITORIA ESTÁTICA NA MAIN / 21/10/2026.** Estes pontos
+descrevem fontes versionadas, não evidência de uso humano,
+habilitação remota, segurança operacional ou núcleo ativo:
+
+- `docs/comun-dominio-comunidades.md` distingue `following`,
+  `member`, `paused`, `left` e `suspended`, sem produzir
+  um papel por seguir ou ingressar. Papéis como
+  `coordinator` e `facilitator` têm concessão server-side,
+  escopo comunitário e revogação; não são escolhidos
+  pelo cliente nem concedem administração global.
+- No mesmo contrato, **grupo de trabalho** tem pauta,
+  ciclo e encerramento. **Não equivale automaticamente
+  a núcleo duradouro.** A comunidade persistente pode
+  fornecer o vínculo de origem; ainda é necessário provar
+  a representação explícita do núcleo e sua sucessão.
+- `docs/comun-experiencia-comunidades.md` exige propósito,
+  próxima ação, deliberação, prestação de contas e
+  memória. Seguir não pode revelar listas de membros
+  ou responsabilidades privadas.
+- `app/comun/minha-participacao/page.tsx` já compõe
+  retornos, ações, tarefas e acessos organizativos,
+  alguns condicionados a flags. Não tratar essa
+  agregação como prova de uma Mesa operacional.
+- `docs/comun-escola-r0.md` descreve microjornada,
+  progresso individual e prática associada a pauta/tarefa.
+  `COMUN_LEARNING_R0_ENABLED` e gates de migração,
+  autorização, recuperação, retenção e prova humana
+  continuam necessários. Um material de apoio no piloto
+  não certifica nem habilita a Escola R0.
+
+**CONTRATO DO PILOTO / 49-M1 (proposta verificável):**
+
+1. Selecionar um coletivo real que consinta no ensaio,
+   com facilitador e pessoa substituta voluntários.
+   Não criar contas, membros ou vínculos fictícios
+   nem importar contatos ou filiação de terceiros.
+2. Expor **um convite contextual** com propósito,
+   regras, âmbito territorial não identificador,
+   responsável, esforço previsto, canal de dúvidas,
+   audiência e saída sem prejuízo ao uso social.
+3. Oferecer três alternativas independentes:
+   apenas acompanhar informação autorizada;
+   aceitar uma atividade pontual; solicitar
+   vínculo organizativo. Cada mudança exige
+   ato próprio; nenhuma escolha implica outra.
+4. Realizar **um ciclo completo**: uma pauta real,
+   um encontro consentido, uma responsabilidade
+   expressamente aceita, apoio, devolutiva
+   verificável, registro saneado e substituição
+   de quem facilita. Formação curta revisada pode
+   acompanhar o ciclo, sem liberar Escola bloqueada.
+5. Testar retirada de aceite, saída do vínculo,
+   acesso indevido, mudança de papel e publicação
+   acidental. Conteúdo público continua acessível,
+   conteúdo reservado falha fechado, e a memória
+   não expõe identidade política ou contatos.
+
+**EVIDÊNCIAS DE ACEITE DO PILOTO / 49-M1–M4:**
+
+- **Autonomia:** alguém alcança valor social sem
+  filiação; quem só colaborou encerra sua atuação
+  sem virar membro permanente.
+- **Não inferência:** leituras, jogos, curtidas,
+  matérias estudadas e visitas não geram convites
+  personalizados por posição política nem
+  tornam pública uma associação.
+- **Trabalho íntegro:** a tarefa está no domínio
+  canônico; aceite, devolução, impedimento e
+  conclusão são auditáveis sem pontuar pessoas.
+- **Continuidade:** outra pessoa autorizada
+  consegue retomar o próximo passo a partir
+  das decisões, recursos e memória saneada.
+- **Segurança:** permissões são verificadas no
+  servidor, inclusive para ex-membros; não
+  existem endereços de encontro, contatos ou
+  filiação privada em HTML, cache e busca públicos.
+- **Operação e acessibilidade:** testar ausência
+  de rede, leitor de tela, linguagem clara, recusa
+  do convite, conflito e ausência de facilitador.
+  Registrar falhas e custos de moderação reais.
+
+**DECISÃO DE ESCOPO:** primeiro verificar quais objetos
+existentes suportam esse ciclo, depois listar lacunas
+com rastreio de rota, regra de autorização, custo de
+operação e teste necessário. Não criar `comun_nuclei`
+ou nova taxonomia de papéis por analogia sem prova
+de insuficiência do modelo comunitário; tampouco
+forçar um núcleo permanente a ser um grupo temporário.
+
+**Ordem preservada:** SOC-D10.L exige reconciliar PRs
+e os bloqueios em andamento primeiro. Esta decisão
+documental não autoriza novas migrations, acesso
+a dados políticos, envios ou convites, flags,
+indexação, mudanças em Production ou merge funcional.
+
 ### Reconciliação do identificador duplicado SOC-D09
 
 O título histórico `SOC-D09 — descoberta pública
