@@ -2,6 +2,47 @@ export const COMUN_DRAFT_KEY = "comun:drafts:v2";
 export const COMUN_LAST_SAFE_ROUTE_KEY = "comun:last-safe-route:v1";
 export const COMUN_INSTALL_DISMISS_KEY = "comun:install-dismissed:v1";
 
+type OptionalStorageReader = Pick<Storage, "getItem">;
+type OptionalStorageWriter = Pick<Storage, "setItem">;
+type OptionalStorageRemover = Pick<Storage, "removeItem">;
+
+/** Browser storage is optional: accessors and methods may throw SecurityError. */
+export function readComunOptionalStorage(
+  resolve: () => OptionalStorageReader,
+  key: string,
+): { available: boolean; value: string | null } {
+  try {
+    return { available: true, value: resolve().getItem(key) };
+  } catch {
+    return { available: false, value: null };
+  }
+}
+
+export function writeComunOptionalStorage(
+  resolve: () => OptionalStorageWriter,
+  key: string,
+  value: string,
+): boolean {
+  try {
+    resolve().setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function removeComunOptionalStorage(
+  resolve: () => OptionalStorageRemover,
+  key: string,
+): boolean {
+  try {
+    resolve().removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export type SafeDraft = {
   id: string;
   kind: "sidewalk";
