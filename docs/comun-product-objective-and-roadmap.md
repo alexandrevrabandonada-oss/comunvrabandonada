@@ -2626,6 +2626,189 @@ não rearranjo cosmético da home. Sem merge,
 deploy, schema ou lançamento autorizado por
 esta seção documental.
 
+### SOC-D10.M — Organização viva por escolha, dentro da rede inteira (21/10/2026)
+
+**OBJETIVO / PRINCÍPIO DECIDIDO.** O COMUN também deve sustentar
+um movimento popular permanente e democrático: acolher, formar,
+reunir, distribuir trabalho, decidir, agir, prestar contas e
+renovar a coordenação. Faz isso na **mesma rede social**:
+não há outro login, feed político paralelo, banco de membros
+duplicado ou obrigação de militância para usar outras áreas.
+
+**BASE REAL / AUDITORIA DE CÓDIGO.** O contrato
+[49-E0](comun-one-product-contract-49-e0.md) já fixa
+"Usar → Participar → Organizar" e 49-M. As bases disponíveis
+para auditoria são comunidades, memberships, Pautas, Rodas,
+Ações, Tarefas, Minha Participação, Escola, Fábrica, Resultados
+e Memória. A orientação pública de primeira ação informa que
+ainda não cria nem administra núcleos. A existência de uma
+rota da Escola não certifica liberação, operação ou progresso.
+**Não declarar núcleo, agenda ou trilha já implementados.**
+
+#### Vínculos voluntários, sem classes de pessoas
+
+- **Conviver:** descobrir, criar, conversar, jogar, trocar,
+  aprender e usar ferramentas sem filiação política.
+- **Colaborar:** acompanhar assunto, participar de mutirão,
+  debater, estudar ou aceitar atividade pontual. O convite
+  informa objetivo, tempo, condições, responsável e saída.
+- **Organizar:** solicitar ingresso em associação ou núcleo
+  definido, conhecer regras, participar de decisões,
+  aprender e assumir funções específicas por aceite.
+
+São intenções reversíveis, não uma escada de prestígio,
+um ranking de militantes nem perfis compulsórios.
+Pessoas podem usar diferentes caminhos e sair do
+vínculo preservando o acesso às ferramentas públicas.
+A filiação política é privada por padrão.
+
+#### Núcleo de ação como unidade, não módulo autônomo
+
+**PRINCÍPIO DECIDIDO / 49-A + 49-M.** Um núcleo é um pequeno
+coletivo de responsabilidade continuada, vinculado
+à associação/comunidade existente e organizado por
+território amplo, tema, projeto ou ofício. O termo
+"célula" pode ser usado em práticas organizativas,
+sem implicar vigilância, clandestinidade ou comando
+arbitrário. A comunidade pública acolhe e conversa;
+o núcleo organiza responsabilidades e decisões próprias.
+
+Cada núcleo precisará, após autorização e prova real:
+
+- **Finalidade:** entidade responsável, objetivo, regras
+  de entrada, âmbito territorial amplo e limites públicos.
+- **Papéis:** acolhimento, facilitação, formação, comunicação,
+  cuidado, execução e substituição. Papéis são escopados,
+  revisáveis e nunca derivados do perfil social.
+- **Agenda:** encontros, oficinas e ações com convite
+  compreensível, acessibilidade, mudanças e confirmação
+  voluntária. Endereço reservado só aos autorizados.
+  Não registrar ausência para punir ou pressionar.
+- **Trabalho:** quadro de tarefas canônicas aceitas,
+  responsabilidades, apoio, impedimentos e devolutivas;
+  não criar uma segunda lista de tarefas.
+- **Decisão:** propostas, fontes, divergências, justificativa,
+  regra legítima de deliberação, recurso e revisão.
+  Likes, seguidores ou conclusão de curso não dão voto.
+- **Memória:** atas saneadas, aprendizagem, resultados
+  publicados quando autorizados e passagem de bastão,
+  sem divulgar contatos, filiação ou debates privados.
+
+**HIPÓTESE DE INTERFACE:** a "Mesa do núcleo" mostra
+quatro projeções do mesmo sistema: Próximo encontro,
+Trabalho combinado, Formação e Resultados/decisões.
+Não é outro aplicativo, agenda ou banco de dados.
+
+#### Escola cotidiana com microlições e prática opcional
+
+**PRINCÍPIO DECIDIDO / 49-C.** Aprender com a facilidade
+de um aplicativo de idiomas, sem replicar suas mecânicas
+de retenção compulsiva. Conteúdos públicos autorizados
+ficam disponíveis também fora de uma trilha; quem
+quiser pode seguir microlições curtas, refletir,
+praticar, receber feedback e retomar no próprio ritmo.
+
+- Trilhas iniciais candidatas: acolhimento comunitário,
+  escuta, fontes e pesquisa, facilitação de reuniões,
+  história social, comunicação pública, segurança digital,
+  diálogo e mediação, planejamento, controle de políticas
+  públicas e prestação de contas.
+- Distinguir fontes e fatos, interpretações, propostas
+  e posições organizativas. Formação incentiva autonomia
+  e pensamento crítico, não prova de alinhamento.
+- Exercícios simulados ou tarefas reais podem ser sugeridos;
+  estudo nunca inscreve, atribui trabalho, concede autoridade
+  ou revela opções políticas sem consentimento específico.
+- Mentores e multiplicadores voluntários podem revisar
+  práticas. Progresso é privado; competências precisam de
+  evidência e revisão independente conforme 49-C1.
+- Reforçar conclusão útil, prática concreta e pertencimento
+  saudável, nunca streaks, culpa, ranking de militantes,
+  recompensa por presença ou pressão para retornar.
+
+#### Jornada contínua, iniciada em qualquer ponto da rede
+
+**CONTRATO DE EXPERIÊNCIA PROPOSTO:**
+
+Descobrir tema ou grupo → entender proposta e regras →
+escolher acompanhar, colaborar ou solicitar vínculo →
+confirmar audiência e responsabilidades → encontrar
+agenda e material pertinente → aceitar tarefa específica →
+receber apoio → relatar obstáculos ou conclusão →
+decidir/replanejar → divulgar resultado autorizado →
+preservar memória → transmitir função ou sair.
+
+Uma pessoa que só quer ir a um mutirão não precisa
+passar por todas essas etapas. O contexto oferece
+a próxima ação possível; não há funil obrigatório
+de recrutamento nem conversão automática de cultura
+ou conversa espontânea em militância.
+
+**LIMITE DE IDENTIDADE E DADOS.** Perfil social
+publicável é diferente da área privada e da área
+interna de um núcleo. Nenhum vínculo político, tarefa,
+frequência, endereço, contato, opinião ou curso
+aparece em perfil público, busca, ranking ou
+recomendação sem autorização própria. Não inferir
+filiação de curtidas, leituras ou visitas; não
+operar CRM eleitoral ou mensagens políticas
+personalizadas com base em dados sensíveis.
+Convites são voluntários, contextuais e revogáveis.
+
+#### Como se encaixa na arquitetura já decidida
+
+- **Início, Explorar, Cultura, Jogos e Feirinha:**
+  espaços sociais que têm valor independente.
+  A descoberta de uma iniciativa é opcional.
+- **Comunidades, perfis e territórios:** pertencimento
+  e conversas; ingresso e representação organizativa
+  permanecem relações distintas.
+- **Minha área e Caixa:** encontros aceitos, retornos,
+  responsabilidades voluntárias, estudo e mensagens,
+  com audiência e privacidade compreensíveis.
+- **Escola e Fábrica:** material, prática, mentoria
+  e projetos, sem segundo perfil ou atribuição automática.
+- **Pautas, Rodas, Ações, Tarefas e Resultados:**
+  deliberação, trabalho e prestação de contas que
+  podem nascer de interesses comuns sem capturar
+  a conversa espontânea.
+- **Acervo, Rádio e Memória:** conhecimento e cultura
+  com autoria e direitos, sem converter tudo em propaganda.
+
+#### Fases de execução dentro de 49-A/B/C/D/M e SOC-D10
+
+1. **49-M0 / AUDITORIA PLANEJADA:** inventariar rotas,
+   autorização, memberships, papéis, agenda, tarefas,
+   materiais, curadoria e necessidades de operação.
+   Mapear lacunas antes de sugerir novas tabelas.
+2. **49-M1 / PILOTO PLANEJADO:** com consentimento de um
+   coletivo real, testar convite, um encontro acessível,
+   uma tarefa voluntariamente assumida e uma devolutiva,
+   com facilitador e substituto. Sem perfis fictícios.
+3. **49-M2 / FORMAÇÃO PLANEJADA:** uma trilha curta com
+   materiais revisados e prática opcional. Testar
+   início, pausa, retomada, feedback e vínculo a ação,
+   sem liberar Escola antes de seus gates de recuperação.
+4. **49-M3 / PROTÓTIPO:** Mesa do núcleo agregando
+   agenda, responsabilidades, estudo e resultados,
+   reutilizando entidades canônicas e sem schema
+   novo até necessidade comprovada.
+5. **49-M4 / GOVERNANÇA:** ensaiar rotação de coordenação,
+   acesso autorizado, decisão contestada, moderação,
+   saída do membro e preservação de memória.
+6. **50 / VALIDAÇÃO HUMANA PENDENTE:** percorrer
+   com pessoas reais, no mesmo COMUN, os caminhos
+   de quem convive, colabora pontualmente e
+   organiza um núcleo. Verificar segurança,
+   compreensão, retorno, autonomia, acessibilidade,
+   substituição de liderança e desfechos reais.
+
+**Ordem preservada:** SOC-D10.L exige reconciliar PRs
+e os bloqueios em andamento primeiro. Esta decisão
+documental não autoriza novas migrations, acesso
+a dados políticos, envios ou convites, flags,
+indexação, mudanças em Production ou merge funcional.
+
 ### Reconciliação do identificador duplicado SOC-D09
 
 O título histórico `SOC-D09 — descoberta pública
