@@ -1,0 +1,57 @@
+name: COMUN SOC-D09 public discovery
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "lib/archive.ts"
+      - "lib/radio.ts"
+      - "lib/*public*discovery*"
+      - "lib/public-source*"
+      - "lib/server/comun-public-discovery*"
+      - "components/comun-public-discovery*"
+      - "components/comun-radio-public-rights*"
+      - "lib/comun-radio-public-rights*"
+      - "app/comun/radio/episodios/**"
+      - "app/comun/explorar/**"
+      - "tests/public-discovery/**"
+      - "scripts/discovery/**"
+      - "playwright.public-discovery.config.ts"
+      - ".github/workflows/comun-public-discovery.yml"
+permissions: { contents: read }
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: node --test scripts/discovery/lab-guard.node-test.mjs
+      - name: Verified TLS and unchanged read-only preflight contracts
+        run: node --test scripts/ci/readonly-database-ca.node-test.mjs scripts/ci/readonly-reconciled-migration-plan.node-test.mjs tests/ci/readonly-observatory-migration-metadata.node-test.mjs
+      - run: node node_modules/vitest/vitest.mjs run lib/comun-public-discovery.test.ts lib/public-source-reads.test.ts lib/server/comun-public-discovery.test.ts lib/radio-public-reads.test.ts lib/comun-radio-public-rights.test.ts
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/public-discovery/run-fixture.mjs build
+      - run: npx playwright test -c playwright.public-discovery.config.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          {
+            name: soc-d09-controlled-browser,
+            path: test-results/public-discovery,
+            if-no-files-found: ignore,
+          }
+  real-auth-postgres:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.117.0 }
+      - run: npm ci --ignore-scripts
+      - name: Owned disposable stack, real sessions, reader and cleanup proof
+        run: node scripts/discovery/run-owned-lab.mjs
+        env: { COMUN_DISCOVERY_LAB: OWNED_EPHEMERAL_RUNNER }

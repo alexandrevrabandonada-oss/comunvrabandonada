@@ -1,3 +1,4 @@
+import { DiscoveryReturn } from "@/components/comun-public-discovery";
 import { solidarityConnectionHref } from "@/lib/comun-solidarity-connection-navigation";
 import {
   resolveComunExperience,
@@ -92,7 +93,11 @@ export default async function SolidarityOrganizationPage({
     acesso?: string;
     conexao?: string;
     perfil?: string;
+    oferta?: string;
+    necessidade?: string;
+    origem?: string;
     experiencia?: string;
+    categoria?: string;
   }>;
 }) {
   if (!isComunSolidarityOrganizationGovernanceEnabled()) notFound();
@@ -104,6 +109,10 @@ export default async function SolidarityOrganizationPage({
   const experience = resolveComunExperience(query.experiencia);
   const detail = await getPublicSolidarityOrganizationDetail(slug);
   if (!detail) notFound();
+  const requested = query.oferta ?? query.necessidade;
+  const discoveryItem = query.oferta
+    ? detail.offers.find((item) => item.slug === query.oferta)
+    : detail.needs.find((item) => item.slug === query.necessidade);
   const access = session?.user
     ? await getMySolidarityOrganizationAccess(
         session.user.id,
@@ -194,6 +203,14 @@ export default async function SolidarityOrganizationPage({
         </Link>
       </header>
       <Section>
+        <DiscoveryReturn query={query} />
+        {query.origem === "descoberta" && requested ? (
+          <p role="status" className="mb-4 border border-current p-3">
+            {discoveryItem
+              ? `Você veio conhecer: ${discoveryItem.title}. Confira abaixo as informações atuais da organização.`
+              : "Este item não está mais disponível neste recorte. Você ainda pode consultar a organização e voltar à descoberta."}
+          </p>
+        ) : null}
         {statusMessage ? (
           <p
             role="status"

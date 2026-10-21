@@ -1,3 +1,4 @@
+import { DiscoveryReturn } from "@/components/comun-public-discovery";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -20,10 +21,15 @@ import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
 export const dynamic = "force-dynamic";
 export default async function ArchiveItemPage(props: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ experiencia?: string }>;
+  searchParams: Promise<{
+    experiencia?: string;
+    origem?: string;
+    categoria?: string;
+  }>;
 }) {
   const params = await props.params;
-  const appV2 = isComunAppV2((await props.searchParams).experiencia);
+  const discoveryQuery = await props.searchParams;
+  const appV2 = isComunAppV2(discoveryQuery.experiencia);
   const item = await getPublicArchiveItem(params.slug);
   if (!item) notFound();
   if (item.item_type === "territorial_artwork")
@@ -95,6 +101,7 @@ export default async function ArchiveItemPage(props: {
           className="comun-v2-page comun-v2-page--reading comun-relational-page"
           data-comun-app-v2-page="archive-item"
         >
+          <DiscoveryReturn query={discoveryQuery} />
           <ComunContextTrail
             items={[
               {
@@ -174,6 +181,7 @@ export default async function ArchiveItemPage(props: {
   return (
     <ComunShell>
       <Section>
+        <DiscoveryReturn query={discoveryQuery} />
         <Link
           href="/comun/acervo"
           className="font-black uppercase text-comun-yellow"

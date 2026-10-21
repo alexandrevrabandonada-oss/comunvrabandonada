@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { X509Certificate } from "node:crypto";
+import { X509Certificate, createHash } from "node:crypto";
 import test from "node:test";
 import { load } from "js-yaml";
 
@@ -178,5 +178,116 @@ for (const lane of historicalPreflights) {
       }
     }
     assert.equal(protectedSteps, 2);
+  });
+}
+
+// Metadata SQL remains pinned. Reviewed domain-scoped routes retain separate
+// acceptance/refusal coverage in capture-readonly-domain-migration-status.node-test.mjs.
+const discoveryPreflightContracts = [
+  {
+    file: "comun-48-2-a-remote-preflight.yml",
+    job: "remote-read-only-preflight",
+    name: "Reconcile remote migration metadata in a read-only transaction",
+    sha256: "6d2ea3bf632c1c84e3c8b5889f83b5c4bedf1171be955560153d565e10801307",
+  },
+  {
+    file: "comun-48-4-a1-preflight.yml",
+    job: "remote-metadata-only",
+    name: "Inspect economic metadata without business content",
+    sha256: "7a7cfc440ad707bb70149d5b2f3f7291721f99d2f46aaf1c3a510dda765f5e29",
+  },
+  {
+    file: "comun-48-4-a1-preflight.yml",
+    job: "remote-metadata-only",
+    name: "Prove exact migration plan",
+    sha256: "60908f9e74abca1faa855df1177359e9116020937c838dec763624b5a6180e0c",
+  },
+  {
+    file: "comun-48-4-a2-preflight.yml",
+    job: "remote-metadata-only",
+    name: "Inspect only identity and authorization metadata",
+    sha256: "6586cf29db424e0012426b954e2c27c0b1ae46afe013f7cdf8489a033a91cf3a",
+  },
+  {
+    file: "comun-48-4-a2-preflight.yml",
+    job: "remote-metadata-only",
+    name: "Prove one bounded migration plan",
+    sha256: "437e8bafdeb9759b4581a54dc359982f86b41918771008bb3af4d2c68c25b88b",
+  },
+  {
+    file: "comun-48-4-a3-preflight.yml",
+    job: "remote-metadata-only",
+    name: "Inspect only authorization and storage metadata",
+    sha256: "c532faf7ff9adc9715831386a4a3978333ab9155aefb16be825217a677e96f05",
+  },
+  {
+    file: "comun-48-4-a3-preflight.yml",
+    job: "remote-metadata-only",
+    name: "Prove one bounded migration plan",
+    sha256: "0dae4fd910fb05153a4b31f79032c554696c9d5ba13af6276a54b78950dad967",
+  },
+  {
+    file: "comun-48-4-a4-preflight.yml",
+    job: "remote-metadata-only",
+    name: "Inspect only A1, A2, A3 and review metadata",
+    sha256: "91b716d44fa3e821613786ee9f2b7290215cbf832f3b72abebd0b4bc84750dee",
+  },
+  {
+    file: "comun-48-4-a4-preflight.yml",
+    job: "remote-metadata-only",
+    name: "Prove exactly one bounded A4 migration plan",
+    sha256: "caeae47063e71e54af63c1c24e4e32701445d46f7aa08895f7fe6ce0fb080ba3",
+  },
+  {
+    file: "comun-48-4-a5-preflight.yml",
+    job: "remote-metadata-only",
+    name: "Inspect only metadata and privileges",
+    sha256: "8dce38d98c1c8081df546a6c0062674d963110b04cf96d5724d86bad1b0f3c05",
+  },
+  {
+    file: "comun-48-4-a5-preflight.yml",
+    job: "remote-metadata-only",
+    name: "Prove exactly one bounded migration plan",
+    sha256: "a73841e5452323a1c56f3d9e1ef939cbb2f0149be25118db97cc11a4a74a725c",
+  },
+  {
+    file: "comun-48-4-a6-preflight.yml",
+    job: "remote-metadata-only",
+    name: "Inspect only metadata, constraints and privileges",
+    sha256: "044ba8cabbb0f0f10abc44da93ac0752de56baee4d31fec72137a697b7c75fbf",
+  },
+  {
+    file: "comun-48-4-a6-preflight.yml",
+    job: "remote-metadata-only",
+    name: "Prove exactly one bounded migration plan",
+    sha256: "f55d7e39961d702a8528e7e11bc867a38b128d621f24efb5b55555ef6a78b18d",
+  },
+];
+for (const entry of discoveryPreflightContracts) {
+  test(`${entry.file}: ${entry.name} preserves its read-only script and scoped verified TLS`, () => {
+    const workflow = load(read(`.github/workflows/${entry.file}`));
+    assert.equal(workflow.env?.PGSSLROOTCERT, undefined);
+    const job = workflow.jobs[entry.job];
+    assert.equal(job.env?.PGSSLROOTCERT, undefined);
+    const step = job.steps.find((s) => s.name === entry.name);
+    assert.ok(step);
+    assert.equal(step.env.PGSSLROOTCERT, extraCa);
+    assert.equal(step.env.PGSSLMODE, "verify-full");
+    assert.equal(step.env.PGOPTIONS, "-c default_transaction_read_only=on");
+    assert.equal(
+      createHash("sha256").update(step.run).digest("hex"),
+      entry.sha256,
+    );
+    assert.doesNotMatch(
+      step.run,
+      /sslmode=(disable|allow|prefer|require)|NODE_TLS_REJECT_UNAUTHORIZED/,
+    );
+    for (const other of job.steps.filter(
+      (s) =>
+        !discoveryPreflightContracts.some(
+          (e) => e.file === entry.file && e.name === s.name,
+        ),
+    ))
+      assert.equal(other.env?.PGSSLROOTCERT, undefined);
   });
 }

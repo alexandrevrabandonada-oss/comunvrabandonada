@@ -1,3 +1,8 @@
+import {
+  publicSourceItems,
+  unavailablePublicSource,
+  type PublicSourceRead,
+} from "@/lib/public-source-state";
 import { isPublicContentDeliverable } from "@/lib/public-content-readiness";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { isPublicArchiveAssetEligible } from "@/lib/archive/public-gates";
@@ -77,11 +82,30 @@ const publicItemFields =
 const publicAssetFields =
   "id, archive_item_id, asset_role, bucket_scope, public_url, original_filename, mime_type, size_bytes, alt_text, credits, rights_status, review_status, created_at";
 
+export async function readPublicArchiveItems(
+  filters: Record<string, string | undefined> = {},
+) {
+  try {
+    return await loadPublicArchiveItems(filters);
+  } catch {
+    return unavailablePublicSource<ArchiveItem & { assets: ArchiveAsset[] }>();
+  }
+}
+/** Compatibility adapter: new consumers must use readPublicArchiveItems for availability. */
 export async function listPublicArchiveItems(
   filters: Record<string, string | undefined> = {},
 ) {
+  return (await readPublicArchiveItems(filters)).items;
+}
+async function attachPublicAssets(items: ArchiveItem[]) {
+  return (await readPublicArchiveAssets(items)).items;
+}
+async function loadPublicArchiveItems(
+  filters: Record<string, string | undefined> = {},
+) {
   const db = createServiceSupabaseClient();
-  if (!db) return [] as Array<ArchiveItem & { assets: ArchiveAsset[] }>;
+  if (!db)
+    return unavailablePublicSource<ArchiveItem & { assets: ArchiveAsset[] }>();
   const page = Math.max(1, Number(filters.page) || 1),
     pageSize = 24;
   let q = db
@@ -123,16 +147,21 @@ export async function listPublicArchiveItems(
           .join(","),
       );
   }
-  const { data } = await q;
+  const { data, error } = await q;
+  if (error || !Array.isArray(data))
+    return unavailablePublicSource<ArchiveItem & { assets: ArchiveAsset[] }>();
   const items = ((data ?? []) as ArchiveItem[]).filter(
     isPublicContentDeliverable,
   );
-  return attachPublicAssets(items);
+  return readPublicArchiveAssets(items);
 }
-async function attachPublicAssets(items: ArchiveItem[]) {
+async function readPublicArchiveAssets(
+  items: ArchiveItem[],
+): Promise<PublicSourceRead<ArchiveItem & { assets: ArchiveAsset[] }>> {
   const db = createServiceSupabaseClient();
-  if (!db || !items.length) return items.map((i) => ({ ...i, assets: [] }));
-  const { data } = await db
+  if (!items.length) return publicSourceItems([]);
+  if (!db) return unavailablePublicSource();
+  const { data, error } = await db
     .from("comun_archive_assets")
     .select(publicAssetFields)
     .in(
@@ -141,12 +170,15 @@ async function attachPublicAssets(items: ArchiveItem[]) {
     )
     .eq("bucket_scope", "public_safe")
     .eq("review_status", "approved");
-  return items.map((i) => ({
-    ...i,
-    assets: ((data ?? []) as ArchiveAsset[]).filter(
-      (a) => a.archive_item_id === i.id && isPublicArchiveAssetEligible(a),
-    ),
-  }));
+  if (error || !Array.isArray(data)) return unavailablePublicSource();
+  return publicSourceItems(
+    items.map((i) => ({
+      ...i,
+      assets: ((data ?? []) as ArchiveAsset[]).filter(
+        (a) => a.archive_item_id === i.id && isPublicArchiveAssetEligible(a),
+      ),
+    })),
+  );
 }
 export async function getPublicArchiveItem(slug: string) {
   const db = createServiceSupabaseClient();
