@@ -43,14 +43,38 @@ describe("COMUN V1 launch program", () => {
     ).toBe("green");
   });
 
-  it("só libera o gate final quando todos os domínios estão verdes", () => {
+  it("estados verdes sem verificação independente não liberam o gate humano", () => {
     const green = COMUN_V1_LAUNCH_PROGRAM.domains.map((domain) => ({
       ...domain,
       status: "green" as const,
     }));
     expect(summarizeComunLaunchProgram(green)).toMatchObject({
-      readyForFinalHumanGate: true,
+      declaredReadyForFinalHumanGate: true,
+      domainEvidenceVerification: "not_performed",
+      readyForFinalHumanGate: false,
       remaining: 0,
     });
+  });
+
+  it("lista vazia ou conjunto incompleto nunca certifica prontidão", () => {
+    for (const domains of [
+      [],
+      [{ ...COMUN_V1_LAUNCH_PROGRAM.domains[0], status: "green" as const }],
+    ]) {
+      const summary = summarizeComunLaunchProgram(domains);
+      expect(summary.declaredReadyForFinalHumanGate).toBe(false);
+      expect(summary.readyForFinalHumanGate).toBe(false);
+    }
+  });
+
+  it("IDs duplicados ou domínio obrigatório substituído bloqueiam a declaração", () => {
+    const green = COMUN_V1_LAUNCH_PROGRAM.domains.map((domain) => ({
+      ...domain,
+      status: "green" as const,
+    }));
+    green[1] = { ...green[0] };
+    expect(
+      summarizeComunLaunchProgram(green).declaredReadyForFinalHumanGate,
+    ).toBe(false);
   });
 });

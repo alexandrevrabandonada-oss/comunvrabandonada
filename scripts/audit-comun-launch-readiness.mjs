@@ -125,6 +125,9 @@ const findings = [
   ...protectionBlockers.map((route) => `protected_route:${route.path}`),
   ...assetBlockers.map(([name]) => `public_asset:${name}`),
   ...missingSecurityHeaders.map((name) => `security_header:${name}`),
+  ...(program.declaredReadyForFinalHumanGate
+    ? ["launch_evidence:domain_verification_not_performed"]
+    : []),
   ...COMUN_V1_LAUNCH_PROGRAM.domains
     .filter((domain) => domain.status !== "green")
     .map((domain) => `launch_domain:${domain.id}:${domain.status}`),
@@ -135,6 +138,7 @@ const readyForFinalHumanGate =
 const artifact = {
   schemaVersion: 2,
   domainEvidenceSource: "declared_program_states",
+  domainEvidenceVerification: program.domainEvidenceVerification,
   coverage: "nine_public_routes_three_anonymous_admin_redirects_assets_headers",
   auditedAt: new Date().toISOString(),
   baseUrl: new URL(baseUrl).origin,
