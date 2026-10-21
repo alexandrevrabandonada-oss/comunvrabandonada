@@ -650,12 +650,89 @@ function auditOutputPath(argv = process.argv) {
     : ".ci-artifacts/comun-cultural-deliverability/audit.json";
 }
 
-async function persistCulturalAuditFailure(error, output) {
-  const marker = String(error?.message ?? "");
-  const safeMarker = /^COMUN_[A-Z0-9_]+$/.test(marker)
+const failureMarkers = new Set([
+  "COMUN_CULTURAL_AUDIT_WRITE_BLOCKED",
+  "COMUN_CULTURAL_AUDIT_SELECT_REQUIRED",
+  "COMUN_CULTURAL_AUDIT_DATABASE_MISSING",
+  "COMUN_CULTURAL_AUDIT_PROJECT_NOT_ALLOWLISTED",
+  "COMUN_CULTURAL_AUDIT_DATABASE_TARGET_INVALID",
+  "COMUN_CULTURAL_AUDIT_DATABASE_TARGET_MISMATCH",
+  "COMUN_CULTURAL_PUBLIC_IMAGE_URL_INVALID",
+  "COMUN_CULTURAL_PUBLIC_IMAGE_UNAVAILABLE",
+  "COMUN_CULTURAL_PUBLIC_IMAGE_RESPONSE_INVALID",
+  "COMUN_CULTURAL_AUDIT_SANITIZATION_FAILED",
+  "COMUN_CULTURAL_AUDIT_CONTRACT_INVALID",
+  "COMUN_CULTURAL_ALT_TEXT_NOT_SPECIFIC",
+  "COMUN_CULTURAL_ALT_TEXT_PRIVATE_DATA_BLOCKED",
+]);
+const failurePhases = new Set([
+  "preflight",
+  "target-validation",
+  "connect",
+  "transaction",
+  "query",
+  "enrichment",
+  "sanitization",
+  "rollback",
+  "persist",
+]);
+const failureCodes = Object.freeze({
+  UNABLE_TO_VERIFY_LEAF_SIGNATURE: "tls-verification",
+  UNABLE_TO_GET_ISSUER_CERT_LOCALLY: "tls-verification",
+  SELF_SIGNED_CERT_IN_CHAIN: "tls-verification",
+  DEPTH_ZERO_SELF_SIGNED_CERT: "tls-verification",
+  CERT_HAS_EXPIRED: "tls-verification",
+  ERR_TLS_CERT_ALTNAME_INVALID: "tls-verification",
+  ETIMEDOUT: "network",
+  ECONNREFUSED: "network",
+  ENOTFOUND: "network",
+  EAI_AGAIN: "network",
+  ECONNRESET: "network",
+  ENETUNREACH: "network",
+  EHOSTUNREACH: "network",
+  "28P01": "authentication",
+  28000: "authentication",
+  42501: "authorization",
+  "42P01": "schema",
+  42703: "schema",
+  "3F000": "schema",
+  53300: "capacity",
+  53200: "capacity",
+  53100: "capacity",
+  57014: "query-cancelled",
+  "57P01": "server-shutdown",
+});
+function failureProperty(error, name) {
+  try {
+    return error?.[name];
+  } catch {
+    return undefined;
+  }
+}
+
+export function buildCulturalAuditFailure(error, phase) {
+  const marker = failureProperty(error, "message");
+  const safeMarker = failureMarkers.has(marker)
     ? marker
     : "COMUN_CULTURAL_AUDIT_FAILED";
-  const artifact = {
+  let category = "unknown";
+  let code = "UNKNOWN";
+  const seen = new Set();
+  // Nearest recognized code wins; never serialize an arbitrary code or cause.
+  for (let depth = 0; depth < 3 && error && !seen.has(error); depth++) {
+    seen.add(error);
+    const candidate = failureProperty(error, "code");
+    if (
+      typeof candidate === "string" &&
+      Object.hasOwn(failureCodes, candidate)
+    ) {
+      code = candidate;
+      category = failureCodes[candidate];
+      break;
+    }
+    error = failureProperty(error, "cause");
+  }
+  return {
     formatVersion: 2,
     auditType: "archive_radio_art_read_only_failure",
     result: safeMarker,
@@ -665,7 +742,17 @@ async function persistCulturalAuditFailure(error, output) {
     rawResponsePersisted: false,
     containsPersonalData: false,
     containsObjectKeys: false,
+    diagnostic: {
+      phase: failurePhases.has(phase) ? phase : "unknown",
+      category,
+      code,
+    },
   };
+}
+
+async function persistCulturalAuditFailure(error, output, phase) {
+  const artifact = buildCulturalAuditFailure(error, phase);
+  const safeMarker = artifact.result;
   await mkdir(path.dirname(output), { recursive: true });
   await writeFile(output, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
   await writeFile(
@@ -674,6 +761,9 @@ async function persistCulturalAuditFailure(error, output) {
 
 - Resultado: \`${safeMarker}\`
 - Auditoria: falhou fechada
+- Fase: \`${artifact.diagnostic.phase}\`
+- Categoria: \`${artifact.diagnostic.category}\`
+- Código reconhecido: \`${artifact.diagnostic.code}\`
 - Resposta bruta persistida: não
 - Escritas no banco: none
 - Escritas no Storage: none
@@ -683,8 +773,9 @@ async function persistCulturalAuditFailure(error, output) {
   return safeMarker;
 }
 
-async function run() {
+async function run(onPhase) {
   assertCulturalAuditReadOnly();
+  onPhase("target-validation");
   const { databaseUrl: connectionString } = validateCulturalDatabaseTarget(
     process.env,
   );
@@ -695,19 +786,26 @@ async function run() {
     query_timeout: 15_000,
   });
   try {
+    onPhase("connect");
     await client.connect();
+    onPhase("transaction");
     await client.query("set default_transaction_read_only = on");
     await client.query("begin transaction read only");
+    onPhase("query");
     const result = await client.query(fixedCulturalAuditSql);
+    onPhase("enrichment");
     const enriched = await enrichCulturalMetricsForRepair(
       result.rows[0]?.metrics ?? {},
     );
+    onPhase("sanitization");
     const artifact = sanitizeCulturalMetrics({
       ...enriched,
       target: { verified: true },
     });
     assertSanitizedCulturalArtifact(artifact);
+    onPhase("rollback");
     await client.query("rollback");
+    onPhase("persist");
     await mkdir(path.dirname(output), { recursive: true });
     await writeFile(output, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
     await writeFile(
@@ -722,10 +820,14 @@ async function run() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  run().catch(async (error) => {
+  let phase = "preflight";
+  run((next) => {
+    phase = next;
+  }).catch(async (error) => {
     const safeMarker = await persistCulturalAuditFailure(
       error,
       auditOutputPath(),
+      phase,
     );
     process.stderr.write(`${safeMarker}\n`);
     process.exitCode = 1;
