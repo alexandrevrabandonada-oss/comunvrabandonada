@@ -18,15 +18,22 @@ test("pinned public CA is scoped to the read-only inventory step without weakeni
     NODE_EXTRA_CA_CERTS:
       "${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt",
   });
-  assert.match(selected.run, /node scripts\/audit-comun-cultural-deliverability\.mjs/);
+  assert.match(
+    selected.run,
+    /node scripts\/audit-comun-cultural-deliverability\.mjs/,
+  );
   assert.equal(workflow.env?.NODE_EXTRA_CA_CERTS, undefined);
   for (const job of Object.values(workflow.jobs)) {
     assert.equal(job.env?.NODE_EXTRA_CA_CERTS, undefined);
     for (const step of job.steps ?? []) {
-      if (step !== selected) assert.equal(step.env?.NODE_EXTRA_CA_CERTS, undefined);
+      if (step !== selected)
+        assert.equal(step.env?.NODE_EXTRA_CA_CERTS, undefined);
     }
   }
-  assert.doesNotMatch(JSON.stringify(workflow), /NODE_TLS_REJECT_UNAUTHORIZED|rejectUnauthorized/);
+  assert.doesNotMatch(
+    JSON.stringify(workflow),
+    /NODE_TLS_REJECT_UNAUTHORIZED|rejectUnauthorized/,
+  );
 });
 
 test("lane de PR é local e não injeta credenciais remotas", async () => {
