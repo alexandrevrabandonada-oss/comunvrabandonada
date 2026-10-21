@@ -1,63 +1,68 @@
+import type { Metadata } from "next";
 import { ComunShell } from "@/components/comun-shell";
+import { ComunBreadcrumbs, ComunSection } from "@/components/comun-ui";
+import { redirect } from "next/navigation";
 import {
-  ComunBreadcrumbs,
-  ComunEmptyState,
-  ComunSection,
-} from "@/components/comun-ui";
-import { isPublicContentDeliverable } from "@/lib/public-content-readiness";
-import { unifiedPublicSearch } from "@/lib/unified-search";
-import { LiveSearchResults } from "@/components/civic-intelligence/live-search-results";
-import { hybridPublicSearch } from "@/lib/civic-intelligence/search";
+  normalizeSearchState,
+  PUBLIC_SEARCH_TYPES,
+  searchHref,
+} from "@/lib/public-search-context";
+import {
+  readPublicSearch,
+  resolvePublicSearchFilter,
+} from "@/lib/civic-intelligence/public-search-read";
+import { submitPublicSearch } from "./actions";
 
-async function initialPublicSearch(
-  query: string,
-  filters: { type?: string; pautaId?: string },
-) {
-  try {
-    const projected = await hybridPublicSearch({
-      query,
-      type: filters.type,
-      pautaId: filters.pautaId,
-      semantic: false,
-    });
-    return { results: projected.results, durationMs: projected.durationMs };
-  } catch {
-    return unifiedPublicSearch(query, filters);
-  }
-}
-const types = [
-  "ferramenta",
-  "comunidade",
-  "pauta",
-  "território",
-  "ação",
-  "resultado",
-  "documento",
-  "memória",
-  "obra",
-  "programa",
-  "episódio",
-  "coleção",
-];
+import { LiveSearchResults } from "@/components/civic-intelligence/live-search-results";
+
+export const metadata: Metadata = {
+  title: "Buscar no COMUN | COMUN VR Abandonada",
+  description:
+    "Busca pública de pautas, territórios, ações e memória no COMUN.",
+};
+
 export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; tipo?: string; pauta?: string }>;
+  searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  const p = await searchParams,
-    q = p.q ?? "",
-    search = await initialPublicSearch(q, {
-      type: p.tipo,
-      pautaId: p.pauta,
-    }),
-    results = search.results.filter((result) =>
-      isPublicContentDeliverable({
-        slug: result.href,
-        title: result.title,
-        summary: result.summary,
-      }),
-    ),
+  const p = await searchParams;
+  const canonical = { ...p };
+  let changed = false;
+  for (const key of ["pauta", "territorio"] as const)
+    if (p[key] && /^[a-f0-9]{8}-[a-f0-9-]{27}$/i.test(p[key]!)) {
+      let slug: string | undefined;
+      try {
+        slug = (await resolvePublicSearchFilter(key, p[key]!))?.slug;
+      } catch {
+        redirect("/comun/buscar?aviso=filtro-indisponivel");
+      }
+      if (!slug) redirect("/comun/buscar?aviso=filtro-indisponivel");
+      canonical[key] = slug;
+      changed = true;
+    }
+  const state = normalizeSearchState(canonical);
+  if (!state) redirect("/comun/buscar?aviso=consulta-nao-publica");
+  if (
+    changed ||
+    Object.keys(p).some(
+      (k) =>
+        ![
+          "q",
+          "tipo",
+          "pauta",
+          "territorio",
+          "experiencia",
+          "semantic",
+          "aviso",
+        ].includes(k),
+    )
+  )
+    redirect(searchHref(state));
+  const q = state.q;
+  const search = await readPublicSearch(state, false);
+  const results = search.results,
     durationMs = search.durationMs;
   return (
     <ComunShell publicReadOnlyFallback>
@@ -83,8 +88,30 @@ export default async function Page({
             desligar o enriquecimento sem perder os resultados iniciais.
           </p>
         </details>
-        <form className="mt-6 grid gap-3 md:grid-cols-[1fr_auto_auto]">
+        {p.aviso ? (
+          <p role="alert" aria-label="Consulta pública" className="mt-4">
+            {p.aviso === "filtro-indisponivel"
+              ? "Não foi possível verificar esse filtro público. Tente novamente sem esse contexto."
+              : "Use somente termos públicos nesta busca. Contatos, credenciais e identificadores privados não são aceitos."}
+          </p>
+        ) : null}
+        <p className="mt-3 text-sm">
+          A consulta pública fica no endereço e no histórico do navegador. Não
+          inclua contato, relato privado, senha ou código.
+        </p>
+        <form
+          key={searchHref(state)}
+          action={submitPublicSearch}
+          className="mt-6 grid gap-3 md:grid-cols-[1fr_auto_auto]"
+        >
+          {(["pauta", "territorio", "experiencia", "semantic"] as const).map(
+            (key) =>
+              state[key] ? (
+                <input key={key} type="hidden" name={key} value={state[key]} />
+              ) : null,
+          )}
           <input
+            maxLength={120}
             aria-label="Termo de busca"
             className="min-h-12 border-2 bg-white px-3 text-comun-black"
             name="q"
@@ -95,10 +122,10 @@ export default async function Page({
             aria-label="Tipo de resultado"
             className="min-h-12 border-2 bg-white px-3 text-comun-black"
             name="tipo"
-            defaultValue={p.tipo ?? ""}
+            defaultValue={state.tipo ?? ""}
           >
             <option value="">Todos os tipos</option>
-            {types.map((x) => (
+            {PUBLIC_SEARCH_TYPES.map((x) => (
               <option key={x} value={x}>
                 {x}
               </option>
@@ -108,19 +135,40 @@ export default async function Page({
             Buscar
           </button>
         </form>
+        <nav aria-label="Filtros ativos" className="mt-4 flex flex-wrap gap-3">
+          {(["tipo", "pauta", "territorio"] as const).map((key) =>
+            state[key] ? (
+              <a
+                className="inline-flex min-h-11 items-center underline"
+                key={key}
+                href={searchHref({ ...state, [key]: undefined })}
+              >
+                Remover {key}: {state[key]}
+              </a>
+            ) : null,
+          )}
+          {state.tipo || state.pauta || state.territorio ? (
+            <a
+              className="inline-flex min-h-11 items-center underline"
+              href={searchHref({
+                q: state.q,
+                experiencia: state.experiencia,
+                semantic: state.semantic,
+              })}
+            >
+              Limpar filtros e manter busca
+            </a>
+          ) : null}
+        </nav>
         <LiveSearchResults
+          searchState={state}
+          initialAvailability={search.availability}
           query={q}
-          type={p.tipo}
-          pauta={p.pauta}
+          type={state.tipo}
+          pauta={state.pauta}
           initialResults={results}
           lexicalDurationMs={durationMs}
         />
-        {q.length >= 2 && !results.length ? (
-          <ComunEmptyState href="/comun/participar">
-            Não encontramos conteúdo público com esses filtros. Você pode
-            explorar as formas de participação.
-          </ComunEmptyState>
-        ) : null}
       </ComunSection>
     </ComunShell>
   );

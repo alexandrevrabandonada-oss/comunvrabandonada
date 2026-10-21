@@ -90,7 +90,11 @@ const checks = {
     performanceTest.includes("navigationResponse?.status() === 200"),
   helpCanonical:
     help.includes("Ajuda para seguir sem se perder") &&
-    help.includes("/comun/offline"),
+    help.includes('href: "#conexao"') &&
+    help.includes('id="conexao"') &&
+    help.includes('aria-labelledby="comun-ajuda-conexao-titulo"') &&
+    help.includes("não considere o envio concluído.") &&
+    !help.includes('href: "/comun/offline"'),
   deterministicDate: date.includes("timeZone: COMUN_TIME_ZONE"),
   disposableSidewalkLedgerExact:
     workflow.includes("--adopt-local-validation-ledger") &&

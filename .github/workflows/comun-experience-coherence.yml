@@ -14,6 +14,7 @@ on:
       - "package.json"
       - ".github/actions/setup-playwright-browser/**"
       - "scripts/ci/install-playwright-browser.mjs"
+      - "scripts/ci/coherence-local-start.node-test.mjs"
       - ".github/workflows/comun-experience-coherence.yml"
   push:
     branches: [main]
@@ -28,6 +29,7 @@ on:
       - "package.json"
       - ".github/actions/setup-playwright-browser/**"
       - "scripts/ci/install-playwright-browser.mjs"
+      - "scripts/ci/coherence-local-start.node-test.mjs"
       - ".github/workflows/comun-experience-coherence.yml"
   workflow_dispatch:
 
@@ -51,7 +53,7 @@ jobs:
           cache: npm
       - uses: supabase/setup-cli@v1
         with:
-          version: 2.109.1
+          version: 2.113.0
       - run: npm ci --ignore-scripts
       - name: Audit routes, vocabulary, tokens and pilots
         run: npm run experience:coherence:audit
@@ -61,6 +63,8 @@ jobs:
       - run: npm run lint
       - name: Check formatted files introduced by this lane
         run: npx prettier --check components/comun-experience-pilot.tsx lib/experience-coherence.ts docs/comun-experience-coherence.md docs/comun-experience-routes.md scripts/experience playwright.experience-coherence.config.ts tests/experience-coherence .github/workflows/comun-experience-coherence.yml
+      - name: Verify local reset toolchain contract
+        run: node --test scripts/ci/coherence-local-start.node-test.mjs
       - name: Start disposable local Supabase stack
         shell: bash
         run: |

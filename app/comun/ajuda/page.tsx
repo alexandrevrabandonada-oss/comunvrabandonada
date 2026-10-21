@@ -25,9 +25,9 @@ const topics = [
   },
   {
     title: "Conexão, instalação e atualização",
-    text: "Instalar é opcional. Offline, somente páginas públicas já disponíveis podem ser lidas; envios, conta e administração exigem conexão.",
-    href: "/comun/offline",
-    action: "Ver ajuda de conexão",
+    text: "Instalar é opcional. Entenda o que funciona sem internet e como retomar uma contribuição sem presumir que ela foi enviada.",
+    href: "#conexao",
+    action: "Ler orientações de conexão",
   },
   {
     title: "Privacidade, correção e retirada",
@@ -39,7 +39,7 @@ const topics = [
 
 export default function HelpPage() {
   return (
-    <ComunShell>
+    <ComunShell publicReadOnlyFallback>
       <ComunSection>
         <ComunBreadcrumbs
           items={[{ label: "Início", href: "/comun" }, { label: "Ajuda" }]}
@@ -68,6 +68,43 @@ export default function HelpPage() {
             </article>
           ))}
         </div>
+        <section
+          id="conexao"
+          aria-labelledby="comun-ajuda-conexao-titulo"
+          tabIndex={-1}
+          className="mt-10 max-w-3xl scroll-mt-24 border-2 border-comun-yellow bg-comun-paper p-5 text-comun-black sm:p-7"
+        >
+          <h2 id="comun-ajuda-conexao-titulo" className="text-2xl font-black">
+            Se a conexão cair
+          </h2>
+          <p className="mt-3">
+            Você não precisa instalar o COMUN para explorar as páginas públicas.
+            Instalar não garante acesso offline a todas as páginas: somente
+            conteúdo que já estiver disponível neste aparelho poderá abrir sem
+            internet.
+          </p>
+          <ol className="mt-4 list-decimal space-y-3 pl-6">
+            <li>
+              Se uma página não carregar, tente novamente quando a conexão
+              voltar. Abrir esta orientação não significa que sua conexão caiu.
+            </li>
+            <li>
+              Antes de reenviar um relato ou contribuição, confira se recebeu
+              confirmação do servidor ou um número de protocolo. Sem
+              confirmação, não considere o envio concluído.
+            </li>
+            <li>
+              Se enviou uma foto, confira o estado do relato antes de atualizar
+              a página. A foto pode precisar ser selecionada novamente.
+            </li>
+          </ol>
+          <Link
+            href="/comun"
+            className="mt-6 inline-flex min-h-11 items-center font-black underline underline-offset-4"
+          >
+            Voltar ao início
+          </Link>
+        </section>
       </ComunSection>
     </ComunShell>
   );

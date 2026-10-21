@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "scripts/ci/readonly-reconciled-migration-plan*"
+      - "scripts/ci/*readonly-domain-migration-status*"
       - ".github/workflows/comun-48-4-a4-*.yml"
       - "app/comun/cooperativas/**"
       - "app/comun/admin/organizacao/**"
@@ -42,6 +43,10 @@ jobs:
           node scripts/ci/classify-migration-lane.mjs --lane 48-4-a4 --files "${changed[@]}" | tee .ci-artifacts/48-4-a4-preflight/migration-classification.env
           cat .ci-artifacts/48-4-a4-preflight/migration-classification.env >> "$GITHUB_ENV"
       - name: Inspect only A1, A2, A3 and review metadata
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         shell: bash
         run: |
           set -euo pipefail
@@ -72,10 +77,22 @@ jobs:
           fs.writeFileSync('.ci-artifacts/48-4-a4-preflight/mode',state.onboardingPresent?'promoted':'candidate');
           NODE
       - name: Prove exactly one bounded A4 migration plan
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         shell: bash
         run: |
           set -euo pipefail
+          # The preceding metadata step still proves this domain's installed objects.
+          # With no schema diff, certify the full catalog without claiming global plan-empty.
+          if [ "$(cat .ci-artifacts/48-4-a4-preflight/mode)" = promoted ] && [ "$COMUN_MIGRATION_LANE_MODE" = none ]; then
+            node --test scripts/ci/readonly-domain-migration-status.node-test.mjs
+            node scripts/ci/capture-readonly-domain-migration-status.mjs 48-4-a4 .ci-artifacts/48-4-a4-preflight/domain-migration-status.json
+            echo COMUN_DOMAIN_METADATA_CURRENT_LEARNING_DEFERRED >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           if [ "$(cat .ci-artifacts/48-4-a4-preflight/mode)" = promoted ]; then
             node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs
             node scripts/ci/readonly-reconciled-migration-plan.mjs .ci-artifacts/48-4-a4-preflight/plan.txt

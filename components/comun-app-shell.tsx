@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SearchReturnLink } from "./civic-intelligence/search-return-link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FormEvent, MouseEvent, ReactNode } from "react";
 import { useEffect } from "react";
@@ -61,6 +62,7 @@ export function ComunAppShell({
         <DesktopHeader />
         <ComunMobileAppBar {...appBar} />
         <main id="conteudo" tabIndex={-1} className="pb-24 lg:pb-0">
+          <SearchReturnLink />
           {children}
         </main>
         <InstitutionalFooter />
@@ -99,6 +101,7 @@ export function ComunAppShell({
         className="comun-app-shell-v2__content"
         data-bottom-navigation={showBottomNavigation ? "present" : "absent"}
       >
+        <SearchReturnLink />
         {children}
       </main>
       {showFooter ? (

@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "scripts/ci/readonly-reconciled-migration-plan*"
+      - "scripts/ci/*readonly-domain-migration-status*"
       - "scripts/ci/classify-migration-lane*"
       - ".github/workflows/comun-48-3-e3-*.yml"
       - "app/comun/pautas/**"
@@ -82,6 +83,10 @@ jobs:
           require('node:fs').writeFileSync('.ci-artifacts/48-3-e3-preflight/mode', promoted?'promoted':'candidate');
           NODE
       - name: Prove exact migration plan
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         env:
           PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
@@ -90,6 +95,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [ "$COMUN_MIGRATION_LANE_MODE" = none ]; then
+            node scripts/ci/capture-readonly-domain-migration-status.mjs 48-3-e3 .ci-artifacts/48-3-e3-preflight/domain-migration-status.json
+            echo COMUN_DOMAIN_METADATA_CURRENT_LEARNING_DEFERRED >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           mode="$(cat .ci-artifacts/48-3-e3-preflight/mode)"
           if [ "$mode" = promoted ]; then
             node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs

@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "scripts/ci/readonly-reconciled-migration-plan*"
+      - "scripts/ci/*readonly-domain-migration-status*"
       - ".github/workflows/comun-48-3-a1-*.yml"
       - "app/comun/pautas/**"
       - "components/comun-pauta-*.tsx"
@@ -65,6 +66,10 @@ jobs:
           esac
 
       - name: Inspect canonical pauta metadata in a read-only transaction
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         env:
           PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
@@ -300,6 +305,10 @@ jobs:
           NODE
 
       - name: Prove the remote plan contains exactly the A1 migration
+        env:
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         if: env.COMUN_MIGRATION_LANE_MODE != 'not_applicable'
         env:
           PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
@@ -308,6 +317,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [ "$A1_PREFLIGHT_MODE" = promoted ] && [ "$COMUN_MIGRATION_LANE_MODE" = none ]; then
+            node scripts/ci/capture-readonly-domain-migration-status.mjs 48-3-a1 .ci-artifacts/48-3-a1-preflight/domain-migration-status.json
+            echo COMUN_DOMAIN_METADATA_CURRENT_LEARNING_DEFERRED >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           mkdir -p .ci-artifacts/48-3-a1-preflight
           if [ "$A1_PREFLIGHT_MODE" = promoted ]; then
             node --test scripts/ci/readonly-reconciled-migration-plan.node-test.mjs

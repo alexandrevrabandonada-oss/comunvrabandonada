@@ -1,3 +1,4 @@
+import { submitPublicSearch } from "@/app/comun/buscar/actions";
 import { ComunParticipationPaths } from "@/components/comun-participation-paths";
 import Link from "next/link";
 import { ArrowRight, Check, MapPin, Route } from "lucide-react";
@@ -75,14 +76,16 @@ export default async function ComunHomePage({
 
   if (appV2)
     return (
-      <ComunShell>
-        <ComunAppV2Home
-          pautas={pautas}
-          actions={activeActions}
-          results={results}
-          memory={experience.memory}
-          civicIntelligencePilot={civicIntelligencePilot}
-        />
+      <ComunShell publicReadOnlyFallback>
+        <div className="min-h-screen bg-comun-paper text-comun-black">
+          <ComunAppV2Home
+            pautas={pautas}
+            actions={activeActions}
+            results={results}
+            memory={experience.memory}
+            civicIntelligencePilot={civicIntelligencePilot}
+          />
+        </div>
       </ComunShell>
     );
 
@@ -178,9 +181,10 @@ export default async function ComunHomePage({
                 públicas; não cria feed nem perfil de interesses.
               </p>
               <form
-                action="/comun/buscar"
+                action={submitPublicSearch}
                 className="mt-4 flex flex-col gap-3 sm:flex-row"
               >
+                <input type="hidden" name="experiencia" value="legacy" />
                 <input
                   aria-label="Necessidade ou assunto"
                   className="min-h-12 flex-1 border-2 bg-white px-3 text-comun-black"
