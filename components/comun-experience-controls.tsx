@@ -1,4 +1,5 @@
 "use client";
+import { submitPublicSearch } from "@/app/comun/buscar/actions";
 
 import Link from "next/link";
 import { Search, X } from "lucide-react";
@@ -527,7 +528,7 @@ export function SearchSheet({
       </button>
       <Sheet title="Buscar no COMUN" open={open} onClose={close}>
         <form
-          action="/comun/buscar"
+          action={submitPublicSearch}
           className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]"
         >
           <label className="sr-only" htmlFor="comun-search">

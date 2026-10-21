@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { CommunityLoginForm } from "@/components/community-auth-form";
@@ -9,6 +10,11 @@ import {
   resolveComunExperience,
   withComunExperience,
 } from "@/lib/comun-experience";
+
+export const metadata: Metadata = {
+  title: "Entrar | COMUN VR Abandonada",
+  description: "Acesse sua conta e retorne à ação escolhida no COMUN.",
+};
 
 export default async function Entrar({
   searchParams,

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { checkCivicSearchRateLimit } from "@/lib/rate-limit";
-import { hybridPublicSearch } from "@/lib/civic-intelligence/search";
+import { readPublicSearch } from "@/lib/civic-intelligence/public-search-read";
+import { normalizeSearchState } from "@/lib/public-search-context";
 import { recordCivicSearchMetric } from "@/lib/civic-intelligence/observability";
 
 export const dynamic = "force-dynamic";
@@ -9,15 +10,16 @@ export const dynamic = "force-dynamic";
 const inputSchema = z.object({
   q: z.string().trim().min(2).max(120),
   tipo: z.string().trim().max(40).optional(),
-  pauta: z.string().uuid().optional(),
-  territorio: z.string().uuid().optional(),
+  pauta: z.string().max(120).optional(),
+  territorio: z.string().max(120).optional(),
   semantic: z.enum(["1", "0"]).default("1"),
 });
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const parsed = inputSchema.safeParse(Object.fromEntries(url.searchParams));
-  if (!parsed.success) {
+  const state = parsed.success ? normalizeSearchState(parsed.data) : null;
+  if (!parsed.success || !state) {
     return NextResponse.json({ code: "invalid_query" }, { status: 400 });
   }
   const limit = await checkCivicSearchRateLimit();
@@ -37,14 +39,7 @@ export async function GET(request: Request) {
     );
   }
   try {
-    const result = await hybridPublicSearch({
-      query: parsed.data.q,
-      type: parsed.data.tipo,
-      pautaId: parsed.data.pauta,
-      territoryId: parsed.data.territorio,
-      semantic: parsed.data.semantic === "1",
-      timeoutMs: 1800,
-    });
+    const result = await readPublicSearch(state, parsed.data.semantic === "1");
     await recordCivicSearchMetric({
       searchKind: result.intents.length
         ? "intent"

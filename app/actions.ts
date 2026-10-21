@@ -1227,8 +1227,8 @@ export async function logoutCommunity() {
   let failed = false;
   try {
     const supabase = await createSupabaseServerClient();
-    const result = await supabase?.auth.signOut();
-    failed = Boolean(result?.error);
+    const result = supabase ? await supabase.auth.signOut() : null;
+    failed = !result || Boolean(result.error);
   } catch {
     failed = true;
   }

@@ -30,6 +30,21 @@ ambígua e não foi tomada como valor Source. Clarificação não secreta penden
 
 ## Preparação antes de qualquer envio
 
+### Captura Source resolvida — 20/10/2026
+
+Leitura visual da interface oficial, projeto `nika`, Production, em
+`/auth/templates/change-email-address`, confirmou o Subject literal
+**Confirm Email Change**. Origem: `BROWSER_VISUAL_READ_SOURCE`, sem presumir o
+default. O extrator DOM ainda apresentou `<redacted>`; o valor foi lido na
+imagem da página. Nenhum campo foi editado; Save changes permaneceu desabilitado.
+
+Essa observação resolve somente a ausência do assunto. Não substitui as
+capturas cifradas originais nem comprova os cinco fluxos. O lote autorizado em
+12/10 continua limitado ao escopo acima; nenhuma mensagem foi enviada nesta
+captura. Artifacts/harness privados de E: não foram encontrados no workspace
+Linux desta sessão, o que não prova perda. Próximo: recuperar o ambiente
+protegido existente e compor o suplemento com proveniência antes do ensaio.
+
 1. Completar Subject Source change-email por interface suportada; se indisponível,
    uma leitura humana não secreta, marcada HUMAN_READ_SOURCE. Nunca default presumido.
 2. Reproduzir os cinco fluxos primeiro no receptor local, contar MIME reais e

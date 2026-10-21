@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   review: vi.fn(),
   withdraw: vi.fn(),
   signOut: vi.fn(),
+  server: vi.fn(),
   revalidate: vi.fn(),
 }));
 vi.mock("server-only", () => ({}));
@@ -32,9 +33,7 @@ vi.mock("@/lib/server/comun-solidarity-private-connections", () => ({
   withdrawSolidarityConnection: mocks.withdraw,
 }));
 vi.mock("@/lib/supabase/server", () => ({
-  createSupabaseServerClient: async () => ({
-    auth: { signOut: mocks.signOut },
-  }),
+  createSupabaseServerClient: mocks.server,
   createServiceSupabaseClient: () => null,
   createPublicSupabaseClient: () => null,
 }));
@@ -67,6 +66,7 @@ function form() {
 }
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.server.mockResolvedValue({ auth: { signOut: mocks.signOut } });
   for (const key of [
     "COMUN_SOLIDARITY_ECONOMY_PUBLIC_CORE_ENABLED",
     "COMUN_SOLIDARITY_ORGANIZATION_GOVERNANCE_ENABLED",
@@ -255,4 +255,12 @@ it("rejects a form prepared before the current login epoch", async () => {
   );
   expect(result.state).toBe("error");
   expect(mocks.create).not.toHaveBeenCalled();
+});
+
+it("does not claim logout when the server Auth client is unavailable", async () => {
+  mocks.server.mockResolvedValue(null);
+  await expect(logoutCommunity()).rejects.toThrow(
+    "REDIRECT:/comun/conta?status=saida-nao-confirmada",
+  );
+  expect(mocks.signOut).not.toHaveBeenCalled();
 });
