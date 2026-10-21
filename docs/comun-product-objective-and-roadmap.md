@@ -1,5 +1,24 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Checkpoint canônico operacional — 21/10/2026, após #569
+
+**Fonte de verdade neste checkpoint:** `main@f47885b1769281ac79da54f248a266af3a4f6c88`, merge por squash da [#569](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/569). O deployment Vercel do mesmo SHA foi observado em **Production READY**; isso comprova entrega técnica, **não** aceite humano, restauração real, ativação da Escola ou certificação de lançamento V1.
+
+- **Entregas funcionais já integradas:** #546 (auditoria U0 e continuidade), #549 (contato privado/consentimento atual da Feirinha), #552 (descoberta cultural), #553 (busca com filtros), #554 (Home). Não reabrir essas tarefas nem presumir ausência delas com base nos checkpoints históricos abaixo.
+- **Arquitetura e proteção integrada:** #564 fixa SOC-D10.M e 49-M0/M1 no produto único, com convivência, colaboração pontual e vínculo organizativo voluntário, sem inferir filiação; #565 classifica corretamente originais culturais privados; #566 mantém o gate V1 fechado sem evidências independentes; #567–#569 exigem limpeza concluída e pós-condição observável antes de evidência verde de restore sintético.
+- **Limite da prova:** regressões sintéticas, CI, Preview e deployments READY não provam restauração remota de Auth/PITR, condições reais de moderação ou jornadas concluídas com moradores. A migration da Escola `20261006134804_comun_learning_r0.sql` não foi autorizada por esses merges. Nenhuma flag, indexação, convite, agendamento ORCH-V2 ou lançamento global é liberado por esta seção.
+
+### Fila reduzida, sem confundir WIP com entrega
+
+Na consulta após #569 há **9 PRs abertas**, todas candidatas/draft: **#436, #516, #517, #523, #524, #539, #542, #551 e #556**. Não mesclar branches históricos inteiros sobre a `main` atual. #516 teve recortes #567/#568/#569 integrados, mas ainda requer inventário dos itens residuais; #539 teve o gate crítico extraído em #566, sem considerar sua atualização de dependência ou seus relatórios automaticamente incorporados. #542 é laboratório bloqueado; #556 fica **fora da fila ativa**, sem instalação nem scheduler recorrente.
+
+**Próximo incremento de valor ao público (uma entrega ativa):** reconciliar **#551 — entrada pública de Jogos / Cidade em Disputa** com a `main` atual sem reintroduzir código de CI obsoleto, restaurar apenas a jornada pública já proposta e executar testes de rota, mobile, teclado, acessibilidade, link externo de beta, ausência de carregamento automático de jogo e retorno à descoberta. Exigir checks do novo SHA, COST-02/Preview exatos e postflight Production. Nenhum merge de #551 é autorizado somente por esta decisão documental.
+
+**Em paralelo, somente inventário de bloqueios:** identificar os resíduos efetivos de #516 e #539 por comparação com a `main`, sem criar ramificações desnecessárias; manter a recuperação da Escola com seus próprios gates e autorização. O piloto 49-M1 dos núcleos depende de um coletivo real que aceite participar, tarefa voluntária, reunião e devolutiva; até lá, é contrato de validação, não experiência publicada.
+
+**Critério para o próximo relato:** separar `DECIDIDO`, `IMPLEMENTADO`, `CI CERTIFICADA`, `MERGED`, `PRODUCTION READY`, `HUMANAMENTE VALIDADO` e `LANÇADO`. Não converter `SKIPPED` em `SUCCESS`; não usar o bloqueio da Escola para travar entregas independentes nem contorná-lo para liberar seu próprio domínio.
+
+
 > **Norte de produto (20/10/2026):** [SOC-D10 — Arquitetura integral da rede social do comum](#soc-d10--arquitetura-integral-da-rede-social-do-comum). O COMUN deve ser uma rede social de vida comunitária, útil e prazerosa sem exigir ativismo, preservando a potência cívica, cultural e econômica já construída. A visão e a implementação permanecem estados distintos.
 
 ## Feirinha — reconciliação da primeira conexão privada (20/10/2026)
