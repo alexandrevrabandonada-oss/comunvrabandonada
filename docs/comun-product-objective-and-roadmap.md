@@ -1,5 +1,22 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Feirinha — reconciliação da primeira conexão privada (20/10/2026)
+
+Estado: CANDIDATO NO PR #549, sem aceite humano nem integração.
+Base: main `d68aa0e7`, com U0 #546, PWA #559, Ajuda #558 e busca #553
+integrados. Os históricos abaixo não substituem este checkpoint.
+
+Preservar o contrato SOC-D08: contato e consentimento informados na
+submissão atual; mensagem recuperável somente por escolha explícita,
+identidade e origem compatíveis, prazo limitado e limpeza verificável.
+Cliente Auth indisponível deve informar saída não confirmada, sem alegar
+logout. O caso foi reproduzido na ação real com transporte controlado
+e recebeu regressão focal. Nenhum novo schema, flag ou poder de acesso.
+
+Exigir CI, Preview e provas próprias deste candidato. Browser com transporte
+controlado e ensaio Auth/Postgres descartável são provas distintas; não
+representam troca real entre moradores ou validação humana.
+
 ## Reconciliação do U0 residual — 20/10/2026
 
 Estado: CANDIDATO NO PR #546; certificação do novo SHA pendente.
@@ -183,18 +200,18 @@ vigente. Esta atualização prevalece quando houver conflito de status.
 
 ## Estado atual da auditoria integral — U0.2
 
-**Uma fila, uma entrega principal:** revisar e fechar o PR draft #546 / pacote `codex/comun-product-audit-20261014` antes de iniciar novas implementações. Esta seção é o ponto de retomada; os registros abaixo preservam decisões e evidências históricas. A proposta de sequência consolida prioridades, sem revogar gates vigentes.
+**Uma fila, uma entrega principal:** #546 permanece estacionado nos cinco preflights da Escola. Por instrução explícita de 14/10, SOC-D08 foi implementado no #549 draft, derivado e delimitado, sem duplicar correções nem integrar enquanto houver gates bloqueados. A revisão final demonstrou e corrigiu também troca de identidade entre abas; conferir as provas do último head no #549. Esta seção é o ponto de retomada; os registros abaixo preservam decisões e evidências históricas. A proposta de sequência consolida prioridades, sem revogar gates vigentes.
 
 **Produto:** rede comunitária de vida cotidiana, ajuda mútua, organização de base, Feirinha (venda/troca/doação), ferramentas por pauta, observatórios, formação/Fábrica, cultura e memória. Todas compartilham busca, território, privacidade, continuidade e distribuição. Não é necessário transformar toda interação em pauta. Execução solo, sem orçamento adicional e sem participantes de teste disponíveis neste momento.
 
-| Estado               | Resultado / próximo passo                                                                                                                                                                  |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Inventário estático  | 240 páginas / 46 famílias; 52 arquivos de ações / 187 exports async. Não certifica funcionamento ou disponibilidade                                                                        |
-| Correções candidatas | Rascunho por aba com revisão para limpeza segura; tarefas públicas e contagens sem internas; controles administrativos explícitos; seleção e referência de prática protegidas na aplicação |
-| Verificação          | 1.486 unitários, lint completo, TypeScript e seis contratos de superfícies/coerência PASS; build final PASS                                                                                |
-| Bloqueio             | Browser E2E: Chromium indisponível (download truncado); 21 casos descobertos não contam como executados                                                                                    |
-| Escola               | Migration/manifest pinados intactos; ativação e atomicidade de referências no banco seguem pendentes                                                                                       |
-| Item ativo           | PR draft #546 publicado; conferir novo checkpoint Preview, transporte TLS e gates do SHA                                                                                                   |
+| Estado               | Resultado / próximo passo                                                                                                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Inventário estático  | 240 páginas / 46 famílias; 52 arquivos de ações / 187 exports async. Não certifica funcionamento ou disponibilidade                                                                              |
+| Correções candidatas | Rascunho por aba com revisão para limpeza segura; tarefas públicas e contagens sem internas; controles administrativos explícitos; seleção e referência de prática protegidas na aplicação       |
+| Verificação          | Baseline U0 e contagens históricas no relatório vinculado; provas SOC-D08 discriminadas por SHA ao final desta seção canônica e no #549. Não transferir aprovações.                              |
+| Bloqueio             | #546: cinco preflights recusam 20261006134804 da Escola. SOC-D08 também alcança essa pendência no P1G. O antigo bloqueio de browser não se aplica às provas posteriores de Chromium registradas. |
+| Escola               | Migration/manifest pinados intactos; ativação e atomicidade de referências no banco seguem pendentes                                                                                             |
+| Item ativo           | #549 draft, SOC-D08: mensagem privada, sessão atual, Sair real e entrada pelos cards. Dependência explícita do #546; integração exige gates de main e schema resolvidos, sem bypass.             |
 
 Fontes e limites estão no [checkpoint U0](../reports/current/comun-u0-product-inventory.md). O índice de ações não cobre automaticamente endpoints, `app/actions.ts` ou dependências transitivas; o arquivo central foi examinado apenas no rastreio focal.
 
@@ -1695,6 +1712,220 @@ neste mesmo documento.
 ### Regra antidesvio
 
 **Existe um roadmap canônico, este documento.** Concepções novas entram como princípio, hipótese, critério de aceite ou incremento ordenado de uma trilha existente, com link para evidência real. Não abrir módulos paralelos apenas por atratividade conceitual; não confundir possibilidade idealizada, código candidato, Preview e Production. A cada passada, registrar decisão, área afetada, responsável técnico se houver, prova/ausência de prova e próximo bloqueio único.
+
+### SOC-D08 — decisão de execução (14/10/2026)
+
+Estado: `CANDIDATO EM PR` nesta branch; não integrado nem disponível por este registro.
+Base escolhida: #546 `d39656f4732f4c873e2236186f7b5e6713f1c211`, descendente
+da main `8b0ba0d2c90295a6579e8e8808a9e765583e86c9`. Dependência explícita
+das proteções de storage/PWA preservadas no #546; não duplicá-las. Os cinco
+preflights da Escola permanecem bloqueantes e o #546 estacionado.
+
+**Retenção decidida antes da implementação:** somente mensagem e chave técnica
+de idempotência, em sessionStorage, por no máximo 30 minutos desde o salvamento
+explícito. Item e escopo opaco da conta/login validado no servidor delimitam a
+recuperação. Nunca guardar contato ou consentimento. Não há auto-save nem
+restauração automática; conteúdo potencialmente sensível exige escolha a cada
+salvamento/retomada. Expiração é conferida ao ler/recuperar; descarte tentado
+também em envio concluído, saída e incompatibilidade. Falha de remoção não pode
+tornar um rascunho incompatível visível. Não prometer apagamento físico quando
+o navegador negar acesso; a conta/login diferente continua impedida de recuperar.
+
+**Compromisso de menor escopo:** antes do login a mensagem fica só em memória.
+A pessoa pode selecioná-la para copiar manualmente antes de entrar. Não vincular
+rascunho anônimo à primeira conta que fizer login e não transportar texto ou
+contato na URL. Depois de autenticar, preencher contato e consentimento atuais.
+Isso reduz a recuperação anônima para proteger contra troca de identidade.
+
+Critérios: storage recusado não quebra digitação; retomada exige item/conta/login
+compatíveis e escolha explícita; contato vazio e consentimento desmarcado;
+logout real e troca de conta não recuperam texto anterior; servidor/RPC revalidam
+publicação, organização e permissões antes da escrita. Nenhuma tabela/flag nova.
+
+Prova da decisão SOC-D08: [relatório focal](../reports/current/comun-soc-d08-private-connection-continuity.md).
+O cenário de banco reutiliza literalmente o A5 canônico; a prova Auth descartável
+é separada da simulação de transporte usada pelo navegador. Testes sintéticos não
+certificam Auth real, RLS ou uso humano. A validade do rascunho é de 30 minutos;
+remoção física depende de acesso ao navegador e é tentada ao ler, descartar,
+sair ou concluir envio, sem promessa de apagamento quando o storage é recusado.
+Nenhuma tabela, migration, grant, RLS, flag ou indexação foi modificada.
+Próximo incremento único após esta jornada: descoberta pública contextual de
+conteúdos reais publicados dos módulos existentes, sem feed infinito ou catálogo paralelo.
+
+SOC-D08, saída honesta: finding reproduzido na action de logout — resposta Auth
+com erro era tratada como sucesso. Candidato passa a mostrar saída não confirmada
+na Conta, sem mudar escopo de signOut ou configuração Auth; retry depende do clique
+explícito. Critério: Sair real com sucesso limpa/encerra; erro mantém aviso e opção
+de nova tentativa, sem anunciar sessão encerrada. Ainda candidato, não integrado.
+
+SOC-D08 — checkpoint de prova e acesso (14/10/2026): no #549 empilhado sobre #546,
+`d1688c6eefacc440a9c76b6eabd81220d41e1f59` passou os dois domínios da run
+38659830598: 36 cenários renderizados (celular/desktop) e Auth/Postgres reais
+descartáveis separados. A prova Windows também passou 36/36, sem filtros de
+pageerror. Não é operação Production nem validação humana. Após essa prova,
+o candidato acrescenta links dos cards públicos às ações existentes, apenas
+com A1/A2/A5 habilitados e organização presente na projeção pública.
+
+Decisão de continuidade pública: transportar somente origem `feirinha` e modo
+de experiência allowlisted; retorno direto disponível à listagem ou organização.
+Contato, mensagem, sessão e query arbitrária não entram na URL. O diretório atual
+não possui filtros implementados; não inventar filtros nesta entrega. O histórico
+do navegador permanece nativo. Critério novo: card → autenticação real da action
+com transporte controlado → formulário vazio de contato/consentimento → retorno
+à Feirinha no mesmo modo; completar no novo SHA antes de chamar PASS.
+Estado continua `CANDIDATO EM PR`; não integrar com dependência/gates bloqueados.
+
+SOC-D08 — fechamento local: #549, funcional `71c4d803`, 40/40 casos de navegador
+PASS com transporte controlado (Windows), 47 focais, TypeScript e ESLint focal
+PASS. Cards → login → retorno legacy sem query privada, contato ou consentimento
+restaurados; teclado/Axe/overflow cobertos. O formulário prévio já possuía prova
+real Auth/Postgres separada em `d1688c6e`; exigir conclusão da run do candidato
+posterior, não transferir esse PASS. P1G chegou ao mesmo bloqueio da Escola
+(run 38660853963, migration 20261006134804 pendente); TLS corrigido sem reduzir
+controles. Estado final desta implementação permanece `CANDIDATO EM PR` (#549
+draft, dependente do #546). Integração, Production e validação humana não provadas.
+Próxima ação executável: reconciliar runs/Preview do head na descrição do #549;
+integração exige dependência resolvida e gates de main no SHA exato. A próxima
+entrega de produto continua descoberta pública contextual, ainda PLANEJADA.
+
+SOC-D08 — correção adicional demonstrada na revisão final: a aba A mantinha texto
+de A após outra aba entrar como B (regressão de navegador reproduzida). Dois
+controles de action também falharam antes da correção: formulário de outra conta
+e de login anterior eram aceitos. O ator continua exclusivamente getUser; os
+handles opacos do formulário apenas recusam estado stale, não concedem autoridade.
+
+Decisão: notificações efêmeras entre formulários usam BroadcastChannel com
+apenas tipo e hashes opacos de conta/login, nunca mensagem/contato/consentimento.
+São sinais não confiáveis de invalidação, não outro sistema de Auth. Troca de
+contexto apaga memória e solicita refresh dos Server Components existentes.
+Perda de foco/visibilidade esconde os campos e exige nova resposta servidor antes
+de mostrá-los; mantém mensagem em memória somente no mesmo login, mas zera
+contato/consentimento. Falha da atualização permanece fechada com Reabrir item.
+Mesmo sem canal, o servidor recusa contexto obsoleto antes de qualquer RPC; a
+resposta esconde e limpa os campos. Não há polling, endpoint/tabela nova, storage
+de identidade ou mudança do Auth. O fallback de foco foi ensaiado com eventos
+sintéticos; isso não certifica troca de janela física, Safari ou Firefox.
+
+Prova local ampliada SOC-D08 entre abas: 48/48 cenários PASS, incluindo recusa
+de envio stale quando o canal é negado e preservação da mensagem no mesmo login.
+57 focais, TypeScript, ESLint e build de fixture PASS. Isso continua prova sintética
+renderizada, separada de Auth/Postgres real. Exigir runs/Preview do novo head no
+#549 antes de atribuir PASS remoto. Sem integração enquanto Escola/gates bloqueados.
+
+SOC-D08, Sair entre abas: regressão demonstrou que o logout real na Conta de
+outra aba não limpava o formulário original. A limpeza existente passa a emitir
+apenas logout-requested, sem identidade/segredo/draft. Receptor oculta e limpa
+memória, tenta descarte e exige Reabrir para ler a sessão atual; não presume que
+signOut teve sucesso. O fluxo de erro/retry da Conta permanece. Critério: Sair
+real em B não deixa textarea de A exposto; canal recusado continua sem quebrar
+a interface e o servidor não aceita formulário stale. Sem novas capacidades
+de Auth, grants, flags, schema ou operações Production.
+
+Fechamento local do complemento Sair entre abas: 50/50 casos de navegador PASS,
+zero skipped/flaky no JSON. Mantidos casos anteriores, pageerror integral e
+timeouts originais. Unitários focais, ESLint e build da fixture PASS; exigir
+CI/Preview do novo head do #549. Permanecem NOT_RUN aparelhos reais, Safari/Firefox,
+leitor de tela humano, troca física de janelas e ensaio de compreensão.
+
+### SOC-D08 — estado de encerramento da passada
+
+`CANDIDATO EM PR` #549, remoto `da6495f651c554346313aaf5dbad62738ecb1ac4`.
+Entrega funcional: cards → login → contato/consentimento atuais → enviar →
+acompanhar/aceitar/recusar/retirar, com privacidade do rascunho, troca de conta e
+Sair entre abas. Local 50/50 navegador PASS; 1.540 unitários, Auth/Postgres real
+descartável, Full Surface e Security local-only PASS no SHA remoto. Preview Git
+READY e GitHub Preview success exatos. Isso não é disponibilidade Production.
+
+Bloqueios: P1G recusa schema da Escola, preservando dependência #546; navegador
+Linux encerrou o processo em dois casos diferentes, attempts 1 e 2 da run
+38663191350, ambos 49 PASS/1 FAIL. Sem terceira reexecução equivalente. GitHub
+final: 9 SUCCESS, 42 SKIPPED, 2 FAILURE, zero pending. COST-02 SKIPPED, não PASS.
+Não integrar, ativar flags ou abrir indexação. Causa raiz do encerramento nativo
+ainda não demonstrada; diagnóstico passivo preparado no relatório, sem atribuir
+OOM/GPU/produto por suposição. Evidências e hashes ZIP preservados.
+
+Checkpoint documental local, não enviado para provocar outra CI. Próxima ação
+executável: captura de exit code/signal/memória no mesmo browser/ambiente Linux,
+com observabilidade adicional; não repetir auditoria geral ou provas Auth verdes.
+Decisão do titular: nenhuma tarefa rotineira solicitada nesta rodada. Schema da
+Escola continua frente separada, sem autorização operacional presumida por este
+checkpoint. A próxima entrega de produto continua descoberta pública contextual
+de conteúdos reais autorizados; não iniciada enquanto esta unidade permanece
+bloqueada. NOT_RUN: aparelhos reais, Safari/Firefox, leitor de tela humano, troca
+física de janelas e compreensão. Não declarar V1 concluída.
+
+#### SOC-D08 — diagnóstico de continuidade em Linux (2026-10-14)
+
+PR #549 draft, head `adc9815a633ca360f37f163a5450b9c07330609e`: transporte
+Auth/Postgres real PASS; 49/50 UI Linux PASS e 1 FAIL por saída nativa SIGTRAP,
+confirmada com diagnóstico passivo. Causa raiz ainda não demonstrada. Preview
+exato READY/Deployment success; COST-02 SKIPPED. Escola/P1G continua bloqueado
+pela migration pendente. Sem integração ou alteração Production. Evidência e
+hashes no relatório SOC-D08; próxima etapa é stack/core mínimo, não rerun cego.
+
+#### SOC-D08 — mitigação validada, integração ainda bloqueada
+
+Head remoto `5de169eb1c3b90f006a6b077a34879da691fc905`: atualização fixada
+do Playwright 1.61.1 para 1.64.1, sem mudança de runtime do produto, passou
+duas execuções Linux consecutivas de 50/50 e Auth/Postgres real. Stacks SIGTRAP
+anteriores preservados; causa interna não declarada resolvida. Preview exato
+READY e Deployment success; COST-02 SKIPPED. Full Surface admin com um rerun
+dirigido após colisão de porta e Security Resilience ainda pendentes. Escola
+continua bloqueando P1G/#546; #549 permanece draft, sem merge/Production.
+
+Atualização SOC-D08: Security Resilience PASS no mesmo SHA 5de169eb; somente
+admin Full Surface segue PENDING. P1G/Escola continua FAIL/BLOCKED.
+
+Fechamento SOC-D08 no head remoto 5de169eb: Full Surface completo PASS,
+inclusive admin (35 testes, attempt 2 após colisão de porta; histórico e retry
+502 preservados). Merge ref tem tree idêntica ao head, conferida pela Git API.
+Checks finais: 13 SUCCESS, 42 SKIPPED, 1 FAILURE (P1G/Escola), zero PENDING.
+PR #549 continua CANDIDATO EM PR/draft, dependente do #546, sem reviews; não
+INTEGRADO nem PRODUÇÃO VERIFICADA. Descoberta pública contextual permanece
+o próximo incremento único PLANEJADO, sem abertura de nova fila.
+
+### SOC-D08-R1 — revisão crítica da Feirinha (15/10/2026)
+
+**DECISÃO / CANDIDATO EM PR #549, não aprovação humana.** Head revisado
+5de169eb, base #546 d39656f4, main 8b0ba0d2; 13 SUCCESS/42 SKIPPED/1 FAILURE
+(P1G/Escola), zero pending. Achado P2 R549-F01: aviso de storage indisponível
+calculado, mas não exibido antes da digitação. Correção mínima renderiza o aviso
+já existente; regressão browser red antes e 6 casos green depois, inclusive
+remoção legada recusada sem revelar campos antigos. Sem mudança de auth/schema,
+retenção ou permissões. Novo commit exige seus próprios checks/Preview; não
+transportar as aprovações anteriores. A revisão separa componentes/actions reais
+com transporte controlado de Auth/Postgres real em prova distinta; não equivale
+a E2E único ou validação humana. [Revisão e fontes](../reports/current/comun-soc-d08-review-and-discovery.md).
+
+### SOC-D09 — descoberta pública contextual (15/10/2026)
+
+**DECIDIDO COMO PRÓXIMO INCREMENTO ÚNICO / PLANEJADO.** Motivo: encontrar algo
+apreciável/útil sem conta nem obrigação coletiva. Consequência: seção pequena
+“Para conhecer com calma” no Explorar existente, até 2 itens por categoria
+Acervo/Rádio/Feirinha, máximo 6, com contexto/fonte/data/direitos e retorno, sem
+feed, ranking ou schema novo. Cultura e oferta têm valor sem contrapartida.
+
+Inventário por GET público e código: Acervo e Rádio exibem vazio; nenhuma oferta
+individual elegível confirmada; ações/território em preparação. Quatro cartões
+de comunidades não provam operação: helper pode retornar seed em erro. Leitores
+que colapsam falha em vazio não são contrato suficiente para a nova seção.
+Não inventar conteúdo nem chamar estado vazio de banco sem registros.
+
+Dependências: amostra real publicamente elegível com proveniência suficiente,
+readers ready/empty/unavailable sem seed e revalidação dos detalhes. CTA da
+Feirinha depende de #549/#546; acesso cultural não é dependência automática da
+migration Escola. Critério: omitir categorias vazias, isolar falha por fonte,
+nenhum dado privado/rascunho/retirado, abrir e retornar em celular/teclado sem
+login/escrita automática, pilot_noindex e gates preservados. Sem amostra e com
+essas lacunas, fica especificação concreta, sem criar outra pilha de código.
+
+Bloqueio Escola conferido no #542/921351c3: Subject Confirm Email Change já
+resolvido; faltam configuração CAPTCHA real LAB_ONLY/hostname/recibo, desafio
+humano e cinco fluxos, Gmail 0/6; backup fresco/restore/permit ainda não prontos.
+Próxima ação é a rotina existente do #542 por canal protegido, não novo
+procedimento nem busca de secrets nesta passada. Integração elegível futura:
+Escola/preflights → #546 e certificação pós-merge → #549 reconciliado/gates/review
+com certificação própria. Nenhum gate dispensado ou merge realizado.
 
 ### Incremento ordenado — continuidade da busca pública — 15/10/2026
 

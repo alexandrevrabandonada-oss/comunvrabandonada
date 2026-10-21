@@ -1,8 +1,16 @@
 "use server";
 
+import { solidarityConnectionHref } from "@/lib/comun-solidarity-connection-navigation";
+import {
+  resolveComunExperience,
+  withComunExperience,
+} from "@/lib/comun-experience";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getCommunitySession, requireCommunitySession } from "@/lib/community-auth";
+import {
+  getCommunitySession,
+  requireCommunitySession,
+} from "@/lib/community-auth";
 import { communityLoginHref } from "@/lib/community-return";
 import {
   COMUN_SOLIDARITY_CONTACT_CONSENT_VERSION,
@@ -14,12 +22,15 @@ import {
 } from "@/lib/comun-solidarity-private-connections";
 import {
   createSolidarityConnection,
+  solidarityConnectionFormIdentity,
+  solidarityConnectionDraftOwner,
   reviewSolidarityConnection,
   withdrawSolidarityConnection,
 } from "@/lib/server/comun-solidarity-private-connections";
 import { getPublicSolidarityOrganizationDetail } from "@/lib/server/comun-solidarity-organization-governance";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function value(formData: FormData, key: string) {
@@ -32,45 +43,121 @@ export async function createSolidarityConnectionAction(
 ): Promise<SolidarityConnectionActionState> {
   try {
     if (!isComunSolidarityPrivateConnectionsEnabled())
-      return { state: "error", message: "Esta conexão não está disponível agora." };
+      return {
+        state: "error",
+        message: "Esta conexão não está disponível agora.",
+      };
     const subjectKind = value(formData, "subject_kind");
     const subjectId = value(formData, "subject_id");
     const subjectSlug = value(formData, "subject_slug");
     const organizationSlug = value(formData, "organization_slug");
-    const organizationTerritoryId = value(formData, "organization_territory_id");
+    const organizationTerritoryId = value(
+      formData,
+      "organization_territory_id",
+    );
     const requestId = value(formData, "request_id");
-    const returnTo = subjectKind === "offer"
-      ? `/comun/cooperativas/${organizationSlug}/ofertas/${subjectSlug}/interesse`
-      : `/comun/cooperativas/${organizationSlug}/necessidades/${subjectSlug}/ajudar`;
-    if (!["offer", "need"].includes(subjectKind) || !UUID.test(subjectId) ||
-      !UUID.test(organizationTerritoryId) || !UUID.test(requestId) ||
-      !SLUG.test(subjectSlug) || !SLUG.test(organizationSlug))
-      return { state: "error", message: "Este item não está disponível para conexão." };
-
-    const detail = await getPublicSolidarityOrganizationDetail(organizationSlug);
-    const subject = subjectKind === "offer"
-      ? detail?.offers.find((item) => item.id === subjectId && item.slug === subjectSlug)
-      : detail?.needs.find((item) => item.id === subjectId && item.slug === subjectSlug && item.organization);
-    if (!detail || detail.organization.territoryId !== organizationTerritoryId || !subject)
-      return { state: "error", message: "Este item não está disponível para conexão." };
-
-    const message = normalizeSolidarityConnectionMessage(formData.get("connection_message"));
-    if (!message)
-      return { state: "error", field: "message", message: "Escreva entre 10 e 600 caracteres. Coloque seu contato no campo protegido abaixo." };
-    const contact = normalizeSolidarityProtectedContact(formData.get("protected_contact"));
-    if (!contact)
-      return { state: "error", field: "contact", message: "Informe um contato válido. Não envie CPF, documento, senha ou endereço residencial." };
-    if (formData.get("consent_to_contact") !== "yes")
-      return { state: "error", field: "consent", message: "Confirme a autorização específica para esta conexão." };
+    const experience = resolveComunExperience(value(formData, "experiencia"));
+    const returnTo = solidarityConnectionHref(
+      subjectKind === "offer" ? "offer" : "need",
+      organizationSlug,
+      subjectSlug,
+      { experiencia: experience, origem: value(formData, "journey_origin") },
+    );
+    if (
+      !["offer", "need"].includes(subjectKind) ||
+      !UUID.test(subjectId) ||
+      !UUID.test(organizationTerritoryId) ||
+      !UUID.test(requestId) ||
+      !SLUG.test(subjectSlug) ||
+      !SLUG.test(organizationSlug)
+    )
+      return {
+        state: "error",
+        message: "Este item não está disponível para conexão.",
+      };
 
     const session = await getCommunitySession();
     if (!session?.user)
       return {
         state: "auth_required",
-        message: "Entre na sua conta para enviar. Seu texto continua apenas neste aparelho.",
+        message:
+          "Entre na sua conta para enviar. Antes de sair, copie o texto se quiser levá-lo; não garantimos sua recuperação após entrar.",
         loginHref: communityLoginHref(returnTo),
       };
-    await createSolidarityConnection({
+    // This is a stale-form check, never a client-selected actor/authorization.
+    if (
+      value(formData, "form_context") !==
+        solidarityConnectionFormIdentity(session.user) ||
+      value(formData, "login_context") !==
+        (solidarityConnectionDraftOwner(session.user) ?? "")
+    )
+      return {
+        state: "error",
+        sessionChanged: true,
+        message:
+          "Sua sessão mudou. Reabra este item antes de enviar e confirme novamente o contato e a autorização.",
+      };
+    if (
+      [
+        "suspended",
+        "deactivation_requested",
+        "deactivated",
+        "archived",
+      ].includes(session.profile?.status)
+    )
+      return { state: "error", message: "Seu acesso não permite esta ação." };
+
+    const detail =
+      await getPublicSolidarityOrganizationDetail(organizationSlug);
+    const subject =
+      subjectKind === "offer"
+        ? detail?.offers.find(
+            (item) => item.id === subjectId && item.slug === subjectSlug,
+          )
+        : detail?.needs.find(
+            (item) =>
+              item.id === subjectId &&
+              item.slug === subjectSlug &&
+              item.organization,
+          );
+    if (
+      !detail ||
+      detail.organization.territoryId !== organizationTerritoryId ||
+      !subject
+    )
+      return {
+        state: "error",
+        message: "Este item não está disponível para conexão.",
+      };
+
+    const message = normalizeSolidarityConnectionMessage(
+      formData.get("connection_message"),
+    );
+    if (!message)
+      return {
+        state: "error",
+        field: "message",
+        message:
+          "Escreva entre 10 e 600 caracteres. Coloque seu contato no campo protegido abaixo.",
+      };
+    const contact = normalizeSolidarityProtectedContact(
+      formData.get("protected_contact"),
+    );
+    if (!contact)
+      return {
+        state: "error",
+        field: "contact",
+        message:
+          "Informe um contato válido. Não envie CPF, documento, senha ou endereço residencial.",
+      };
+    if (formData.get("consent_to_contact") !== "yes")
+      return {
+        state: "error",
+        field: "consent",
+        message: "Confirme a autorização específica para esta conexão.",
+      };
+
+    const result = await createSolidarityConnection({
       requestId,
       subjectKind: subjectKind as "offer" | "need",
       subjectId,
@@ -79,10 +166,21 @@ export async function createSolidarityConnectionAction(
       contactPrivate: contact,
       consentVersion: COMUN_SOLIDARITY_CONTACT_CONSENT_VERSION,
     });
+    const row = Array.isArray(result) ? result[0] : null;
+    if (!row || !["pending", "accepted"].includes(row.connection_state))
+      return {
+        state: "error",
+        message:
+          "Esta solicitação já foi encerrada ou não pôde ser confirmada. Consulte Minha participação antes de tentar outra vez.",
+      };
     revalidatePath("/comun/minha-participacao");
     return {
       state: "success",
-      href: "/comun/minha-participacao?secao=acompanhando",
+      href: withComunExperience(
+        "/comun/minha-participacao?secao=acompanhando",
+        experience,
+      ),
+      replayed: row.idempotent === true,
     };
   } catch (error) {
     return { state: "error", message: safeSolidarityConnectionError(error) };
@@ -90,16 +188,24 @@ export async function createSolidarityConnectionAction(
 }
 
 export async function reviewSolidarityConnectionAction(formData: FormData) {
-  if (!isComunSolidarityPrivateConnectionsEnabled()) redirect("/comun/cooperativas");
+  if (!isComunSolidarityPrivateConnectionsEnabled())
+    redirect("/comun/cooperativas");
   const organizationSlug = value(formData, "organization_slug");
   const organizationTerritoryId = value(formData, "organization_territory_id");
   const interestId = value(formData, "interest_id");
   const subjectKind = value(formData, "subject_kind");
   const decision = value(formData, "decision");
-  if (!SLUG.test(organizationSlug) || !UUID.test(organizationTerritoryId) ||
-    !UUID.test(interestId) || !["offer", "need"].includes(subjectKind) ||
-    !["accept", "reject"].includes(decision)) redirect("/comun/cooperativas");
-  const { user } = await requireCommunitySession(`/comun/cooperativas/${organizationSlug}`);
+  if (
+    !SLUG.test(organizationSlug) ||
+    !UUID.test(organizationTerritoryId) ||
+    !UUID.test(interestId) ||
+    !["offer", "need"].includes(subjectKind) ||
+    !["accept", "reject"].includes(decision)
+  )
+    redirect("/comun/cooperativas");
+  const { user } = await requireCommunitySession(
+    `/comun/cooperativas/${organizationSlug}`,
+  );
   try {
     await reviewSolidarityConnection({
       subjectKind: subjectKind as "offer" | "need",
@@ -113,16 +219,21 @@ export async function reviewSolidarityConnectionAction(formData: FormData) {
   }
   revalidatePath(`/comun/cooperativas/${organizationSlug}`);
   revalidatePath("/comun/minha-participacao");
-  redirect(`/comun/cooperativas/${organizationSlug}?conexao=${decision === "accept" ? "aceita" : "recusada"}`);
+  redirect(
+    `/comun/cooperativas/${organizationSlug}?conexao=${decision === "accept" ? "aceita" : "recusada"}`,
+  );
 }
 
 export async function withdrawSolidarityConnectionAction(formData: FormData) {
-  if (!isComunSolidarityPrivateConnectionsEnabled()) redirect("/comun/minha-participacao");
+  if (!isComunSolidarityPrivateConnectionsEnabled())
+    redirect("/comun/minha-participacao");
   const interestId = value(formData, "interest_id");
   const subjectKind = value(formData, "subject_kind");
   if (!UUID.test(interestId) || !["offer", "need"].includes(subjectKind))
     redirect("/comun/minha-participacao");
-  const { user } = await requireCommunitySession("/comun/minha-participacao?secao=acompanhando");
+  const { user } = await requireCommunitySession(
+    "/comun/minha-participacao?secao=acompanhando",
+  );
   try {
     await withdrawSolidarityConnection({
       subjectKind: subjectKind as "offer" | "need",
