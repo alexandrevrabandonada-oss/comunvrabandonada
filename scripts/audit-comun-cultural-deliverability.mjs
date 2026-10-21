@@ -17,6 +17,8 @@ const { Client } = pg;
 export const expectedCulturalTables = [
   "comun_archive_items",
   "comun_archive_assets",
+  "comun_archive_submissions",
+  "comun_archive_submission_assets",
   "comun_archive_agents",
   "comun_archive_artworks",
   "comun_archive_artwork_credits",
@@ -31,6 +33,44 @@ export const expectedCulturalTables = [
 const bucketIdsSql = expectedCulturalBuckets
   .map((bucket) => `'${bucket.id}'`)
   .join(",");
+
+// Private originals belong to a submission before editorial materialization.
+// Only a real submission link can account for an asset without an archive item.
+export const fixedAssetOwnershipSql = `
+select jsonb_build_object(
+  'itemlessRows', count(*) filter (where item.id is null)::int,
+  'submissionOwnedRows', count(*) filter (where item.id is null and submission_owned)::int,
+  'orphanRows', count(*) filter (where item.id is null and not submission_owned)::int
+)
+from public.comun_archive_assets asset
+left join public.comun_archive_items item on item.id = asset.archive_item_id
+cross join lateral (
+  select (
+    asset.archive_item_id is null
+    and asset.asset_role = 'original'
+    and asset.bucket_scope = 'private_original'
+    and asset.public_url is null
+    and exists (
+      select 1
+      from public.comun_archive_submission_assets link
+      join public.comun_archive_submissions submission on submission.id = link.submission_id
+      where link.archive_asset_id = asset.id and link.role = 'original'
+    )
+  ) as submission_owned
+) ownership
+`;
+
+export function validateAssetOwnership(input) {
+  const keys = ["itemlessRows", "submissionOwnedRows", "orphanRows"];
+  if (
+    !input ||
+    keys.some((key) => !Number.isSafeInteger(input[key]) || input[key] < 0) ||
+    input.itemlessRows !== input.submissionOwnedRows + input.orphanRows
+  ) {
+    throw new Error("COMUN_CULTURAL_ASSET_OWNERSHIP_INVALID");
+  }
+  return input;
+}
 
 export const fixedCulturalAuditSql = `
 select jsonb_build_object(
@@ -181,12 +221,7 @@ select jsonb_build_object(
         limit 2
       ) candidate
     ),
-    'orphanAssetRows', (
-      select count(*)::int
-      from public.comun_archive_assets asset
-      left join public.comun_archive_items item on item.id = asset.archive_item_id
-      where item.id is null
-    )
+    'assetOwnership', (${fixedAssetOwnershipSql})
   ),
   'content', jsonb_build_object(
     'archive', jsonb_build_object(
@@ -453,6 +488,9 @@ export async function enrichCulturalMetricsForRepair(input, fetcher = fetch) {
 }
 
 export function sanitizeCulturalMetrics(input) {
+  if (input?.privacy?.assetOwnership !== undefined) {
+    validateAssetOwnership(input.privacy.assetOwnership);
+  }
   const target = {
     verified: input?.target?.verified === true,
     evidence: "allowlisted_project_ref_matches_database_target",
@@ -488,7 +526,16 @@ export function sanitizeCulturalMetrics(input) {
     publicImageAssetsWithoutAltText: boundedCount(
       input?.privacy?.publicImageAssetsWithoutAltText,
     ),
-    orphanAssetRows: boundedCount(input?.privacy?.orphanAssetRows),
+    orphanAssetRows: boundedCount(
+      input?.privacy?.assetOwnership?.orphanRows ??
+        input?.privacy?.orphanAssetRows,
+    ),
+    itemlessAssetRows: boundedCount(
+      input?.privacy?.assetOwnership?.itemlessRows,
+    ),
+    submissionOwnedAssetRows: boundedCount(
+      input?.privacy?.assetOwnership?.submissionOwnedRows,
+    ),
     altCandidateFingerprint:
       typeof input?.repairEvidence?.altCandidateFingerprint === "string"
         ? input.repairEvidence.altCandidateFingerprint
@@ -628,6 +675,8 @@ export function renderCulturalAuditMarkdown(artifact) {
 - Imagens publicadas sem texto alternativo: ${artifact.privacy.publicImageAssetsWithoutAltText}
 - Originais privados com URL pública: ${artifact.privacy.privateAssetsWithPublicUrl}
 - Assets órfãos: ${artifact.privacy.orphanAssetRows}
+- Assets sem item: ${artifact.privacy.itemlessAssetRows}
+- Originais privados vinculados a submissões: ${artifact.privacy.submissionOwnedAssetRows}
 - Acervo — candidatos potenciais: ${artifact.content.archive.potentialRealCandidates}
 - Rádio — candidatos potenciais: ${artifact.content.communityRadio.potentialRealCandidates}
 - Arte — candidatos potenciais: ${artifact.content.territorialArt.potentialRealCandidates}

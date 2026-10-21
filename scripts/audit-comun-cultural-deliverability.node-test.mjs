@@ -9,6 +9,8 @@ import {
   assertCulturalAuditReadOnly,
   assertSanitizedCulturalArtifact,
   buildCulturalAuditFailure,
+  fixedAssetOwnershipSql,
+  validateAssetOwnership,
   fetchPublicImageSha256,
   fixedCulturalAuditSql,
   sanitizeCulturalMetrics,
@@ -202,8 +204,8 @@ test("CLI target refusal writes sanitized JSON and markdown and still exits 1", 
 const greenInput = {
   target: { verified: true },
   schema: {
-    expectedTables: 11,
-    presentTables: 11,
+    expectedTables: 13,
+    presentTables: 13,
     rlsDisabled: 0,
     dangerousPublicGrants: 0,
   },
@@ -387,4 +389,71 @@ test("fingerprint público aceita somente imagem HTTPS limitada", async () => {
       ),
     /RESPONSE_INVALID/,
   );
+});
+
+test("submission ownership counts stay sanitized and genuine orphans still block", () => {
+  for (const [submissionOwnedRows, orphanRows] of [
+    [2, 0],
+    [1, 1],
+    [0, 2],
+  ]) {
+    const artifact = sanitizeCulturalMetrics({
+      ...greenInput,
+      privacy: {
+        ...greenInput.privacy,
+        assetOwnership: {
+          itemlessRows: 2,
+          submissionOwnedRows,
+          orphanRows,
+          ignored: "secret-canary",
+        },
+      },
+    });
+    assert.equal(artifact.privacy.orphanAssetRows, orphanRows);
+    assert.equal(artifact.privacy.itemlessAssetRows, 2);
+    assert.equal(
+      artifact.privacy.submissionOwnedAssetRows,
+      submissionOwnedRows,
+    );
+    assert.equal(artifact.structuralFindings, orphanRows);
+    assert.equal(
+      artifact.result,
+      orphanRows
+        ? "COMUN_ARCHIVE_RADIO_ART_BLOCKED_REMOTE_STATE"
+        : "COMUN_ARCHIVE_RADIO_ART_READY_FOR_REAL_CONTENT_REHEARSAL",
+    );
+    assert.equal(artifact.realContentAuthorizationProven, false);
+    assert.doesNotMatch(JSON.stringify(artifact), /secret-canary/);
+    assert.equal(assertSanitizedCulturalArtifact(artifact), true);
+  }
+  const legacy = sanitizeCulturalMetrics({
+    ...greenInput,
+    privacy: { ...greenInput.privacy, orphanAssetRows: 2 },
+  });
+  assert.equal(legacy.result, "COMUN_ARCHIVE_RADIO_ART_BLOCKED_REMOTE_STATE");
+});
+
+test("missing, inconsistent or invalid ownership counters fail closed", () => {
+  for (const input of [
+    null,
+    {},
+    { itemlessRows: 2, submissionOwnedRows: 3, orphanRows: 0 },
+    { itemlessRows: 2, submissionOwnedRows: 2 },
+    { itemlessRows: 0, submissionOwnedRows: -1, orphanRows: 1 },
+    { itemlessRows: "2", submissionOwnedRows: 2, orphanRows: 0 },
+  ]) {
+    assert.throws(
+      () => validateAssetOwnership(input),
+      /ASSET_OWNERSHIP_INVALID/,
+    );
+    assert.throws(
+      () =>
+        sanitizeCulturalMetrics({
+          ...greenInput,
+          privacy: { assetOwnership: input },
+        }),
+      /ASSET_OWNERSHIP_INVALID/,
+    );
+  }
+  assert.equal(assertCulturalAuditReadOnly(fixedAssetOwnershipSql), true);
 });
