@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
+import { clearPautaDraftRevision } from "@/lib/comun-pauta-session-draft";
 
-export function ComunPautaCreationDraftClear() {
+export function ComunPautaCreationDraftClear({
+  revision,
+}: {
+  revision?: string;
+}) {
   useEffect(() => {
-    sessionStorage.removeItem("comun:pauta-low-friction-draft:v1");
-  }, []);
+    clearPautaDraftRevision(() => window.sessionStorage, revision ?? "");
+  }, [revision]);
   return null;
 }

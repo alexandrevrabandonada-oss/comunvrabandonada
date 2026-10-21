@@ -1,0 +1,89 @@
+name: COMUN SOC-D08 private connection continuity
+on:
+  pull_request:
+    paths:
+      - "components/comun-solidarity-*"
+      - "components/comun-pwa-runtime.tsx"
+      - "app/comun/cooperativas/**"
+      - "app/comun/minha-participacao/page.tsx"
+      - "lib/comun-solidarity-connection-*"
+      - "lib/comun-solidarity-private-connections*"
+      - "lib/server/comun-solidarity-private-connections.ts"
+      - "tests/solidarity-continuity/**"
+      - "playwright.solidarity-continuity.config.ts"
+      - "scripts/economy/prove-soc-d08-disposable.mjs"
+      - "scripts/ci/run-soc-d08-browser-proof*"
+      - "scripts/ci/collect-soc-d08-native-stack*"
+      - "scripts/ci/probe-soc-d08-native-baseline.mjs"
+      - ".github/workflows/comun-soc-d08-continuity.yml"
+permissions: { contents: read }
+jobs:
+  actual-ui-controlled-transport:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          {
+            ref: "${{ github.event.pull_request.head.sha }}",
+            persist-credentials: false,
+          }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:unit
+      - run: npm run typecheck
+      - run: node tests/solidarity-continuity/run-fixture.mjs build
+      - run: node --test scripts/ci/run-soc-d08-browser-proof.node-test.mjs
+      - name: Enable native crash evidence on the disposable runner
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gdb
+          install -d -m 700 "$RUNNER_TEMP/comun-soc-d08-cores"
+          sudo sysctl -w "kernel.core_pattern=$RUNNER_TEMP/comun-soc-d08-cores/core.%p"
+      - name: Static HTML native control without product or Auth
+        env: { DEBUG: "pw:browser" }
+        run: |
+          ulimit -c 2097152
+          node scripts/ci/probe-soc-d08-native-baseline.mjs
+      - name: Run unchanged browser scenarios with bounded core capture
+        run: |
+          ulimit -c 2097152
+          node scripts/ci/run-soc-d08-browser-proof.mjs
+      - name: Extract native stack without memory or frame arguments
+        if: always()
+        run: node scripts/ci/collect-soc-d08-native-stack.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          {
+            name: soc-d08-synthetic-ui,
+            path: "test-results/solidarity-continuity\n.ci-artifacts/soc-d08-native",
+            retention-days: 7,
+          }
+  real-disposable-auth-postgres:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env: { COMUN_SOC_D08_DISPOSABLE: OWNED_RUNNER_ONLY }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          {
+            ref: "${{ github.event.pull_request.head.sha }}",
+            persist-credentials: false,
+          }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18.0, cache: npm }
+      - uses: supabase/setup-cli@v1
+        with: { version: 2.114.0 }
+      - run: npm ci --ignore-scripts
+      - run: node scripts/economy/prove-soc-d08-disposable.mjs
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          {
+            name: soc-d08-disposable-sanitized,
+            path: .ci-artifacts/soc-d08/disposable.json,
+            retention-days: 14,
+          }

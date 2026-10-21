@@ -135,6 +135,56 @@ test("Pautas permite escrever antes do login e preserva a intenção sem auto-su
   await expectNoOverflow(page);
 });
 
+test("rascunho de pauta conserva a última edição após recarregar e respeita texto apagado", async ({
+  page,
+}) => {
+  await page.goto("/comun/pautas/nova");
+  const question = page.getByLabel("O que você quer entender ou mudar?");
+  await question.fill("Como organizar uma atividade no bairro?");
+  await page.reload();
+  await expect(question).toHaveValue("Como organizar uma atividade no bairro?");
+  await question.fill("Como preparar uma reunião comunitária?");
+  await page.reload();
+  await expect(question).toHaveValue("Como preparar uma reunião comunitária?");
+  await question.fill("");
+  await page.reload();
+  await expect(question).toHaveValue("");
+  await expectNoOverflow(page);
+});
+
+test("storage recusado preserva texto na tela e oferece saída explícita", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "sessionStorage", {
+      get() {
+        throw new DOMException("Storage denied", "SecurityError");
+      },
+    });
+  });
+  await page.goto("/comun/pautas/nova");
+  const question = page.getByLabel("O que você quer entender ou mudar?");
+  await question.fill("Como organizar uma atividade no bairro?");
+  await page.getByRole("button", { name: "Entrar e continuar" }).click();
+  await expect(page).toHaveURL(/\/comun\/pautas\/nova$/);
+  await expect(question).toHaveValue("Como organizar uma atividade no bairro?");
+  const recoveryAlert = page
+    .locator("form")
+    .filter({ has: question })
+    .getByRole("alert");
+  await expect(recoveryAlert).toHaveCount(1);
+  await expect(recoveryAlert).toContainText("Copie sua questão");
+  await expect(
+    page.getByRole("link", {
+      name: "Já copiei o texto; entrar sem restaurá-lo",
+    }),
+  ).toHaveAttribute("href", /\/comun\/entrar\?/);
+  expect(errors).toEqual([]);
+  await expectNoOverflow(page);
+});
+
 test("navegação canônica não promove objetos internos como portas principais", async ({
   page,
 }) => {
@@ -223,7 +273,9 @@ test("alias, filtros, retorno e rollback legado preservam contexto", async ({
     page.locator('[data-comun-legacy-boundary="active"]'),
   ).toBeVisible();
   await page.goto("/comun");
-  await expect(page.locator('[data-comun-app-v2-page="home"]')).toBeVisible();
+  await expect(
+    page.getByRole("main").locator('[data-comun-app-v2-page="home"]'),
+  ).toBeVisible();
 });
 
 test("teclado, redução de movimento e zoom continuam funcionais", async ({
@@ -231,6 +283,10 @@ test("teclado, redução de movimento e zoom continuam funcionais", async ({
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/comun");
+  await expect(
+    page.getByRole("main").locator('[data-comun-app-v2-page="home"]'),
+  ).toBeVisible();
+  await page.waitForLoadState("networkidle");
   await page.keyboard.press("Tab");
   await expect(page.locator(":focus-visible")).toBeVisible();
   const motion = await page.evaluate(() => {

@@ -1,3 +1,4 @@
+import type { SearchAvailability } from "./public-search-context";
 import { performance } from "node:perf_hooks";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { comunCanonicalRoutes } from "@/lib/comun-canonical-routes";
@@ -15,9 +16,14 @@ export async function unifiedPublicSearch(
   filter?: { type?: string; pautaId?: string },
 ) {
   const started = performance.now(),
-    q = term.trim().slice(0, 80);
+    q = term.trim().slice(0, 120);
   if (q.length < 2) return { results: [] as SearchResult[], durationMs: 0 };
-  const db = createServiceSupabaseClient();
+  let db: ReturnType<typeof createServiceSupabaseClient>;
+  try {
+    db = createServiceSupabaseClient();
+  } catch {
+    db = null;
+  }
   const toolResults: SearchResult[] = /mapa|calçada|calcada/i.test(q)
     ? [
         {
@@ -35,6 +41,10 @@ export async function unifiedPublicSearch(
     return {
       results: filter?.type && filter.type !== "ferramenta" ? [] : toolResults,
       durationMs: 0,
+      availability: (toolResults.length &&
+      (!filter?.type || filter.type === "ferramenta")
+        ? "partial"
+        : "unavailable") as SearchAvailability,
     };
   const clean = q.replace(/[%_,()]/g, " "),
     like = `%${clean}%`;
@@ -50,80 +60,132 @@ export async function unifiedPublicSearch(
     programs,
     episodes,
     collections,
-  ] = await Promise.all([
-    db
-      .from("comun_communities")
-      .select("slug,name,short_description,updated_at")
-      .eq("is_active", true)
-      .or(`name.ilike.${like},short_description.ilike.${like}`)
-      .limit(12),
-    db
-      .from("comun_pauta_spaces")
-      .select("id,slug,title,summary,updated_at")
-      .eq("visibility", "public")
-      .or(`title.ilike.${like},summary.ilike.${like}`)
-      .limit(12),
-    db
-      .from("comun_hub_territories")
-      .select("id,slug,name,public_summary,updated_at")
-      .eq("visibility", "public")
-      .neq("status", "archived")
-      .or(`name.ilike.${like},public_summary.ilike.${like}`)
-      .limit(12),
-    db
-      .from("comun_mobilization_actions")
-      .select("slug,title,objective_public,updated_at,pauta_id")
-      .eq("visibility", "public")
-      .or(`title.ilike.${like},objective_public.ilike.${like}`)
-      .limit(12),
-    db
-      .from("comun_hub_results")
-      .select("slug,title,public_summary,updated_at,pauta_id")
-      .eq("visibility", "public")
-      .or(`title.ilike.${like},public_summary.ilike.${like}`)
-      .limit(12),
-    db
-      .from("comun_pauta_dossier_publication_snapshots")
-      .select("public_slug,public_title,public_summary,published_at")
-      .eq("status", "active")
-      .or(`public_title.ilike.${like},public_summary.ilike.${like}`)
-      .limit(12),
-    db
-      .from("comun_archive_items")
-      .select("slug,title,summary,item_type,updated_at")
-      .eq("status", "published")
-      .eq("visibility", "public")
-      .or(`title.ilike.${like},summary.ilike.${like}`)
-      .limit(12),
-    db
-      .from("comun_archive_artworks")
-      .select(
-        "title_public,description_public,updated_at,archive:comun_archive_items!inner(slug,status,visibility)",
-      )
-      .eq("publication_status", "published")
-      .eq("archive.status", "published")
-      .eq("archive.visibility", "public")
-      .or(`title_public.ilike.${like},description_public.ilike.${like}`)
-      .limit(12),
-    db
-      .from("comun_radio_programs")
-      .select("slug_public,title_public,description_public,updated_at")
-      .eq("publication_status", "published")
-      .or(`title_public.ilike.${like},description_public.ilike.${like}`)
-      .limit(12),
-    db
-      .from("comun_radio_episodes")
-      .select("slug_public,title_public,summary_public,updated_at,pauta_id")
-      .eq("publication_status", "published")
-      .or(`title_public.ilike.${like},summary_public.ilike.${like}`)
-      .limit(12),
-    db
-      .from("comun_archive_collections")
-      .select("slug,title,description,updated_at")
-      .eq("status", "published")
-      .or(`title.ilike.${like},description.ilike.${like}`)
-      .limit(12),
-  ]);
+  ] = await Promise.all(
+    [
+      () =>
+        db
+          .from("comun_communities")
+          .select("slug,name,short_description,updated_at")
+          .eq("is_active", true)
+          .or(`name.ilike.${like},short_description.ilike.${like}`)
+          .limit(12),
+      () =>
+        db
+          .from("comun_pauta_spaces")
+          .select("id,slug,title,summary,updated_at")
+          .eq("visibility", "public")
+          .or(`title.ilike.${like},summary.ilike.${like}`)
+          .limit(12),
+      () =>
+        db
+          .from("comun_hub_territories")
+          .select("id,slug,name,public_summary,updated_at")
+          .eq("visibility", "public")
+          .neq("status", "archived")
+          .or(`name.ilike.${like},public_summary.ilike.${like}`)
+          .limit(12),
+      () =>
+        db
+          .from("comun_mobilization_actions")
+          .select("slug,title,objective_public,updated_at,pauta_id")
+          .eq("visibility", "public")
+          .or(`title.ilike.${like},objective_public.ilike.${like}`)
+          .limit(12),
+      () =>
+        db
+          .from("comun_hub_results")
+          .select("slug,title,public_summary,updated_at,pauta_id")
+          .eq("visibility", "public")
+          .or(`title.ilike.${like},public_summary.ilike.${like}`)
+          .limit(12),
+      () =>
+        db
+          .from("comun_pauta_dossier_publication_snapshots")
+          .select("public_slug,public_title,public_summary,published_at")
+          .eq("status", "active")
+          .or(`public_title.ilike.${like},public_summary.ilike.${like}`)
+          .limit(12),
+      () =>
+        db
+          .from("comun_archive_items")
+          .select("slug,title,summary,item_type,updated_at")
+          .eq("status", "published")
+          .eq("visibility", "public")
+          .or(`title.ilike.${like},summary.ilike.${like}`)
+          .limit(12),
+      () =>
+        db
+          .from("comun_archive_artworks")
+          .select(
+            "title_public,description_public,updated_at,archive:comun_archive_items!inner(slug,status,visibility)",
+          )
+          .eq("publication_status", "published")
+          .eq("archive.status", "published")
+          .eq("archive.visibility", "public")
+          .or(`title_public.ilike.${like},description_public.ilike.${like}`)
+          .limit(12),
+      () =>
+        db
+          .from("comun_radio_programs")
+          .select("slug_public,title_public,description_public,updated_at")
+          .eq("publication_status", "published")
+          .or(`title_public.ilike.${like},description_public.ilike.${like}`)
+          .limit(12),
+      () =>
+        db
+          .from("comun_radio_episodes")
+          .select("slug_public,title_public,summary_public,updated_at,pauta_id")
+          .eq("publication_status", "published")
+          .or(`title_public.ilike.${like},summary_public.ilike.${like}`)
+          .limit(12),
+      () =>
+        db
+          .from("comun_archive_collections")
+          .select("slug,title,description,updated_at")
+          .eq("status", "published")
+          .or(`title.ilike.${like},description.ilike.${like}`)
+          .limit(12),
+    ].map((query) =>
+      Promise.resolve()
+        .then<{ data: unknown; error: unknown }>(query)
+        .then((result) =>
+          Array.isArray(result.data) && !result.error
+            ? { data: result.data, error: null }
+            : { data: [], error: true },
+        )
+        .catch(() => ({ data: [], error: true })),
+    ),
+  );
+  const sourceTypes = [
+    "comunidade",
+    "pauta",
+    "território",
+    "ação",
+    "resultado",
+    "documento",
+    "memória",
+    "obra",
+    "programa",
+    "episódio",
+    "coleção",
+  ];
+  const responses = [
+    communities,
+    pautas,
+    territories,
+    actions,
+    results,
+    dossiers,
+    archive,
+    art,
+    programs,
+    episodes,
+    collections,
+  ];
+  const relevant = responses.filter(
+    (_, i) => !filter?.type || filter.type === sourceTypes[i],
+  );
+  const failed = relevant.filter((r) => r.error).length;
   const score = (title: string, pautaId?: string | null) =>
     title.toLowerCase() === clean.toLowerCase()
       ? 100
@@ -244,5 +306,12 @@ export async function unifiedPublicSearch(
   return {
     results: rows.slice(0, 50),
     durationMs: Math.round(performance.now() - started),
+    availability: (failed
+      ? failed === relevant.length && !rows.length
+        ? "unavailable"
+        : "partial"
+      : rows.length
+        ? "ready"
+        : "empty") as SearchAvailability,
   };
 }

@@ -1,4 +1,9 @@
 import { DiscoveryReturn } from "@/components/comun-public-discovery";
+import { solidarityConnectionHref } from "@/lib/comun-solidarity-connection-navigation";
+import {
+  resolveComunExperience,
+  withComunExperience,
+} from "@/lib/comun-experience";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ComunShell, Section } from "@/components/comun-shell";
@@ -101,6 +106,7 @@ export default async function SolidarityOrganizationPage({
     searchParams,
     getCommunitySession(),
   ]);
+  const experience = resolveComunExperience(query.experiencia);
   const detail = await getPublicSolidarityOrganizationDetail(slug);
   if (!detail) notFound();
   const requested = query.oferta ?? query.necessidade;
@@ -150,7 +156,7 @@ export default async function SolidarityOrganizationPage({
       <header className="border-b-2 border-comun-black bg-comun-yellow px-4 py-9 text-comun-black sm:px-8">
         <Link
           className="text-sm font-black underline"
-          href="/comun/cooperativas"
+          href={withComunExperience("/comun/cooperativas", experience)}
         >
           ← Feirinha
         </Link>
@@ -236,7 +242,9 @@ export default async function SolidarityOrganizationPage({
                 }
                 interestHref={
                   privateConnectionsEnabled
-                    ? `/comun/cooperativas/${slug}/ofertas/${offer.slug}/interesse`
+                    ? solidarityConnectionHref("offer", slug, offer.slug, {
+                        experiencia: experience,
+                      })
                     : null
                 }
               />
@@ -257,7 +265,9 @@ export default async function SolidarityOrganizationPage({
                 }
                 helpHref={
                   privateConnectionsEnabled && need.organization
-                    ? `/comun/cooperativas/${slug}/necessidades/${need.slug}/ajudar`
+                    ? solidarityConnectionHref("need", slug, need.slug, {
+                        experiencia: experience,
+                      })
                     : null
                 }
               />

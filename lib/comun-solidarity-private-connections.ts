@@ -54,13 +54,19 @@ export type PrivateSolidarityOrganizationConnectionV1 = {
 
 export type SolidarityConnectionActionState =
   | { state: "idle" }
-  | { state: "error"; message: string; field?: "message" | "contact" | "consent" }
+  | {
+      state: "error";
+      sessionChanged?: boolean;
+      message: string;
+      field?: "message" | "contact" | "consent";
+    }
   | { state: "auth_required"; message: string; loginHref: string }
-  | { state: "success"; href: string };
+  | { state: "success"; href: string; replayed?: boolean };
 
-export const initialSolidarityConnectionActionState: SolidarityConnectionActionState = {
-  state: "idle",
-};
+export const initialSolidarityConnectionActionState: SolidarityConnectionActionState =
+  {
+    state: "idle",
+  };
 
 export function isComunSolidarityPrivateConnectionsEnabled(
   env: Record<string, string | undefined> = process.env,
@@ -72,8 +78,10 @@ export function isComunSolidarityPrivateConnectionsEnabled(
   );
 }
 
-const MESSAGE_CONTACT_BYPASS = /(?:https?:\/\/|www\.|\b[\w.+-]+@[\w.-]+\.[a-z]{2,}\b|(?:\+?55\s*)?(?:\(?\d{2}\)?\s*)?9?\d{4}[-\s]?\d{4}\b|\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b|(?:^|\s)@[a-z0-9_.-]{2,})/i;
-const CONTACT_FORBIDDEN = /(?:\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b|cpf|\brg\b|documento|senha|password|token|secret|chave privada|private key|endereço residencial|rua\s+.+\b(?:casa|apto|apartamento|n[ºo]?\.?\s*\d+))/i;
+const MESSAGE_CONTACT_BYPASS =
+  /(?:https?:\/\/|www\.|\b[\w.+-]+@[\w.-]+\.[a-z]{2,}\b|(?:\+?55\s*)?(?:\(?\d{2}\)?\s*)?9?\d{4}[-\s]?\d{4}\b|\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b|(?:^|\s)@[a-z0-9_.-]{2,})/i;
+const CONTACT_FORBIDDEN =
+  /(?:\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b|cpf|\brg\b|documento|senha|password|token|secret|chave privada|private key|endereço residencial|rua\s+.+\b(?:casa|apto|apartamento|n[ºo]?\.?\s*\d+))/i;
 
 export function normalizeSolidarityConnectionMessage(value: unknown) {
   if (typeof value !== "string") return null;
@@ -99,7 +107,9 @@ export function normalizeSolidarityProtectedContact(value: unknown) {
   return normalized;
 }
 
-export function solidarityConnectionStateLabel(state: SolidarityConnectionState) {
+export function solidarityConnectionStateLabel(
+  state: SolidarityConnectionState,
+) {
   return {
     pending: "Aguardando resposta",
     contacted: "Contato iniciado anteriormente",
@@ -120,11 +130,14 @@ export function safeSolidarityConnectionError(error: unknown) {
     return "Aguarde 24 horas antes de tentar uma nova conexão com este item.";
   if (message.includes("_PENDING_LIMIT") || message.includes("_DAILY_LIMIT"))
     return "Você atingiu o limite temporário de conexões. Tente novamente mais tarde.";
-  if (message.includes("_SUBJECT_UNAVAILABLE") || message.includes("_SUBJECT_ARCHIVED"))
+  if (
+    message.includes("_SUBJECT_UNAVAILABLE") ||
+    message.includes("_SUBJECT_ARCHIVED")
+  )
     return "Este item não está disponível para uma nova conexão agora.";
   if (message.includes("_ORGANIZATION_INELIGIBLE"))
     return "Esta organização não está disponível para conexões agora.";
   if (message.includes("_FORBIDDEN") || message.includes("_MISMATCH"))
     return "Seu acesso não permite esta ação.";
-  return "Não foi possível concluir esta ação agora. Nenhuma alteração parcial foi feita.";
+  return "Não foi possível confirmar esta ação agora. Consulte Minha participação antes de tentar novamente.";
 }

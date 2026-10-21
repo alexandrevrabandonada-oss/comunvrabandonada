@@ -70,7 +70,8 @@ export async function hybridPublicSearch(input: {
     p_query_embedding: embedding,
     p_limit: 50,
   });
-  if (error) throw new Error("COMUN_HYBRID_SEARCH_UNAVAILABLE");
+  if (error || !Array.isArray(data))
+    throw new Error("COMUN_HYBRID_SEARCH_UNAVAILABLE");
   return {
     results: (data ?? []).map((row: Record<string, unknown>) => ({
       type: String(row.type),

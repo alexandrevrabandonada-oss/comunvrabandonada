@@ -1,6 +1,7 @@
 import { ComunPublicDiscovery } from "@/components/comun-public-discovery";
 import { readPublicDiscovery } from "@/lib/server/comun-public-discovery";
 import type { DiscoverySource } from "@/lib/comun-public-discovery";
+import { submitPublicSearch } from "@/app/comun/buscar/actions";
 import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
 import { ComunShell, Section } from "@/components/comun-shell";
@@ -135,9 +136,10 @@ export default async function ExplorarPage({
           category={params.categoria}
         />
         <form
-          action="/comun/buscar"
+          action={submitPublicSearch}
           className="mt-6 grid gap-2 sm:grid-cols-[1fr_auto]"
         >
+          <input type="hidden" name="experiencia" value="legacy" />
           <label className="sr-only" htmlFor="explorar-q">
             Buscar no COMUN
           </label>
@@ -193,7 +195,7 @@ function ExploreAppV2({
       <div className="comun-v2-page" data-comun-app-v2-page="explore">
         <h1 className="sr-only">Explorar</h1>
         <form
-          action="/comun/buscar"
+          action={submitPublicSearch}
           className="grid gap-2 sm:grid-cols-[1fr_auto]"
         >
           <label className="sr-only" htmlFor="explore-v2-search">

@@ -110,3 +110,47 @@ describe("unified public search disclosure boundaries", () => {
     expect(result.results[0].href).toBe("/comun/acervo/arte/visible");
   });
 });
+
+describe("search source availability", () => {
+  it("all successful empty queries are genuinely empty", async () => {
+    const from = () => {
+      const chain: Record<string, unknown> = {};
+      for (const m of ["select", "eq", "neq", "or", "limit"])
+        chain[m] = () => chain;
+      chain.then = (r: (v: unknown) => unknown) =>
+        Promise.resolve({ data: [], error: null }).then(r);
+      return chain;
+    };
+    mocks.database.mockReturnValue({ from });
+    expect((await unifiedPublicSearch("cultura")).availability).toBe("empty");
+  });
+  it("partial query failure remains distinct from successful emptiness", async () => {
+    database("comun_archive_items");
+    expect((await unifiedPublicSearch("Visible")).availability).toBe("partial");
+    expect(
+      (await unifiedPublicSearch("Visible", { type: "memória" })).availability,
+    ).toBe("unavailable");
+  });
+  it("unavailable config never certifies zero results", async () => {
+    mocks.database.mockReturnValue(null);
+    expect((await unifiedPublicSearch("cultura")).availability).toBe(
+      "unavailable",
+    );
+    expect((await unifiedPublicSearch("calçada")).availability).toBe("partial");
+  });
+  it("a rejected query does not reject healthy sources", async () => {
+    const { from } = database();
+    const original = from.getMockImplementation()!;
+    from.mockImplementation((table: string) =>
+      table === "comun_archive_items"
+        ? (() => {
+            throw Error("PRIVATE");
+          })()
+        : original(table),
+    );
+    const result = await unifiedPublicSearch("Visible");
+    expect(result.availability).toBe("partial");
+    expect(result.results).toHaveLength(10);
+    expect(JSON.stringify(result)).not.toContain("PRIVATE");
+  });
+});

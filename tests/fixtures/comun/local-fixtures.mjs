@@ -1,7 +1,10 @@
-import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { assertLocalEnvironment } from "../../../scripts/local-environment.mjs";
+import {
+  parseLocalStatus,
+  readLocalStatus,
+} from "../../../scripts/comun-local-env.mjs";
 
 export const localPersonaEmails = {
   admin: "admin-local@comun.test",
@@ -15,32 +18,7 @@ const prefix = "fixture-s28-2-";
 
 function localServiceConfig() {
   assertLocalEnvironment();
-  const raw =
-    process.platform === "win32"
-      ? execFileSync(
-          "powershell",
-          ["-NoProfile", "-Command", "npx supabase status -o env"],
-          {
-            encoding: "utf8",
-            env: { ...process.env, SUPABASE_DISABLE_TELEMETRY: "1" },
-          },
-        )
-      : execFileSync("npx", ["supabase", "status", "-o", "env"], {
-          encoding: "utf8",
-          env: { ...process.env, SUPABASE_DISABLE_TELEMETRY: "1" },
-        });
-  const env = Object.fromEntries(
-    raw
-      .split(/\r?\n/)
-      .filter(Boolean)
-      .map((line) => {
-        const index = line.indexOf("=");
-        return [
-          line.slice(0, index),
-          line.slice(index + 1).replace(/^"|"$/g, ""),
-        ];
-      }),
-  );
+  const env = parseLocalStatus(readLocalStatus());
   if (
     !env.SERVICE_ROLE_KEY ||
     !env.API_URL?.match(/^https?:\/\/(localhost|127\.0\.0\.1)/)

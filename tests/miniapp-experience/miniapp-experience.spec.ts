@@ -34,7 +34,12 @@ test("jornada integrada não prende a pessoa no miniapp", async ({
     await readFile(".comun-sidewalk-pilot-slug", "utf8"),
   );
   await page.goto("/comun");
-  await expect(page.locator('[data-comun-app-v2-page="home"]')).toBeVisible();
+  // Scope to the rendered page, not an auxiliary shell/transition copy.
+  const home = page
+    .getByRole("main")
+    .locator('[data-comun-app-v2-page="home"]');
+  await expect(home).toHaveCount(1);
+  await expect(home).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "O que você quer fazer?" }),
   ).toBeVisible();

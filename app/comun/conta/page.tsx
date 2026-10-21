@@ -3,7 +3,12 @@ import { logoutCommunity, saveCommunityProfileAction } from "@/app/actions";
 import { ComunLogoutCleanup } from "@/components/comun-pwa-runtime";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { requireCommunitySession } from "@/lib/community-auth";
-export default async function Conta() {
+export default async function Conta({
+  searchParams,
+}: {
+  searchParams?: Promise<{ status?: string }>;
+}) {
+  const params = await searchParams;
   const { profile } = await requireCommunitySession("/comun/conta");
   return (
     <ComunShell>
@@ -11,6 +16,14 @@ export default async function Conta() {
         <h1 className="text-3xl font-black uppercase text-comun-paper">
           Minha conta
         </h1>
+        {params?.status === "saida-nao-confirmada" ? (
+          <p
+            role="alert"
+            className="mt-4 border-2 border-comun-yellow bg-comun-paper p-4 font-bold text-comun-black"
+          >
+            Não foi possível confirmar a saída da conta. Tente sair novamente.
+          </p>
+        ) : null}
         <form
           action={saveCommunityProfileAction}
           className="mt-6 grid max-w-xl gap-4 bg-comun-paper p-5"

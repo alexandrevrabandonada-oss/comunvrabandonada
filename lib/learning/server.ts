@@ -56,6 +56,7 @@ export async function learningSnapshot(userId: string) {
           .from("comun_pauta_tasks")
           .select("id,pauta_id,title,status")
           .in("pauta_id", ids)
+          .eq("visibility", "public")
           .neq("status", "archived"),
       ])
     : [

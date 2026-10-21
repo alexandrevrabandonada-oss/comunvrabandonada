@@ -100,6 +100,26 @@ export async function POST(request: NextRequest) {
   if (input.event !== "bookmark" && !getMission(input.missionId))
     return reply({ message: "Missão indisponível." }, 404);
   try {
+    if (input.event === "practice") {
+      // Resolve choices server-side: client-supplied IDs are not authorization.
+      const available = await learningSnapshot(session.user.id);
+      const allowedPauta = available.pautas.some(
+        (pauta) => pauta.id === input.pautaId,
+      );
+      const allowedTask =
+        input.taskId === null ||
+        available.tasks.some(
+          (task) => task.id === input.taskId && task.pauta_id === input.pautaId,
+        );
+      if (!allowedPauta || !allowedTask)
+        return reply(
+          {
+            message:
+              "Esta ação não está disponível. Atualize a missão e confira a pauta.",
+          },
+          400,
+        );
+    }
     const service = learningService();
     const result =
       input.event === "practice"

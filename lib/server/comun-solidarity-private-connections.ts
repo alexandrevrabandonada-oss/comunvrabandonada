@@ -1,4 +1,22 @@
 import "server-only";
+import { createHash } from "node:crypto";
+
+/** Derived only from auth.getUser()-validated user data, never a form identity.
+ * Login rotation also prevents recovery after logout when browser deletion fails.
+ */
+export function solidarityConnectionDraftOwner(
+  user: { id: string; last_sign_in_at?: string } | null | undefined,
+) {
+  if (
+    !user?.id ||
+    !user.last_sign_in_at ||
+    !Number.isFinite(Date.parse(user.last_sign_in_at))
+  )
+    return null;
+  return createHash("sha256")
+    .update(`comun:connection-draft:v2:${user.id}:${user.last_sign_in_at}`)
+    .digest("hex");
+}
 
 import {
   SOLIDARITY_CONNECTION_STATES,
@@ -8,6 +26,17 @@ import {
   type SolidarityConnectionState,
 } from "@/lib/comun-solidarity-private-connections";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+
+/** UI remount handle only; not authorization and not a persistent identity store. */
+export function solidarityConnectionFormIdentity(
+  user: { id: string } | null | undefined,
+) {
+  return user?.id
+    ? createHash("sha256")
+        .update(`comun:connection-form:v1:${user.id}`)
+        .digest("hex")
+    : null;
+}
 
 type RpcRow = Record<string, unknown>;
 type SubjectKind = "offer" | "need";
@@ -43,9 +72,13 @@ function kind(value: unknown): SolidarityConnectionKind | null {
       : null;
 }
 
-async function connectionRpc(name: string, parameters: Record<string, unknown>) {
+async function connectionRpc(
+  name: string,
+  parameters: Record<string, unknown>,
+) {
   const database = createServiceSupabaseClient();
-  if (!database) throw new Error("COMUN_SOLIDARITY_CONNECTION_DATABASE_UNAVAILABLE");
+  if (!database)
+    throw new Error("COMUN_SOLIDARITY_CONNECTION_DATABASE_UNAVAILABLE");
   const result = await database.rpc(name, parameters);
   if (result.error) throw new Error(result.error.message);
   return result.data;
@@ -60,12 +93,14 @@ export async function createSolidarityConnection(input: {
   contactPrivate: string;
   consentVersion: string;
 }) {
-  const name = input.subjectKind === "offer"
-    ? "comun_create_solidarity_offer_interest_v1"
-    : "comun_create_solidarity_need_interest_v1";
+  const name =
+    input.subjectKind === "offer"
+      ? "comun_create_solidarity_offer_interest_v1"
+      : "comun_create_solidarity_need_interest_v1";
   return connectionRpc(name, {
     p_request_id: input.requestId,
-    [input.subjectKind === "offer" ? "p_offer_id" : "p_need_id"]: input.subjectId,
+    [input.subjectKind === "offer" ? "p_offer_id" : "p_need_id"]:
+      input.subjectId,
     p_member_user_id: input.memberUserId,
     p_message_private: input.messagePrivate,
     p_contact_private: input.contactPrivate,
@@ -122,26 +157,36 @@ export async function listMySolidarityConnections(
     const reviewedAt = optionalIso(row.reviewed_at);
     const acceptedAt = optionalIso(row.accepted_at);
     const withdrawnAt = optionalIso(row.withdrawn_at);
-    return interestId && connectionKind && subjectId && subjectSlug && subjectTitle &&
-      organizationSlug && organizationName && connectionState && createdAt && updatedAt &&
+    return interestId &&
+      connectionKind &&
+      subjectId &&
+      subjectSlug &&
+      subjectTitle &&
+      organizationSlug &&
+      organizationName &&
+      connectionState &&
+      createdAt &&
+      updatedAt &&
       (row.reviewed_at == null || reviewedAt) &&
       (row.accepted_at == null || acceptedAt) &&
       (row.withdrawn_at == null || withdrawnAt)
-      ? [{
-          interestId,
-          kind: connectionKind,
-          subjectId,
-          subjectSlug,
-          subjectTitle,
-          organizationSlug,
-          organizationName,
-          state: connectionState,
-          createdAt,
-          updatedAt,
-          reviewedAt,
-          acceptedAt,
-          withdrawnAt,
-        }]
+      ? [
+          {
+            interestId,
+            kind: connectionKind,
+            subjectId,
+            subjectSlug,
+            subjectTitle,
+            organizationSlug,
+            organizationName,
+            state: connectionState,
+            createdAt,
+            updatedAt,
+            reviewedAt,
+            acceptedAt,
+            withdrawnAt,
+          },
+        ]
       : [];
   });
 }
@@ -169,28 +214,41 @@ export async function listSolidarityOrganizationConnections(
     const createdAt = iso(row.created_at);
     const updatedAt = iso(row.updated_at);
     const reviewedAt = optionalIso(row.reviewed_at);
-    if (!interestId || !connectionKind || !subjectId || !subjectSlug || !subjectTitle ||
-      !memberLabel || !messagePrivate || !connectionState ||
-      !["pending", "contacted", "accepted"].includes(connectionState) || !createdAt || !updatedAt ||
-      (row.reviewed_at != null && !reviewedAt))
+    if (
+      !interestId ||
+      !connectionKind ||
+      !subjectId ||
+      !subjectSlug ||
+      !subjectTitle ||
+      !memberLabel ||
+      !messagePrivate ||
+      !connectionState ||
+      !["pending", "contacted", "accepted"].includes(connectionState) ||
+      !createdAt ||
+      !updatedAt ||
+      (row.reviewed_at != null && !reviewedAt)
+    )
       return [];
-    const contactPrivate = connectionState === "accepted"
-      ? cleanText(row.contact_private, 200)
-      : null;
-    return [{
-      interestId,
-      kind: connectionKind,
-      subjectId,
-      subjectSlug,
-      subjectTitle,
-      memberLabel,
-      messagePrivate,
-      contactPrivate,
-      state: connectionState as "pending" | "contacted" | "accepted",
-      subjectIsPublic: row.subject_is_public === true,
-      createdAt,
-      updatedAt,
-      reviewedAt,
-    }];
+    const contactPrivate =
+      connectionState === "accepted"
+        ? cleanText(row.contact_private, 200)
+        : null;
+    return [
+      {
+        interestId,
+        kind: connectionKind,
+        subjectId,
+        subjectSlug,
+        subjectTitle,
+        memberLabel,
+        messagePrivate,
+        contactPrivate,
+        state: connectionState as "pending" | "contacted" | "accepted",
+        subjectIsPublic: row.subject_is_public === true,
+        createdAt,
+        updatedAt,
+        reviewedAt,
+      },
+    ];
   });
 }

@@ -8,6 +8,7 @@ const read = (path) =>
   readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 const caPath = "scripts/security/supabase-prod-ca-2021.crt";
 const extraCa = "${{ github.workspace }}/" + caPath;
+const historicalPreflights = ["a1", "c1", "d1", "e2", "e3"];
 const cases = [
   [
     ".github/workflows/comun-quality-performance.yml",
@@ -142,13 +143,52 @@ test("A7 psql steps use the pinned public CA with verified TLS and read-only def
   assert.doesNotMatch(planStep.run, /migrationCount=0/);
 });
 
-// Baseline 8b0ba0d2: adding the already pinned public CA must not alter any gate/SQL/plan.
+for (const lane of historicalPreflights) {
+  test(`${lane}: historical preflight transports stay verified and read-only`, () => {
+    const workflow = load(
+      read(`.github/workflows/comun-48-3-${lane}-preflight.yml`),
+    );
+    assert.equal(workflow.env?.PGSSLROOTCERT, undefined);
+    let protectedSteps = 0;
+    for (const job of Object.values(workflow.jobs)) {
+      assert.equal(job.env?.PGSSLROOTCERT, undefined);
+      for (const step of job.steps ?? []) {
+        const databaseStep =
+          /psql "\$SUPABASE_DB_URL"|node scripts\/ci\/readonly-reconciled-migration-plan\.mjs|supabase db push --db-url/.test(
+            step.run ?? "",
+          );
+        if (!databaseStep) {
+          assert.equal(step.env?.PGSSLROOTCERT, undefined);
+          continue;
+        }
+        protectedSteps++;
+        assert.equal(step.env.PGSSLROOTCERT, extraCa);
+        assert.equal(step.env.PGSSLMODE, "verify-full");
+        assert.equal(step.env.PGOPTIONS, "-c default_transaction_read_only=on");
+        assert.doesNotMatch(
+          step.run,
+          /sslmode=(disable|allow|prefer|require)|NODE_TLS_REJECT_UNAUTHORIZED|supabase\s+(?:migration\s+repair|db\s+reset)\b/,
+        );
+        if (step.run.includes('psql "$SUPABASE_DB_URL"')) {
+          assert.match(step.run, /begin read only;/i);
+          assert.match(step.run, /rollback;/i);
+        }
+        if (step.run.includes("supabase db push --db-url"))
+          assert.match(step.run, /--dry-run/);
+      }
+    }
+    assert.equal(protectedSteps, 2);
+  });
+}
+
+// Metadata SQL remains pinned. Reviewed domain-scoped routes retain separate
+// acceptance/refusal coverage in capture-readonly-domain-migration-status.node-test.mjs.
 const discoveryPreflightContracts = [
   {
     file: "comun-48-2-a-remote-preflight.yml",
     job: "remote-read-only-preflight",
     name: "Reconcile remote migration metadata in a read-only transaction",
-    sha256: "4227b95ca5b1a7f6d114e3be4c24f85ffd3ca2cb48157b634c9ae71dd639d9d9",
+    sha256: "6d2ea3bf632c1c84e3c8b5889f83b5c4bedf1171be955560153d565e10801307",
   },
   {
     file: "comun-48-4-a1-preflight.yml",
@@ -160,7 +200,7 @@ const discoveryPreflightContracts = [
     file: "comun-48-4-a1-preflight.yml",
     job: "remote-metadata-only",
     name: "Prove exact migration plan",
-    sha256: "aa85a8e903beab3ade03c076ec522a765bd202555f67a8bcc3bea4558f1ea046",
+    sha256: "60908f9e74abca1faa855df1177359e9116020937c838dec763624b5a6180e0c",
   },
   {
     file: "comun-48-4-a2-preflight.yml",
@@ -172,7 +212,7 @@ const discoveryPreflightContracts = [
     file: "comun-48-4-a2-preflight.yml",
     job: "remote-metadata-only",
     name: "Prove one bounded migration plan",
-    sha256: "9eb8fc422b9678ba83306723b6354217f4ca9bf065103aa35024d40c9e33ad0c",
+    sha256: "437e8bafdeb9759b4581a54dc359982f86b41918771008bb3af4d2c68c25b88b",
   },
   {
     file: "comun-48-4-a3-preflight.yml",
@@ -184,7 +224,7 @@ const discoveryPreflightContracts = [
     file: "comun-48-4-a3-preflight.yml",
     job: "remote-metadata-only",
     name: "Prove one bounded migration plan",
-    sha256: "410ea7c2a44e9b5152cc0de862602814bb0a88d112e100188dcffbfbc5e124a3",
+    sha256: "0dae4fd910fb05153a4b31f79032c554696c9d5ba13af6276a54b78950dad967",
   },
   {
     file: "comun-48-4-a4-preflight.yml",
@@ -196,7 +236,7 @@ const discoveryPreflightContracts = [
     file: "comun-48-4-a4-preflight.yml",
     job: "remote-metadata-only",
     name: "Prove exactly one bounded A4 migration plan",
-    sha256: "85e7fc20886cbab58e89db045716a393da68920af3944963132b892770b44f06",
+    sha256: "caeae47063e71e54af63c1c24e4e32701445d46f7aa08895f7fe6ce0fb080ba3",
   },
   {
     file: "comun-48-4-a5-preflight.yml",
@@ -208,7 +248,7 @@ const discoveryPreflightContracts = [
     file: "comun-48-4-a5-preflight.yml",
     job: "remote-metadata-only",
     name: "Prove exactly one bounded migration plan",
-    sha256: "6556e86e26a44623540baede99ca8be657bb5ea243d399d82dce857cd6a174d3",
+    sha256: "a73841e5452323a1c56f3d9e1ef939cbb2f0149be25118db97cc11a4a74a725c",
   },
   {
     file: "comun-48-4-a6-preflight.yml",
@@ -220,7 +260,7 @@ const discoveryPreflightContracts = [
     file: "comun-48-4-a6-preflight.yml",
     job: "remote-metadata-only",
     name: "Prove exactly one bounded migration plan",
-    sha256: "f76564c849f6069bd509d4759e8bc03dc9e85f4cf23b588d4153e3f2f6ad6635",
+    sha256: "f55d7e39961d702a8528e7e11bc867a38b128d621f24efb5b55555ef6a78b18d",
   },
 ];
 for (const entry of discoveryPreflightContracts) {

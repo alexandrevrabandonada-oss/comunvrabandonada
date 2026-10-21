@@ -1,0 +1,847 @@
+{
+  "format": "COMUN_ROADMAP_CYCLE_EVIDENCE_V1",
+  "cycleId": "20261015T2113Z-41e32265d35b",
+  "observedAt": "2026-10-15T21:22:32.843Z",
+  "isolation": {
+    "original": "E:/COMUN-SEARCH-CONTEXT-20261015",
+    "worktree": "E:\\COMUN-ROADMAP-CYCLES\\20261015T2113Z-41e32265d35b",
+    "gitCommonDir": "E:/COMUN-ESCOLA-RECOVERY-20261009/worktree/.git",
+    "remote": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada.git",
+    "observedCanonicalSha": "9dfa6a10d0c1e6682500273e27a0bbf32444fbea",
+    "lockOwner": "20261015T2113Z-41e32265d35b",
+    "cleanAtBootstrap": true
+  },
+  "deliverable": {
+    "pr": 553,
+    "sha": "e4a183bcc932d4e3acb9e8de78074b6163813ade",
+    "tree": "597da7d831a12752f1d96659ed7f1a56e97e8fe2",
+    "file": "tests/comun-integral-experience/visitor-flow.spec.ts",
+    "result": "PUSHED_NORMAL_FAST_FORWARD",
+    "materialPushes": 1,
+    "correctiveAttempts": 1,
+    "scope": "Replace obsolete 404 wording with exact current h1, explanatory text and return href; preserve axe/overflow/timeouts."
+  },
+  "previousHead": {
+    "sha": "f2aaea03b2231673a3f3b9a5c39c828f3b425bd7",
+    "counts": {
+      "FAILURE": 9,
+      "SKIPPED": 86,
+      "SUCCESS": 46,
+      "undefined": 1
+    },
+    "quality": {
+      "run": "38795798795",
+      "job": "116634530881",
+      "state": "FAILURE",
+      "findings": [
+        "obsolete 404 wording in four viewports",
+        "document-title at acesso-negado in 390x844"
+      ]
+    },
+    "civic": {
+      "run": "38795799131",
+      "job": "116634166485",
+      "state": "SUCCESS"
+    },
+    "experience": {
+      "run": "38795799536",
+      "job": "116631876941",
+      "state": "FAILURE",
+      "finding": "document-title serious at first-action guide after legacy navigation in 768x1024"
+    },
+    "requiredSchemaPreflights": [
+      {
+        "name": "remote-metadata-only",
+        "state": "FAILURE",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799875/job/116631723637"
+      },
+      {
+        "name": "remote-metadata-only",
+        "state": "FAILURE",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799742/job/116631723319"
+      },
+      {
+        "name": "remote-metadata-only",
+        "state": "FAILURE",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799484/job/116631722244"
+      },
+      {
+        "name": "remote-metadata-only",
+        "state": "FAILURE",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799332/job/116631721909"
+      },
+      {
+        "name": "remote-metadata-only",
+        "state": "FAILURE",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795799133/job/116631721644"
+      },
+      {
+        "name": "remote-metadata-only",
+        "state": "FAILURE",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795798745/job/116631719779"
+      },
+      {
+        "name": "remote-read-only-preflight",
+        "state": "FAILURE",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38795798843/job/116631719912"
+      }
+    ]
+  },
+  "local": {
+    "codeSha": "e4a183bcc932d4e3acb9e8de78074b6163813ade",
+    "browser": "Chromium / Playwright 1.64.1",
+    "browserPlugin": "NOT_AVAILABLE",
+    "url": "http://127.0.0.1:3163",
+    "backend": "No configured Supabase or external credentials; browser rejects non-loopback requests",
+    "unavailable": [
+      {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "url": "http://127.0.0.1:3163/comun/calcadas/registros/fixture-inexistente",
+        "status": 200,
+        "title": "COMUN VR Abandonada",
+        "oldSelectorCount": 0,
+        "currentAssertions": "PASS",
+        "seriousCritical": 0,
+        "errors": []
+      },
+      {
+        "viewport": {
+          "width": 768,
+          "height": 1024
+        },
+        "url": "http://127.0.0.1:3163/comun/calcadas/registros/fixture-inexistente",
+        "status": 200,
+        "title": "COMUN VR Abandonada",
+        "oldSelectorCount": 0,
+        "currentAssertions": "PASS",
+        "seriousCritical": 0,
+        "errors": []
+      }
+    ],
+    "lint": "PASS focal ESLint",
+    "typecheck": "PASS tsc --noEmit",
+    "diffCheck": "PASS",
+    "screenshots": [
+      ".ci-artifacts/roadmap-cycle/unavailable-390.png",
+      ".ci-artifacts/roadmap-cycle/unavailable-768.png"
+    ],
+    "pageIdentity": "PASS",
+    "meaningfulContent": "PASS",
+    "frameworkOverlay": "NONE_OBSERVED",
+    "pageErrors": "NONE",
+    "returnLink": "href verified; click NOT_RUN",
+    "fullAuthenticatedJourney": "NOT_RUN locally",
+    "production": "NOT_RUN",
+    "titleReproduction": {
+      "state": "INCONCLUSIVE_NOT_REPRODUCED",
+      "attempts": 2,
+      "first": "45s test timeout during initial navigation/compilation",
+      "second": "5s URL assertion timeout after guide click; did not reach axe",
+      "assertionsOrTimeoutsWeakened": false
+    },
+    "probeSetup": "Initial standalone probe timed out during compilation; next harness invocation required explicit browser.newContext; final two viewport probe passed."
+  },
+  "currentHead": {
+    "sha": "e4a183bcc932d4e3acb9e8de78074b6163813ade",
+    "reviewCount": 0,
+    "draft": true,
+    "counts": {
+      "QUEUED": 34,
+      "IN_PROGRESS": 19,
+      "SKIPPED": 47,
+      "SUCCESS": 2
+    },
+    "checks": [
+      {
+        "name": "prep-contract",
+        "workflow": "COMUN 48.1C pilot prep",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233431/job/116677932003"
+      },
+      {
+        "name": "remote-read-only-preflight",
+        "workflow": "COMUN 48.2-A remote read-only preflight",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233380/job/116677931709"
+      },
+      {
+        "name": "remote-metadata-only",
+        "workflow": "COMUN 48.4-A4 remote read-only preflight",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233476/job/116677932047"
+      },
+      {
+        "name": "SECURITY / changed SECURITY DEFINER migrations",
+        "workflow": "COMUN CI",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677932172"
+      },
+      {
+        "name": "1. Auditoria",
+        "workflow": "COMUN Civic Graph Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233494/job/116677932320"
+      },
+      {
+        "name": "pr-contract",
+        "workflow": "COMUN Core Journeys Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233409/job/116677931997"
+      },
+      {
+        "name": "school",
+        "workflow": "COMUN Escola contract",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233401/job/116677932325"
+      },
+      {
+        "name": "Inventory, contracts and build",
+        "workflow": "COMUN Full Surface Migration Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233317/job/116677931553"
+      },
+      {
+        "name": "COMUN P6A / essential services disposable E2E",
+        "workflow": "COMUN P6A essential services runtime",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233430/job/116677932214"
+      },
+      {
+        "name": "COMUN P6B-A / environmental disposable E2E",
+        "workflow": "COMUN P6B-A environmental incidents runtime",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233366/job/116677931784"
+      },
+      {
+        "name": "COMUN P6C-A / private SUS disposable E2E",
+        "workflow": "COMUN P6C-A private SUS runtime",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233426/job/116677931452"
+      },
+      {
+        "name": "ownership",
+        "workflow": "COMUN P6C-B2 child protection preflight",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233402/job/116677931840"
+      },
+      {
+        "name": "COMUN P6C-B2 / private child protection disposable E2E",
+        "workflow": "COMUN P6C-B2 private child protection runtime",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233336/job/116677931430"
+      },
+      {
+        "name": "COMUN P6C-C / disclosure no-leak disposable E2E",
+        "workflow": "COMUN P6C-C sensitive assisted forwarding runtime",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233355/job/116677932055"
+      },
+      {
+        "name": "network-lane",
+        "workflow": "COMUN Quality Performance Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233396/job/116677932423"
+      },
+      {
+        "name": "read-only-ca-contract",
+        "workflow": "COMUN read-only database CA contract",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233360/job/116677932147"
+      },
+      {
+        "name": "remote-metadata-only",
+        "workflow": "COMUN 48.4-A1 remote read-only preflight",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233332/job/116677931261"
+      },
+      {
+        "name": "remote-metadata-only",
+        "workflow": "COMUN 48.4-A2 remote read-only preflight",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233051/job/116677930689"
+      },
+      {
+        "name": "remote-metadata-only",
+        "workflow": "COMUN 48.4-A3 remote read-only preflight",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233322/job/116677931388"
+      },
+      {
+        "name": "remote-metadata-only",
+        "workflow": "COMUN 48.4-A5 remote read-only preflight",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233325/job/116677931185"
+      },
+      {
+        "name": "remote-metadata-only",
+        "workflow": "COMUN 48.4-A6 remote read-only preflight",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233412/job/116677931531"
+      },
+      {
+        "name": "pr-lane",
+        "workflow": "COMUN Civic Intelligence Deliverability",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809232912/job/116677930597"
+      },
+      {
+        "name": "Experience coherence / READY_FOR_USABILITY_REHEARSAL",
+        "workflow": "COMUN Experience Coherence Deliverability",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809232945/job/116677930731"
+      },
+      {
+        "name": "rendering",
+        "workflow": "COMUN MapLibre production rendering",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233210/job/116677931082"
+      },
+      {
+        "name": "verify",
+        "workflow": "COMUN Operations Deliverability",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233297/job/116677931643"
+      },
+      {
+        "name": "COMUN P6B-B / urban disposable E2E",
+        "workflow": "COMUN P6B-B urban incidents runtime",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233318/job/116677931269"
+      },
+      {
+        "name": "COMUN P6C-B1 / private public Education disposable E2E",
+        "workflow": "COMUN P6C-B1 private public Education runtime",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233362/job/116677931507"
+      },
+      {
+        "name": "VERIFY / COMUN_V1_DELIVERABILITY_CONTRACT",
+        "workflow": "COMUN V1 Launch Readiness",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809232963/job/116677930584"
+      },
+      {
+        "name": "synthetic-ui-contract",
+        "workflow": "COMUN participation continuity UI contract",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233250/job/116677930917"
+      },
+      {
+        "name": "contract",
+        "workflow": "COMUN public search disclosure contract",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809232936/job/116677930529"
+      },
+      {
+        "name": "browser",
+        "workflow": "COMUN search context continuity",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809232988/job/116677930681"
+      },
+      {
+        "name": "disposable-pre-post",
+        "workflow": "COMUN 49.2 private release Production-like disposable proof",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233061/job/116677933448"
+      },
+      {
+        "name": "production-capture",
+        "workflow": "COMUN PR437 Promotion Fingerprint",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233356/job/116677933793"
+      },
+      {
+        "name": "prepare-cron-dual-key",
+        "workflow": "COMUN Security Resilience Deliverability",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233273/job/116677934240"
+      },
+      {
+        "name": "2. Consistência",
+        "workflow": "COMUN Civic Graph Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233494/job/116677932535"
+      },
+      {
+        "name": "Routes, accessibility and shell behavior",
+        "workflow": "COMUN Full Surface Migration Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233317/job/116677931165"
+      },
+      {
+        "name": "local-schema",
+        "workflow": "COMUN Operations Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233297/job/116677931838"
+      },
+      {
+        "name": "COMUN Quality / isolated a11y",
+        "workflow": "COMUN Quality Performance Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233396/job/116677932490"
+      },
+      {
+        "name": "pr-lane",
+        "workflow": "COMUN Security Resilience Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233273/job/116677931933"
+      },
+      {
+        "name": "canonical-auth",
+        "workflow": "COMUN Escola contract",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233401/job/116677931901"
+      },
+      {
+        "name": "disposable-integration",
+        "workflow": "COMUN public search disclosure contract",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809232936/job/116677930799"
+      },
+      {
+        "name": "real-auth-postgres",
+        "workflow": "COMUN search context continuity",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809232988/job/116677930876"
+      },
+      {
+        "name": "COMUN P4 / sidewalk Relata review E2E",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934349"
+      },
+      {
+        "name": "post-merge",
+        "workflow": "COMUN Civic Intelligence Deliverability",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809232912/job/116677932204"
+      },
+      {
+        "name": "post-merge-production",
+        "workflow": "COMUN Core Journeys Deliverability",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233409/job/116677934307"
+      },
+      {
+        "name": "disposable-proof",
+        "workflow": "COMUN PR437 Promotion Fingerprint",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233356/job/116677977235"
+      },
+      {
+        "name": "AUDIT / COMUN_V1_DELIVERABILITY",
+        "workflow": "COMUN V1 Launch Readiness",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809232963/job/116677932580"
+      },
+      {
+        "name": "3. Rotas públicas",
+        "workflow": "COMUN Civic Graph Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233494/job/116677932323"
+      },
+      {
+        "name": "Authenticated admin surfaces and accessibility",
+        "workflow": "COMUN Full Surface Migration Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233317/job/116677931850"
+      },
+      {
+        "name": "pr-lane",
+        "workflow": "COMUN Quality Performance Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233396/job/116677932515"
+      },
+      {
+        "name": "COMUN P3A / private attachments E2E",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934520"
+      },
+      {
+        "name": "validate-remote-input",
+        "workflow": "COMUN Operations Deliverability",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233297/job/116677933585"
+      },
+      {
+        "name": "remote-full",
+        "workflow": "COMUN Security Resilience Deliverability",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233273/job/116677933755"
+      },
+      {
+        "name": "4. Relações",
+        "workflow": "COMUN Civic Graph Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233494/job/116677932460"
+      },
+      {
+        "name": "COMUN Territory / local-only contract",
+        "workflow": "COMUN Quality Performance Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233396/job/116677932571"
+      },
+      {
+        "name": "Security and public no-leak contracts",
+        "workflow": "COMUN Full Surface Migration Deliverability",
+        "state": "IN_PROGRESS",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233317/job/116677931583"
+      },
+      {
+        "name": "COMUN P3B / private location E2E",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934009"
+      },
+      {
+        "name": "migrate",
+        "workflow": "COMUN Operations Deliverability",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233297/job/116677934477"
+      },
+      {
+        "name": "COMUN R2A / production candidate topology",
+        "workflow": "COMUN CI",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677932492"
+      },
+      {
+        "name": "5. Acessibilidade",
+        "workflow": "COMUN Civic Graph Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233494/job/116677932581"
+      },
+      {
+        "name": "COMUN Territory / P1T disposable promotion contract",
+        "workflow": "COMUN Quality Performance Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233396/job/116677932029"
+      },
+      {
+        "name": "audit",
+        "workflow": "COMUN Operations Deliverability",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233297/job/116677934016"
+      },
+      {
+        "name": "6. Performance",
+        "workflow": "COMUN Civic Graph Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233494/job/116677932080"
+      },
+      {
+        "name": "COMUN R2A / private runtime E2E",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677933578"
+      },
+      {
+        "name": "post-merge-impact",
+        "workflow": "COMUN Quality Performance Deliverability",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233396/job/116677934725"
+      },
+      {
+        "name": "7. Production",
+        "workflow": "COMUN Civic Graph Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233494/job/116677932495"
+      },
+      {
+        "name": "COMUN P2 / private textual Relata E2E",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934442"
+      },
+      {
+        "name": "post-merge",
+        "workflow": "COMUN Quality Performance Deliverability",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233396/job/116677934728"
+      },
+      {
+        "name": "8. No-leak",
+        "workflow": "COMUN Civic Graph Deliverability",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233494/job/116677932520"
+      },
+      {
+        "name": "COMUN F2 M1 / semantic text absence E2E",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677975863"
+      },
+      {
+        "name": "COMUN F2 R1 / photo-first runtime E2E",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934819"
+      },
+      {
+        "name": "COMUN F2 C1 / sidewalk progressive capture E2E",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934859"
+      },
+      {
+        "name": "COMUN P1 / account and wallet runtime E2E",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934582"
+      },
+      {
+        "name": "Active lane integrity / COMUN_ACTIVE_LANE_INTEGRITY_GREEN",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934266"
+      },
+      {
+        "name": "MICRO / COMUN_MICRO_GREEN",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677981940"
+      },
+      {
+        "name": "Map lane integrity / COMUN_ACTIVE_LANE_INTEGRITY_GREEN",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934257"
+      },
+      {
+        "name": "MICRO / COMUN_MICRO_GREEN",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934106"
+      },
+      {
+        "name": "RELEASE/FULL / COMUN_CI_GREEN",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677972374"
+      },
+      {
+        "name": "Sidewalk readiness lane / COMUN_SIDEWALK_READINESS_LANE_GREEN",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934205"
+      },
+      {
+        "name": "RELEASE / COMUN_RELEASE_REHEARSAL",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934975"
+      },
+      {
+        "name": "RELEASE/FULL / COMUN_CI_GREEN",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677933990"
+      },
+      {
+        "name": "COST-02 / exact checkpoint Preview",
+        "workflow": "COMUN CI",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677932744"
+      },
+      {
+        "name": "COMUN RETRO / unit",
+        "workflow": "COMUN CI",
+        "state": "QUEUED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677932755"
+      },
+      {
+        "name": "PROCESS / COMUN_PROCESS_CHECKPOINT_GREEN",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677935156"
+      },
+      {
+        "name": "Update COMUN CENTRAL after merge",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934534"
+      },
+      {
+        "name": "COMUN RETRO / evaluate merged checkpoint",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934426"
+      },
+      {
+        "name": "CHECKPOINT / COMUN_CHECKPOINT_GREEN",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677935822"
+      },
+      {
+        "name": "Update COMUN CENTRAL after MICRO",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677935574"
+      },
+      {
+        "name": "CHECKPOINT / COMUN_CHECKPOINT_GREEN",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677935555"
+      },
+      {
+        "name": "Update COMUN CENTRAL after map MICRO",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677935460"
+      },
+      {
+        "name": "Update COMUN CENTRAL after map RELEASE/FULL",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677935525"
+      },
+      {
+        "name": "MICRO / COMUN_MICRO_GREEN",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934837"
+      },
+      {
+        "name": "Update COMUN CENTRAL after RELEASE/FULL",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677934559"
+      },
+      {
+        "name": "Update COMUN CENTRAL after CHECKPOINT",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677936785"
+      },
+      {
+        "name": "Update COMUN CENTRAL after map CHECKPOINT",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677936051"
+      },
+      {
+        "name": "CHECKPOINT / COMUN_CHECKPOINT_GREEN",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677936654"
+      },
+      {
+        "name": "RELEASE/FULL / COMUN_CI_GREEN",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677935693"
+      },
+      {
+        "name": "central-after-sidewalk-micro",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677936778"
+      },
+      {
+        "name": "central-after-sidewalk-checkpoint",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677937941"
+      },
+      {
+        "name": "central-after-sidewalk-release",
+        "workflow": "COMUN CI",
+        "state": "SKIPPED",
+        "url": "https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/38809233315/job/116677937834"
+      },
+      {
+        "state": "SUCCESS",
+        "url": "https://vercel.com/alexandrevrabandonada-oss-projects/comunvrabandonada/5aDasGzsFP3ecETBVAKWo7gr2VWc"
+      },
+      {
+        "name": "Vercel Preview Comments",
+        "workflow": "",
+        "state": "SUCCESS",
+        "url": "https://vercel.com/github"
+      }
+    ],
+    "overall": "PENDING",
+    "preview": "NOT_VERIFIED",
+    "production": "NOT_RUN"
+  },
+  "preserved": {
+    "authorizationSha256": "48743127ebdaa6b1ab1f888e6c6fa112f235c6df7111e9f7c4305851bbe6f6df",
+    "dependenciesSha256": "76efb849ff8c16e1db1ef5859f7a01f1d632f68a8c3727cc6a1820ab549ba98a",
+    "schemaPreflights": 7,
+    "gmailUsed": 0,
+    "productionWrites": 0,
+    "merges": 0,
+    "automationChanges": 0,
+    "paidResources": 0,
+    "greenManualReruns": 0
+  },
+  "hashes": {
+    "experience.log": "e8329c7a9415ff76923af033af697a115473a8ade0f93dc7b50c62d0e3127340",
+    "quality.log": "6ee2cba497f6f5f8fef17d1cb6978f33d11866096ffd69e94d097b146bd4eb71",
+    "github-inventory.json": "b546ddc08eae650132869fe864ad846171503064fe1f4b5928eca0c32327b61a",
+    "unavailable-proof.json": "39810c67dee4745459bd2d1ef87db28e5cbfeea32eb64c6a8e73a941af9a13dc"
+  },
+  "fingerprintInput": {
+    "base": "8b0ba0d2c90295a6579e8e8808a9e765583e86c9",
+    "task": {
+      "pr": 553,
+      "head": "e4a183bcc932d4e3acb9e8de78074b6163813ade",
+      "delivery": "unavailable-content-integral-test"
+    },
+    "dependencies": [
+      {
+        "gate": "Migration safety",
+        "state": "PASS_PREPARATION",
+        "detail": "Immutable hashes, destination/TLS checks, one-use atomic executor and fail-closed receipt; temporal proofs must be refreshed only at final execution."
+      },
+      {
+        "gate": "External recovery",
+        "state": "BLOCKED",
+        "detail": "Source Subject resolved: Confirm Email Change, HUMAN_READ_SOURCE (#542). Lab-exclusive real Turnstile key pair not located; positive human CAPTCHA and five flows NOT_RUN. Gmail 0/6. No new secret search or send authorized by this checkpoint."
+      },
+      {
+        "gate": "Durable real recovery",
+        "state": "BLOCKED_STALE",
+        "detail": "Old real backup expired. Renew only after external proof, then restore and compare coverage within one hour."
+      },
+      {
+        "gate": "School activation",
+        "state": "BLOCKED_SCHEMA",
+        "detail": "Six actual preflights of #523 mandatory; no flag change authorized."
+      },
+      {
+        "gate": "Full launch",
+        "state": "NOT_CERTIFIED",
+        "detail": "Real devices, Safari/Firefox and human journey remain NOT_RUN; do not add these as new migration gates."
+      }
+    ],
+    "results": {
+      "previousHead": "f2aaea03b2231673a3f3b9a5c39c828f3b425bd7",
+      "previousCounts": {
+        "FAILURE": 9,
+        "SKIPPED": 86,
+        "SUCCESS": 46,
+        "undefined": 1
+      },
+      "currentCounts": {
+        "QUEUED": 34,
+        "IN_PROGRESS": 19,
+        "SKIPPED": 47,
+        "SUCCESS": 2
+      },
+      "title": "OPEN_NOT_REPRODUCED",
+      "localUnavailable": "PASS_2_VIEWPORTS"
+    }
+  },
+  "fingerprint": "f2e9d696e33a70984a624aa034bdcc96b9d033e9c70478492437fd618ef185fc",
+  "previousFingerprint": null,
+  "unchangedFingerprintCycles": 0,
+  "diagnosticOnly": false,
+  "next": "Read canonical ref/checkpoint and reconcile CI at e4a183bc; investigate only new or contradictory failures. document-title remains OPEN. Do not repeat approved unaffected tests."
+}
