@@ -2451,6 +2451,181 @@ subida de migration, abertura de publicação,
 alteração de produção ou novo lançamento
 é autorizada.
 
+### SOC-D10.J — Inventário executável do primeiro ciclo social (21/10/2026)
+
+**Estado:** `AUDITORIA DE CÓDIGO` na base
+`9b92dab82dbb3995f865a6ec4c4ea7d3959ba5ae`;
+`PRINCÍPIO DECIDIDO` para os contratos de produto abaixo;
+`PLANEJADO` para alterações de UX. Este é um refinamento de SOC-D10
+e da fila U0–U8/49-E/50, **não** outro eixo ou lançamento.
+A existência da rota não demonstra jornada humana nem Production.
+
+**Diagnóstico que orienta o redesenho:** o COMUN possui serviços cívicos,
+culturais e econômicos reais no código, mas a experiência ainda se organiza
+em torno de gestões, pautas e categorias. A camada de expressão espontânea,
+autoria social, relações consentidas e descoberta transversal precisa
+ser feita sobre esses domínios, sem reduzir denúncia a postagem nem
+converter interação social em prestação de contas obrigatória.
+
+**Matriz de capacidade existente → lacuna → teste de integração:**
+
+- **Entrada e capa:** `app/comun/page.tsx` e
+  `components/comun-app-v2-home.tsx` já oferecem acesso sem conta,
+  relato prioritário, busca, pautas, retornos e atalhos para Acervo/Rádio.
+  **Lacuna:** a composição inicial ainda é centrada em agir e resolver;
+  arte, trocas e presença humana não aparecem como uma descoberta
+  transversal proporcional. **Teste:** pessoa sem tarefa encontra obra,
+  oferta ou assunto público real e consegue voltar; Relata permanece
+  visível, utilizável e sem nova fricção.
+- **Explorar e categorias:** `app/comun/explorar/page.tsx` é
+  uma grade de destinos/filtros. `COMUN_ROOT_TABS.explorar`
+  ainda aponta para `/comun/observatorios/panorama` rotulado
+  "Entender". **Lacuna:** encontrar por curiosidade depende de
+  saber qual módulo contém a resposta. **Teste:** categorias culturais,
+  econômicas e cívicas acessíveis pelo mesmo gesto, sem apagar
+  o Panorama; comparar rótulos e compreensão antes de trocar tabs.
+  #552 já é a frente candidata de descoberta: **não duplicá-la**.
+- **Conta, perfil e área pessoal:** `/comun/conta` edita
+  `display_name`, `public_bio` e `profile_visibility`;
+  `/comun/minha-participacao` concentra obrigações e retornos.
+  `lib/community-auth.ts` lê só parte dos campos de perfil
+  na sessão. **Lacuna:** não existe contrato comprovado de
+  perfil social visitável, portfólio opt-in ou relações de autoria;
+  editar visibilidade não certifica exposição pública segura.
+  **Teste:** dados privados nunca aparecem na ficha pública;
+  pessoa sem ativismo entende seus guardados, rascunhos e respostas;
+  só conteúdo escolhido entra no perfil, sob Auth/RLS/revogação.
+- **Comunidades, territórios e pertencimento:**
+  `/comun/comunidades`, `/comun/c/[slug]` e territórios
+  já expressam vínculos organizativos, pautas e ações.
+  **Lacuna:** grupo de interesse/convívio não é sinônimo de
+  membership formal, autorização cívica ou representação legal.
+  **Teste:** alguém pode conhecer/acompanhar assunto sem se filiar,
+  assumir tarefa ou revelar residência; saída e silêncio funcionam.
+- **Cultura e memória:** Acervo, Rádio, Arte e propostas de Jogos
+  têm rotas, direitos editoriais e leitores específicos;
+  `lib/central-experience.ts` já combina alguns itens publicados.
+  **Lacuna:** descoberta e autoria atravessam pouco as superfícies,
+  e faltam fontes públicas suficientes para simular variedade.
+  **Teste:** somente obras autorizadas com fonte, data, créditos
+  e direitos; `ready`/`empty`/`unavailable` diferenciados;
+  nada de obras/engajamentos fictícios ou convites falsos.
+- **Feirinha e cooperação:** `/comun/cooperativas` oferece
+  itens, necessidades, modalidades e ação protegida
+  `solidarityConnectionHref`, subordinada a flags.
+  **Lacuna:** primeira conexão precisa de verificação de ponta
+  a ponta; ofertas entre pessoas físicas não estão liberadas.
+  **Teste:** oferta → interesse privado → resposta/encerramento,
+  com consentimento, bloqueio de golpes e sem divulgar contato.
+- **Cuidado cívico:** `/comun/relatar`, observatórios,
+  pautas, ações, resultados e ferramentas já possuem fluxo
+  próprio e estados. **Lacuna:** uma pessoa comum ainda
+  atravessa linguagem organizativa e controles dispersos.
+  **Teste:** problema → registro seguro → devolutiva;
+  não forçar publicação pública, politização ou voto.
+- **Retorno e navegação:** `components/comun-navigation.tsx`
+  guarda contexto de scroll e abas em `sessionStorage` sem
+  guarda local em acessos diretos observados. **Risco:** negação
+  de storage pode quebrar retorno, inclusive sem alteração
+  de perfil. **Teste:** uso com storage recusado e sem conexão
+  não impede navegação, foco, relato nem saída; reconciliar
+  correções de continuidade já integradas antes de outro PR.
+
+### SOC-D10.K — Três contratos mínimos do redesenho, sem criar um feed
+
+**Decisão 1 — Duas presenças pessoais, nenhum placar humano.**
+Separar `Minha área` privada (tarefas, rascunhos, guardados,
+contatos e configurações) do `Meu perfil` publicável por consentimento.
+O mesmo sujeito pode aparecer como autor, morador, membro,
+representante ou facilitador, mas cada papel possui autorização e
+audiência próprias. Publicações não revelam automaticamente
+participação cívica, transações, filiação, rotina nem localização.
+Sem ranking de popularidade ou obrigação de imagem, nome civil
+e seguidores públicos. **Hipótese a testar:** perfil com
+apresentação, obras, publicações escolhidas e vínculos consentidos.
+
+**Decisão 2 — Um gesto social realmente livre.**
+A primeira criação leve deve poder terminar como expressão,
+pergunta ou obra, sem ser convertida em pauta, denúncia,
+ação, aula ou proposta institucional. A audiência é
+explicada antes de enviar; revisão, denúncia, bloqueio,
+autoria e retirada são gates. `Gostei` ou `Agradecer`
+não é voto, evidência, reputação ou autorização para novo
+uso. Não abrir feed, comentários ou DMs antes de contrato
+de moderação e testes de acesso.
+
+**Decisão 3 — Descoberta diversa sem captura de atenção.**
+Um mesmo cartão público deve identificar origem, autor
+ou coletivo, tipo, contexto, data e ação útil, mas
+pode ter linguagem visual apropriada: obra com imagem,
+oferta com condições, informação com fontes,
+relato sensível com proteção. Modos conceituais
+`Conhecer`, `Novidades` e `Acompanho` só aparecem se
+existir conteúdo elegível e vínculos reais. Cronologia
+opcional, silenciar e desfazer acompanhamento precedem
+personalização. Sem recomendação por crença política,
+contador de prestígio, streak ou feed infinito obrigatório.
+
+### SOC-D10.L — Um primeiro ciclo integrado, com portões claros
+
+1. **P0 — Encerrar o passivo.** Inventariar os dez PRs
+   abertos em 21/10/2026 (todos draft nessa consulta);
+   para cada um: dependência, SHA, gates, merge ou
+   fechamento motivado. Não declarar `#551` (Jogos)
+   nem `#552` (descoberta) parte da main. Não criar
+   feature paralela, migração, flag ou bypass para acelerar.
+2. **P1 — Prova de descoberta real, sem novo schema.**
+   Usar apenas leitores públicos autorizados e
+   tratamento explícito de ausência/indisponibilidade.
+   Validar a jornada de visitante: Início → Explorar →
+   conteúdo cultural ou oferta → contexto/autor →
+   compartilhar/voltar. Preservar `Vi um problema`
+   em qualquer rearranjo. Reusar #552 depois de gate,
+   sem nova lista curatorial concorrente.
+3. **P2 — Minha área legível para a vida comum.**
+   Mapear onde continuam itens guardados, respostas,
+   produções e trocas e quais ainda não existem.
+   Redesenhar o agrupamento de informação em protótipo
+   testável, sem misturar conta, perfil e participação
+   política. Validar anonimato, ausência de conta,
+   leitor de tela, conexão ruim, storage recusado.
+4. **P3 — Primeiro vínculo social e perfil opt-in.**
+   Ensaiar perfil/autor, acompanhamento e expressão
+   curta **com protótipo e moderadores reais** antes
+   de propor contrato de banco. Pergunta de decisão:
+   que valor aparece para uma pessoa sozinha e
+   para duas pessoas que escolhem se reconhecer?
+5. **P4 — Interação até desfecho.** Auditar Feirinha,
+   cultura e iniciativas pelo ciclo descobrir →
+   agir/contatar → receber resposta → resolver →
+   guardar memória, com papéis e consentimentos
+   específicos. Expandir pessoas físicas/DMs
+   somente após segurança e operação comprovadas.
+6. **P5 — Ensaio único de coerência.** Comparar
+   visitante curioso, criador, morador em necessidade,
+   participante e pessoa que retorna, usando a
+   **mesma** navegação. Medir êxito, obstáculos,
+   compreensão de audiência, retorno, prazer
+   espontâneo e privacidade, não permanência.
+
+**Teste de aprovação de cada slice:** alguém alcança valor
+sem atividade política; alguém em urgência encontra
+o procedimento cívico no mesmo número de gestos
+ou menos; os recursos sociais não exigem autoridade
+cívica; a privacidade não depende de suposições
+do cliente; nenhum conteúdo fictício substitui
+ausência real; a pessoa consegue sair e voltar.
+Não inferir satisfação humana de CI.
+
+**Regra de decisão:** preservar o objetivo SOC-D10.
+Qualquer proposta nova deve apontar qual destes
+bloqueios resolve, a rota existente reaproveitada,
+o novo risco, o custo de operação e a prova que
+permitirá seguir. O redesenho é produto inteiro,
+não rearranjo cosmético da home. Sem merge,
+deploy, schema ou lançamento autorizado por
+esta seção documental.
+
 ### Reconciliação do identificador duplicado SOC-D09
 
 O título histórico `SOC-D09 — descoberta pública
