@@ -2803,6 +2803,97 @@ Convites são voluntários, contextuais e revogáveis.
    compreensão, retorno, autonomia, acessibilidade,
    substituição de liderança e desfechos reais.
 
+#### 49-M0 — inventário inicial e contrato de prova do núcleo
+
+**AUDITORIA ESTÁTICA NA MAIN / 21/10/2026.** Estes pontos
+descrevem fontes versionadas, não evidência de uso humano,
+habilitação remota, segurança operacional ou núcleo ativo:
+
+- `docs/comun-dominio-comunidades.md` distingue `following`,
+  `member`, `paused`, `left` e `suspended`, sem produzir
+  um papel por seguir ou ingressar. Papéis como
+  `coordinator` e `facilitator` têm concessão server-side,
+  escopo comunitário e revogação; não são escolhidos
+  pelo cliente nem concedem administração global.
+- No mesmo contrato, **grupo de trabalho** tem pauta,
+  ciclo e encerramento. **Não equivale automaticamente
+  a núcleo duradouro.** A comunidade persistente pode
+  fornecer o vínculo de origem; ainda é necessário provar
+  a representação explícita do núcleo e sua sucessão.
+- `docs/comun-experiencia-comunidades.md` exige propósito,
+  próxima ação, deliberação, prestação de contas e
+  memória. Seguir não pode revelar listas de membros
+  ou responsabilidades privadas.
+- `app/comun/minha-participacao/page.tsx` já compõe
+  retornos, ações, tarefas e acessos organizativos,
+  alguns condicionados a flags. Não tratar essa
+  agregação como prova de uma Mesa operacional.
+- `docs/comun-escola-r0.md` descreve microjornada,
+  progresso individual e prática associada a pauta/tarefa.
+  `COMUN_LEARNING_R0_ENABLED` e gates de migração,
+  autorização, recuperação, retenção e prova humana
+  continuam necessários. Um material de apoio no piloto
+  não certifica nem habilita a Escola R0.
+
+**CONTRATO DO PILOTO / 49-M1 (proposta verificável):**
+
+1. Selecionar um coletivo real que consinta no ensaio,
+   com facilitador e pessoa substituta voluntários.
+   Não criar contas, membros ou vínculos fictícios
+   nem importar contatos ou filiação de terceiros.
+2. Expor **um convite contextual** com propósito,
+   regras, âmbito territorial não identificador,
+   responsável, esforço previsto, canal de dúvidas,
+   audiência e saída sem prejuízo ao uso social.
+3. Oferecer três alternativas independentes:
+   apenas acompanhar informação autorizada;
+   aceitar uma atividade pontual; solicitar
+   vínculo organizativo. Cada mudança exige
+   ato próprio; nenhuma escolha implica outra.
+4. Realizar **um ciclo completo**: uma pauta real,
+   um encontro consentido, uma responsabilidade
+   expressamente aceita, apoio, devolutiva
+   verificável, registro saneado e substituição
+   de quem facilita. Formação curta revisada pode
+   acompanhar o ciclo, sem liberar Escola bloqueada.
+5. Testar retirada de aceite, saída do vínculo,
+   acesso indevido, mudança de papel e publicação
+   acidental. Conteúdo público continua acessível,
+   conteúdo reservado falha fechado, e a memória
+   não expõe identidade política ou contatos.
+
+**EVIDÊNCIAS DE ACEITE DO PILOTO / 49-M1–M4:**
+
+- **Autonomia:** alguém alcança valor social sem
+  filiação; quem só colaborou encerra sua atuação
+  sem virar membro permanente.
+- **Não inferência:** leituras, jogos, curtidas,
+  matérias estudadas e visitas não geram convites
+  personalizados por posição política nem
+  tornam pública uma associação.
+- **Trabalho íntegro:** a tarefa está no domínio
+  canônico; aceite, devolução, impedimento e
+  conclusão são auditáveis sem pontuar pessoas.
+- **Continuidade:** outra pessoa autorizada
+  consegue retomar o próximo passo a partir
+  das decisões, recursos e memória saneada.
+- **Segurança:** permissões são verificadas no
+  servidor, inclusive para ex-membros; não
+  existem endereços de encontro, contatos ou
+  filiação privada em HTML, cache e busca públicos.
+- **Operação e acessibilidade:** testar ausência
+  de rede, leitor de tela, linguagem clara, recusa
+  do convite, conflito e ausência de facilitador.
+  Registrar falhas e custos de moderação reais.
+
+**DECISÃO DE ESCOPO:** primeiro verificar quais objetos
+existentes suportam esse ciclo, depois listar lacunas
+com rastreio de rota, regra de autorização, custo de
+operação e teste necessário. Não criar `comun_nuclei`
+ou nova taxonomia de papéis por analogia sem prova
+de insuficiência do modelo comunitário; tampouco
+forçar um núcleo permanente a ser um grupo temporário.
+
 **Ordem preservada:** SOC-D10.L exige reconciliar PRs
 e os bloqueios em andamento primeiro. Esta decisão
 documental não autoriza novas migrations, acesso
