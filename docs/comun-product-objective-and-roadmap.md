@@ -1989,3 +1989,394 @@ backup só após esses requisitos. Não procurar segredos nem renovar provas tem
 neste ciclo. Nenhum merge, schema write, deployment Production, flag ou gasto.
 
 Nota de conciliação (19/10/2026): as regras históricas de ciclos acima não reativam nenhum agendamento; a execução atual do COMUN continua manual por trilha, mediante comando explícito, sem ORCH-V2 agendado. A busca do PR #553 permanece candidata até cumprir gates remotos e certificação no novo SHA.
+
+## Norte de produto: a rede social do comum (20/10/2026)
+
+### SOC-D10 — Arquitetura integral da rede social do comum
+
+**Estado:** objetivo de produto e princípios \`PRINCÍPIO DECIDIDO\`; jornadas,
+rótulos, perfil público, publicação espontânea e descoberta integrada
+\`HIPÓTESE A VALIDAR\`; etapas abaixo \`PLANEJADAS\`. Esta decisão unifica
+os registros de SOC-D01 a SOC-D09, as frentes 49-E/U0–U8/50 e o contrato
+V1. Não substitui os critérios existentes, não reabre migrações nem declara
+implementação ou validação humana.
+
+**Objetivo final:** o COMUN é uma **rede social de vida comunitária** na
+qual qualquer pessoa pode descobrir, conversar, criar, preservar memórias,
+trocar bens e conhecimentos, compartilhar cultura, acessar ferramentas
+úteis e, se quiser, construir ações coletivas e cobrar resultados. O
+valor da rede não depende de ativismo, conta, popularidade ou permanência
+em tela. A mesma infraestrutura permite a alguém **simplesmente viver e
+conviver** e a outra pessoa **agir politicamente com baixa fricção**,
+sem transformar toda manifestação cultural em campanha ou toda conversa
+em votação.
+
+**Decisão de coerência:** não redesenhar a home isoladamente. Reorganizar
+a experiência transversal de pessoas, conteúdos, lugares, relacionamentos
+e tarefas a partir das rotas e contratos existentes. O COMUN deve parecer
+uma rede de pessoas e possibilidades com ferramentas cívicas profundas,
+não um painel institucional acrescido de ícones sociais; tampouco deve
+virar um feed extrativista que esconde os instrumentos de organização.
+
+### SOC-D10.A — Cinco intenções humanas que atravessam todos os módulos
+
+- **Descobrir:** encontrar uma memória, autora, música, jogo, oferta,
+  problema, proposta, informação ou comunidade, por assunto ou lugar.
+  A descoberta é útil por si só e não exige cadastro.
+- **Expressar e conviver:** publicar algo cotidiano, trocar ideias,
+  perguntar, comentar e conhecer pessoas sem converter toda interação
+  em pauta formal ou exigir posicionamento político.
+- **Guardar e criar:** conservar coleções, memória, obras, conhecimento
+  ou trabalho próprio, com autoria, licenças e controles de visibilidade.
+  O que dura não deve desaparecer num fluxo de novidades.
+- **Trocar e cooperar:** encontrar bens, serviços, empréstimos,
+  doações, ajuda mútua, organizações e, futuramente, ofertas
+  individuais com proteção de contato e consentimento.
+- **Cuidar e transformar:** relatar problema, entender evidências,
+  acompanhar, propor, deliberar, assumir tarefa e verificar
+  resultados. Este caminho exige clareza e devolutiva, não
+  adesão ou formação prévia.
+
+Estas são **intenções**, não cinco bancos, feeds, níveis de usuário
+ou novos aplicativos. Uma obra cultural pode ficar só no Acervo;
+uma oferta pode gerar uma conexão privada; um relato sensível
+não pode virar postagem pública automaticamente; uma conversa
+pode, com consentimento, inspirar uma pauta. A travessia entre
+intenções é **opcional e explícita**.
+
+### SOC-D10.B — Camada social comum sem apagar os domínios
+
+Cada superfície deve tornar reconhecíveis, quando aplicável:
+**quem publicou** (e sob que papel), **o que é**, **onde/se relaciona
+a um lugar**, **quando e de onde vem**, **para quem está visível**,
+**qual ação faz sentido**, **como voltar ou acompanhar** e
+**qual é o estado do processo**. Isto é contrato de apresentação
+e navegação, não uma migração para tabela universal de eventos.
+
+- **Pessoa:** identidade e presença voluntárias; não é sinônimo
+  de conta administrativa nem de integrante de organização.
+- **Organização/cooperativa:** perfil e direitos de representação
+  próprios, sem herdar automaticamente a identidade civil ou
+  reputação do seu representante.
+- **Conteúdo:** publicação cotidiana é diferente de memória
+  editorial, obra, episódio, jogo, pauta, resultado, oferta,
+  necessidade, protocolo ou evidência. Cada domínio conserva
+  suas regras, moderação, direitos e estados.
+- **Contexto:** assunto, comunidade e território podem conectar
+  obras e ações, mas localização residencial e filiação política
+  não devem ser inferidas ou expostas.
+- **Relação:** acompanhar autor, tema, coleção, território ou
+  pauta não é tornar-se membro nem aceitar responsabilidade.
+  Participação, contato, representação e tarefa são vínculos
+  separados com consentimentos separados.
+- **Retorno:** histórico e itens guardados são privados por
+  padrão; notificações indicam respostas reais e estados
+  relevantes, jamais urgência inventada para estimular visitas.
+
+**Lacuna auditada no código da main:** \`/comun/conta\` já permite nome,
+bio e visibilidade; \`/comun/minha-participacao\` é uma área privada
+densa, não um perfil social público completo. A home App V2 prioriza
+relatar/pautas/atenção; \`/comun/explorar\` agrega sobretudo categorias
+e atalhos. A Feirinha tem diretório e conexões organizacionais
+protegidas. Acervo/Rádio/Arte têm contratos editoriais.
+NÃO inferir publicação espontânea livre, seguindo pessoas,
+mensagens sociais gerais ou timeline personalizada como
+funcionalidades prontas. Não inventar contas ou registros
+para povoar estas experiências.
+
+### SOC-D10.C — Identidade: perfil, presença e área privada são coisas diferentes
+
+**Decisão:** evoluir o cadastro mínimo atual para uma identidade
+de expressão social por camadas, com visibilidade escolhida,
+sem exigir nome civil ou militância; implementar somente
+depois de auditar Auth, RLS, bloqueio e moderação:
+
+1. **Conta e segurança (privado):** acesso, dados sensíveis,
+   contatos, consentimentos, exclusão/portabilidade e
+   configurações. Nunca funcionam como vitrine pública.
+2. **Minha área (privado):** continuidades, itens salvos,
+   respostas, contribuições, trocas, rascunhos e
+   notificações relevantes. Preservar a base já existente
+   de \`Minha participação\`, mas tornar compreensível
+   para quem não participa de ações cívicas.
+3. **Perfil social (publicação opt-in):** apresentação,
+   nome escolhido, bio, imagem autorizada, interesses
+   declarados e obras/publicações que a pessoa
+   decidiu tornar visíveis. Seções como criações,
+   memória, atividades públicas e vínculos públicos
+   são facultativas, nunca histórico automático
+   da área privada. Sem ranking, contador de prestígio
+   ou exposição compulsória de seguimentos.
+4. **Perfis de coletivos:** comunidade, associação,
+   cooperativa ou projeto têm contexto e autoria,
+   representação verificada e responsabilidade
+   específica. Uma pessoa pode ter vários papéis;
+   nenhum papel se torna público sem contrato explícito.
+
+**Perguntas a validar:** pseudônimo público x identidade
+legal em determinadas transações; consentimento por
+publicação ou por coleção; possibilidade de acompanhar
+autores; descoberta da pessoa por interesse e território
+amplo; formas de contato seguras. Não transformar
+relações de trabalho, denúncia, competência, organização
+ou doações em métrica de status pessoal.
+
+### SOC-D10.D — Publicar e interagir: liberdade social com regras claras
+
+**Primeira hipótese de criação espontânea:** um gesto leve
+de expressão (texto breve, foto autorizada, pergunta ou
+link cultural) que possa existir sem pauta formal.
+No momento de publicar, a pessoa compreende autoria,
+destino e audiência: \`público\`, \`comunidade autorizada\`
+ou \`privado/rascunho\` conforme os controles que forem
+efetivamente desenvolvidos. Pré-visualização e revisão
+de dados pessoais são essenciais; ausência de conta
+não pode transformar criação em perda silenciosa.
+
+**Ações comuns candidatas:** apreciar, comentar ou responder,
+guardar, compartilhar com contexto, acompanhar e
+propor colaboração. Não introduzir todas na V1.
+Uma reação não é voto político, avaliação de
+confiabilidade, prova jornalística ou consentimento
+para republicar. Comentários e mensagens gerais
+exigem bloqueio, denúncia, moderação e limites de
+abuso antes de abertura pública. Nada de DM irrestrita
+para menores ou contato automático entre desconhecidos.
+
+**Conversão voluntária entre domínios:** de uma lembrança
+para coleção; de uma conversa para sugestão de pauta;
+de uma oferta para conexão privada; de um conteúdo
+público para ação verificável. Exigir ação consciente
+e registro da origem e dos consentimentos. Conteúdos
+sensíveis, contatos ou registros privados não se
+tornam públicos por linkagem nem por resumos de IA.
+
+### SOC-D10.E — Descoberta e engajamento sem captura de atenção
+
+**A hipótese de descoberta não é um feed algorítmico único.**
+Oferecer modos distintos com escolhas visíveis:
+\`Conhecer\` (curadoria diversificada de conteúdo público),
+\`Novidades\` (recentes com contexto e regras compreensíveis)
+e, quando houver relação real consentida,
+\`Acompanho\` (autores, comunidades e assuntos).
+Não depender de inferência de crenças, condições de
+saúde ou filiação política. Não comprar distribuição
+nem ranquear pessoas por engajamento. Controles
+de silenciar, não recomendar e desfazer acompanhamento
+são requisitos anteriores a personalização.
+
+**O que torna a experiência prazerosa:**
+surpresa relevante, humor, beleza, memórias locais,
+descoberta de pessoas, possibilidade de criar, troca
+útil e retorno humano. O design expressivo é
+contextual: cultura e jogos podem ser mais visuais;
+relatos sensíveis exigem calma e proteção; cooperativas
+precisam mostrar objeto, condição, autoria e ação;
+informações públicas precisam preservar fontes e
+limites. O Zen Brutalista é linguagem compartilhada,
+não o mesmo cartão pesado repetido em toda rota.
+
+**Engajamento legítimo:** a pessoa volta porque recebeu
+resposta, descobriu algo, encontrou companhia,
+continuou sua criação ou acompanhou uma consequência.
+Sem streaks, FOMO, culpa, notificações artificiais,
+reproduções automáticas inesperadas ou scroll infinito
+obrigatório. Tempo de tela, volume de posts, curtidas
+e seguidores não são objetivos máximos.
+
+**Conteúdo insuficiente:** priorizar qualidade,
+curadoria e reaproveitamento de obras autorizadas.
+Se uma fonte falhar, exibir estado próprio e opções
+honestas; não substituir indisponibilidade por "vazio"
+nem dados sintéticos por vida social fictícia. Variar
+conteúdo e relevância, não simular movimentação.
+
+### SOC-D10.F — Arquitetura de navegação a prototipar, sem trocar rotas
+
+Manter inicialmente os caminhos da App V2 e seus
+contratos de shell. Hipótese de cinco gestos
+compreensíveis no celular, preservando acesso
+rápido à denúncia:
+
+- **Início:** uma capa viva e concisa, alternando
+  descoberta pública, conteúdo cultural, oportunidade
+  de troca, assunto do território e retorno pessoal
+  quando houver. Não é painel cívico nem feed infinito.
+- **Explorar:** busca transversal por palavras, assunto,
+  lugar e categoria; conteúdos publicados de Acervo,
+  Rádio, jogos, Feirinha, comunidades, pautas e ferramentas.
+  Filtrar por tipo não exige conhecer nomes internos.
+- **Ação central:** acesso simples a \`Vi um problema\`
+  e opções contextuais de \`Compartilhar\`,
+  \`Contribuir\`, \`Oferecer\` e \`Propor\`
+  apenas quando a respectiva jornada é real.
+  Não sacrificar o relato em um menu genérico confuso.
+- **Participar / Comunidades:** vínculos e atividades
+  coletivas por escolha, com possibilidades de entrar,
+  conversar e cooperar. O rótulo final depende
+  de teste de compreensão; não ocultar ferramentas
+  cívicas em nome da estética social.
+- **Você:** porta para Minha área e, se autorizado,
+  perfil social público, sem confundir dados privados
+  e publicações. Caixa permanece comunicação e
+  acompanhamento privado, não quinto feed.
+
+**Não decidir por layout imaginado:** produzir
+protótipos de jornadas em 360–430 px, desktop,
+teclado, leitor de tela, zoom e conexão limitada;
+comparar com navegação existente antes de alterar
+\`COMUN_ROOT_TABS\`, shell ou rotas. Mostrar a
+home para visitante anônimo, novo membro sem
+relações e membro retornando. A capa só exibe
+cards com registros elegíveis, títulos e imagens
+autorizados e links seguros; jamais contadores
+ou rostos fictícios.
+
+### SOC-D10.G — Redesenho coordenado das áreas existentes
+
+- **Home + Explorar:** abrir caminhos sociais, culturais,
+  econômicos e cívicos simultaneamente; diversidade
+  moderada, continuidade, busca e conteúdo real.
+- **Perfil + Minha participação + Conta:** separar
+  expressão pública opcional, vida pessoal privada,
+  relações e pendências. Reduzir linguagem de
+  gestão para visitantes comuns sem esconder
+  responsabilidades assumidas.
+- **Comunidades e territórios:** não só entidades
+  organizadoras, mas lugares para pertencimento,
+  cultura, conversas e atividades; distinguir
+  grupo de afinidade, comunidade territorial,
+  projeto e representação institucional.
+- **Acervo + Rádio + Arte + Jogos:** obras, autores,
+  coleções e memória com vida própria; perfis
+  dos criadores e compartilhamento contextual
+  somente com conteúdo publicado/licenciado.
+- **Feirinha + cooperativas:** objetos e necessidades
+  descobertos diretamente, informações de origem,
+  modalidade e condição, conexão privada protegida,
+  acompanhamento após manifestação de interesse.
+  Pessoas físicas entram só em fase posterior com
+  contrato antisscam, moderação e direitos.
+- **Relata + observatórios + pautas:** acesso público
+  ágil e canal sensível privado; evidências e
+  transparência com estados verificáveis; conversas
+  espontâneas não viram deliberações por contagem
+  de likes ou compartilhamento automático.
+- **Escola + Fábrica + projetos:** formação e fazer
+  conjunto a pedido de quem cria; não requisitos
+  de uso, nem mecanismo de poder social.
+- **Operação + governança:** aprovações, apelação,
+  combate a golpes e assédio, transparência de
+  incentivos e capacidade humana, preservando
+  o núcleo existente de curadoria e auditoria.
+
+### SOC-D10.H — Experimentos ponta a ponta e métricas de valor
+
+As primeiras provas de **comportamento do produto** não
+podem ser contagem de telas ou commits. Ensaiar com
+pessoas reais, em dispositivos físicos e conexão
+representativa, jornadas independentes:
+
+1. **Visitante curioso:** encontra e compartilha uma
+   obra ou história local publicada sem entrar.
+2. **Pessoa que precisa de ajuda:** registra ou
+   entende um problema cívico, preserva privacidade
+   e recebe orientação/devolutiva compreensível.
+3. **Criadora cultural:** apresenta trabalho,
+   entende autoria/audiência/revisão e pode
+   corrigir ou retirar com segurança.
+4. **Troca recíproca:** encontra oferta/necessidade,
+   manifesta interesse e obtém desfecho verificável
+   sem expor contato publicamente.
+5. **Vínculo comunitário:** encontra grupo ou pessoa
+   de interesse, escolhe acompanhar ou participar,
+   recebe retorno e pode sair do vínculo.
+6. **Pessoa que volta:** retoma uma conversa,
+   obra guardada ou responsabilidade real, sem
+   notificações artificiais ou perda de contexto.
+
+Registrar por jornada: sucesso ou fracasso da
+tarefa, número de passos, pontos de dúvida,
+estados vazios/falha, exposição indevida,
+possibilidade de retorno, acessibilidade,
+tempo de resposta percebido e desejo
+espontâneo de reutilizar a experiência.
+Não fazer telemetria individual invasiva.
+Dados quantitativos precisam de denominador
+e consentimento pertinentes; feedback humano
+não pode ser substituído por automatização.
+
+**Critério norte:** "alguém abre o COMUN sem
+obrigação e encontra uma coisa boa de fazer;
+alguém chega com urgência e encontra ajuda
+sem fricção; ambos conseguem voltar e construir
+relações com liberdade". Nenhuma experiência
+é requisito para a outra.
+
+### SOC-D10.I — Sequência de implementação sem reiniciar o produto
+
+1. **Reconciliar o trabalho aberto:** finalizar,
+   integrar ou encerrar com justificativa os
+   PRs existentes respeitando todos os checks,
+   migrations, segurança e bloqueios externos.
+   Não abrir features concorrentes nem liberar
+   indexação, produção ou flags por este plano.
+2. **Inventário social e matriz de públicos:** mapear
+   perfis, autorizações, conteúdo real, relacionamentos,
+   busca, cards, curadoria e estados existentes,
+   incluindo falhas de dados e seed. Confirmar
+   quanto da V2 já pode ser reaproveitado.
+3. **Protótipos de jornada integrados:** testar
+   visitante, membro, criador, pessoa de trocas
+   e pessoa em demanda cívica, incluindo
+   primeira sessão e retorno. Comparar IA/UX
+   móvel e desktop com rotas existentes.
+4. **Descoberta real e coerente:** orquestrar
+   leituras públicas seguras de algumas fontes
+   já existentes, com diversidade, contexto,
+   fallback honesto e retorno; sem novo banco
+   e sem inventar conteúdo. A decisão
+   SOC-D09 de descoberta contextual segue
+   esta trilha, não cria outra home.
+5. **Núcleo pessoal e social mínimo:** reduzir
+   fricção da área privada, depois testar
+   perfil público opt-in e uma publicação
+   espontânea moderável; autorizações e
+   moderação são gates antes de abrir uso.
+6. **Relações + cultura + reciprocidade:**
+   articular seguir/salvar, conversas seguras,
+   descoberta dos autores, Feirinha,
+   cooperação e comunidade, sem criar
+   módulos homônimos ou perfis paralelos.
+7. **Aferição e escala:** ensaio humano,
+   qualidade, observabilidade mínima,
+   operação/moderação sustentável;
+   só depois ampliar catálogo, jogos
+   comunitários, economia individual
+   e recomendações opt-in.
+
+Cada incremento deve indicar **rota atual
+reutilizada, dor real, efeito sobre Auth/RLS,
+público ou privado, custo de manutenção,
+risco social, teste acessível, critério
+de aceitação e ação reversível**. Não
+implementar nova tabela ou "feed" antes
+do inventário e da revisão formal.
+Este registro é design de produto; nenhuma
+subida de migration, abertura de publicação,
+alteração de produção ou novo lançamento
+é autorizada.
+
+### Reconciliação do identificador duplicado SOC-D09
+
+O título histórico \`SOC-D09 — descoberta pública
+contextual (15/10/2026)\` era uma colisão
+com \`SOC-D09 — Jogos no COMUN\` já integrado.
+Para referências futuras, **SOC-D09-JOGOS**
+designa o conjunto de Jogos e
+**SOC-D09-DESC** a descoberta contextual;
+os identificadores históricos SOC-D09
+permanecem como aliases nos registros,
+PRs e relatórios antigos. Não se mudam
+decisões, links ou dependências por
+esta distinção documental.
