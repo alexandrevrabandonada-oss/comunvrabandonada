@@ -33,7 +33,7 @@ export default async function ComunLaunchReadinessPage() {
           </h1>
           <p className="mt-2 max-w-3xl">
             Este painel reúne os estados declarados da V1. O lançamento exige
-            todos os domínios verdes e evidências obrigatórias verificadas.
+            todos os domínios verdes e suas evidências obrigatórias verificadas.
             A contagem de estados não comprova essa verificação.
           </p>
         </div>
