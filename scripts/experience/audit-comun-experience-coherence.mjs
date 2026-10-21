@@ -49,6 +49,7 @@ const requiredRoutes = [
   "/comun/conta",
   "/comun/admin",
   "/comun/admin/operacao",
+  "/comun/admin/organizacao/editais",
   "/comun/admin/pautas",
   "/comun/admin/comunidades",
   "/comun/admin/calcadas",

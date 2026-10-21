@@ -3,6 +3,7 @@ import { AdminShell } from "@/components/admin-shell";
 import { SolidarityOrganizationAccessAdminSection } from "@/components/comun-solidarity-organization-access-admin-section";
 import { SolidarityOrganizationOnboardingAdminSection } from "@/components/comun-solidarity-organization-onboarding-admin-section";
 import { requireComunAdmin } from "@/lib/admin-auth";
+import { isComunEditaisR0Enabled } from "@/lib/comun-editais-r0";
 import { isComunSolidarityOrganizationGovernanceEnabled } from "@/lib/comun-solidarity-organization-governance";
 import { isComunSolidarityOrganizationOnboardingEnabled } from "@/lib/comun-solidarity-organization-onboarding";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
@@ -34,7 +35,7 @@ export default async function Page() {
     <AdminShell adminEmail={session.admin.email}>
       <div className="flex flex-wrap justify-between gap-3">
         <div><h1 className="text-3xl font-black uppercase">Sala de Organização</h1><p>O que precisa de ação, responsável, prazo e bloqueio.</p></div>
-        <div className="flex gap-2"><Link className="btn" href="/comun/admin/organizacao/entrada">Caixa de entrada</Link><Link className="btn" href="/comun/admin/organizacao/calendario">Calendário</Link></div>
+        <div className="flex flex-wrap gap-2"><Link className="btn" href="/comun/admin/organizacao/entrada">Caixa de entrada</Link><Link className="btn" href="/comun/admin/organizacao/calendario">Calendário</Link>{isComunEditaisR0Enabled() ? <Link className="btn" href="/comun/admin/organizacao/editais">Editais (piloto)</Link> : null}</div>
       </div>
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
