@@ -1,17 +1,31 @@
 # Objetivo final e roadmap auditado do COMUN
 
-## Checkpoint canônico operacional — 21/10/2026, pós-Jogos #571
+## Checkpoint canônico — 21/10/2026, após #571
 
-**Fonte atual de verdade:** `main@242f19cd1c2fe948c28eedcc67d424ec47b5e180` (squash de [#571](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/571)), com [#570](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/570) integrado em `fdc77528`. O deployment Vercel desse SHA foi conferido como **Production READY** (`dpl_65NiBQiTNiVqgWCbTqm3FDdabF4U`). O deploy independente anterior da #570 foi CANCELED; o build posterior de #571 integra ambos os commits. READY significa build/deploy concluído, não aceite humano, operacionalidade de Supabase remoto nem lançamento geral.
+**Fonte de verdade:** `main@242f19cd1c2fe948c28eedcc67d424ec47b5e180`.
+A #570 atualizou o roadmap; a #571 integrou a entrada pública
+`/comun/jogos` em Explorar com *VR: Cidade em Disputa*.
+O deployment Vercel de #571 foi verificado como **Production READY**
+(`dpl_65NiBQiTNiVqgWCbTqm3FDdabF4U`). O deploy anterior de #570
+foi cancelado; o build posterior contém os dois merges.
 
-- **Novo valor público integrado:** entrada `/comun/jogos` e categoria Jogos em Explorar com *VR: Cidade em Disputa* em beta e link externo; jogar não requer conta, filiação, militância ou carregar Unity automaticamente no COMUN. A PR #571 passou 13 workflows aplicáveis com SUCCESS; dois fluxos não aplicáveis foram SKIPPED. O teste SOC-D09 foi corrigido adicionando a rota real ao laboratório de descobertas (HTTP 200 sem suprimir 404), preservando a busca e curadoria pública anteriores.
-- **Histórico preservado:** #551 foi encerrada **como substituída e não mesclada**, após inventário do código residual (TLS remoto estrito, typegen/limpeza de build e auditoria de CA já presentes na `main`); não transportar o branch obsoleto.
-- **Fila aberta auditada:** #436, #516, #517, #523, #524, #539, #542 e #556 (oito PRs históricas). Não equivalem a oito entregas aprovadas; não mesclar branches obsoletos inteiros. #516 e #539 têm extrações já integradas, mas resíduos devem ser inventariados; #542 não está liberada; ORCH-V2 #556 fica fora de escopo ativo.
-- **Lacunas invariantes:** a migration da Escola `20261006134804_comun_learning_r0.sql`, a recuperação remota, a abertura do V1, a ativação de novas flags, scheduler, a moderação de relações sociais e a validação com pessoas permanecem bloqueadas pelos próprios critérios; nenhuma delas foi demonstrada por Jogos ou CI.
-- **Próxima passada de produto:** tornar as portas culturais (Jogos, Rádio e Acervo) igualmente encontráveis na Home App V2, sem deslocar ou duplicar a ação cívica primária, sem carregar jogos externos em segundo plano e sem simular novas pessoas/conteúdos. Este trabalho é candidato novo; exige Preview, COST-02, CI aplicável, acessibilidade e postflight próprio antes de integrar.
-- **Horizonte SOC-D10:** depois das portas públicas, auditar proposta de expressão/convivência e perfil voluntário com consentimento, moderação, Auth e RLS. Interagir, seguir autor ou guardar conteúdo não pode implicar adesão política ou coleta de interesses para ranqueamento. Validar com pessoas reais somente com participação voluntária e documentada, sem presunção de aceite.
+**Provas e limites:** 13 workflows aplicáveis da #571 concluíram com
+SUCCESS; dois foram SKIPPED. O teste SOC-D09 passou com a rota de Jogos
+real no laboratório, preservando erros 404 genuínos. A #551 foi encerrada
+sem merge, como substituída, após inventário dos resíduos.
+Nenhum resultado prova validação humana, recuperação remota, liberação da
+Escola, abertura V1, migração, flag ou scheduler.
 
-**Estados separados:** `DECIDIDO` (direção SOC-D10), `MERGED + PRODUCTION READY` (#570/#571 no build de #571), `CANDIDATO` (Home cultural proposta), `PENDENTE DE PROVA` (jornadas humanas, Escola, recuperação e V1). Os checkpoints históricos abaixo registram decisões no seu tempo e não revogam o estado acima.
+**Fila histórica aberta:** #436, #516, #517, #523, #524, #539, #542
+e #556. Não mesclar branches antigos inteiros; ORCH-V2 continua fora
+de escopo. A integração de Jogos não libera esses candidatos.
+
+**Próximo candidato:** dar acesso direto a Jogos, Rádio e Acervo na
+Home App V2, sem duplicar a ação cívica primária, exigir login ou
+pré-carregar jogos externos. Exigir Preview e CI do novo SHA e postflight
+Production antes de integrar. Na etapa SOC-D10 seguinte, auditar identidade
+voluntária e convivência com moderação, Auth, RLS e consentimento,
+sem inferir filiação política nem rastrear interesses para ranqueamento.
 
 ## Checkpoint canônico operacional — 21/10/2026, após #569
 

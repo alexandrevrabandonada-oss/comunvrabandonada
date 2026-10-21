@@ -83,7 +83,9 @@ test("Home oferece cultura e Jogos sem exigir organização ou cadastro", async 
     "href",
     "/comun/acervo",
   );
-  await expect(page.locator('[data-comun-primary-action="true"]')).toHaveCount(1);
+  await expect(
+    page.locator('[data-comun-primary-action="true"]'),
+  ).toHaveCount(1);
   await games.click();
   await expect(page).toHaveURL(/\/comun\/jogos$/);
   await expect(
