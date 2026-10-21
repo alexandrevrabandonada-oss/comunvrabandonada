@@ -6,6 +6,7 @@ import {
   ArrowRight,
   BusFront,
   Eye,
+  Gamepad2,
   History,
   MapPinned,
   Radio,
@@ -24,6 +25,27 @@ import {
   COMUN_MOTOROLA_SIDEWALK_CONTRIBUTION_HREF,
 } from "@/lib/comun-motorola-contract";
 import { COMUN_PUBLIC_EXPERIENCE_DOORS } from "@/lib/experience-coherence";
+
+const cultureDoors = [
+  {
+    href: "/comun/jogos",
+    label: "Jogos",
+    description: "Descubra aventuras e jogue sem precisar entrar em uma pauta.",
+    icon: Gamepad2,
+  },
+  {
+    href: "/comun/radio",
+    label: "Rádio",
+    description: "Ouça programas e vozes do território.",
+    icon: Radio,
+  },
+  {
+    href: "/comun/acervo",
+    label: "Acervo",
+    description: "Explore histórias, criações e memórias da comunidade.",
+    icon: Archive,
+  },
+] as const;
 
 const doorIcons = {
   report: MapPinned,
@@ -147,6 +169,34 @@ export function ComunAppV2Home({
           Aprender a organizar
         </Link>
       </p>
+
+      <section
+        aria-labelledby="home-cultural-discovery"
+        className="mt-7"
+        data-comun-home-culture="true"
+      >
+        <h2 id="home-cultural-discovery" className="comun-v2-section-title">
+          Cultura para aproveitar
+        </h2>
+        <p className="mt-2 text-sm text-comun-black/70">
+          Jogue, ouça e descubra criações da cidade. Você pode conhecer tudo
+          isso sem cadastro ou participação política.
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          {cultureDoors.map(({ href, label, description, icon: Icon }) => (
+            <Link
+              key={href}
+              href={withComunAppV2(href)}
+              prefetch={false}
+              className="surface-memory flex min-h-28 flex-col gap-2 rounded-[var(--comun-radius-cultural)] border border-comun-black/20 p-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2"
+            >
+              <Icon size={24} aria-hidden="true" />
+              <strong className="text-lg leading-tight">{label}</strong>
+              <span className="text-sm text-comun-black/70">{description}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       <section
         aria-labelledby="home-first-pauta"
