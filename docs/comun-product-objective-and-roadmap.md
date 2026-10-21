@@ -1,31 +1,19 @@
 # Objetivo final e roadmap auditado do COMUN
 
-## Checkpoint canônico — 21/10/2026, após #571
+## Estado atual — 21/10/2026
 
-**Fonte de verdade:** `main@242f19cd1c2fe948c28eedcc67d424ec47b5e180`.
-A #570 atualizou o roadmap; a #571 integrou a entrada pública
-`/comun/jogos` em Explorar com *VR: Cidade em Disputa*.
-O deployment Vercel de #571 foi verificado como **Production READY**
-(`dpl_65NiBQiTNiVqgWCbTqm3FDdabF4U`). O deploy anterior de #570
-foi cancelado; o build posterior contém os dois merges.
+**Entregue:** o roadmap #570 e o catálogo de Jogos #571 foram
+integrados à `main` no commit
+`242f19cd1c2fe948c28eedcc67d424ec47b5e180`.
+O Vercel confirmou Production READY desse commit, não aceite humano.
 
-**Provas e limites:** 13 workflows aplicáveis da #571 concluíram com
-SUCCESS; dois foram SKIPPED. O teste SOC-D09 passou com a rota de Jogos
-real no laboratório, preservando erros 404 genuínos. A #551 foi encerrada
-sem merge, como substituída, após inventário dos resíduos.
-Nenhum resultado prova validação humana, recuperação remota, liberação da
-Escola, abertura V1, migração, flag ou scheduler.
+**Histórico:** a PR #551 foi encerrada como substituída, sem merge.
+Oito PRs antigas continuam abertas; nenhuma se torna aprovada por isso.
 
-**Fila histórica aberta:** #436, #516, #517, #523, #524, #539, #542
-e #556. Não mesclar branches antigos inteiros; ORCH-V2 continua fora
-de escopo. A integração de Jogos não libera esses candidatos.
-
-**Próximo candidato:** dar acesso direto a Jogos, Rádio e Acervo na
-Home App V2, sem duplicar a ação cívica primária, exigir login ou
-pré-carregar jogos externos. Exigir Preview e CI do novo SHA e postflight
-Production antes de integrar. Na etapa SOC-D10 seguinte, auditar identidade
-voluntária e convivência com moderação, Auth, RLS e consentimento,
-sem inferir filiação política nem rastrear interesses para ranqueamento.
+**Próximo candidato:** Home App V2 com acesso direto a Jogos, Rádio
+e Acervo. A ação cívica primária, os limites de privacidade e os
+bloqueios da Escola, da restauração remota e do lançamento V1
+continuam preservados.
 
 ## Checkpoint canônico operacional — 21/10/2026, após #569
 
