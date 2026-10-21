@@ -174,13 +174,17 @@ async function auditGate({ noindex = true, allGreen = true } = {}) {
   }
 }
 
-test("pilot noindex permits reaching the final human gate without authorizing launch", async () => {
+test("pilot noindex does not bypass required evidence verification", async () => {
   const artifact = await auditGate();
-  assert.equal(artifact.readyForFinalHumanGate, true);
+  assert.equal(artifact.readyForFinalHumanGate, false);
   assert.equal(artifact.finalHumanGate, "launch_publicly");
   assert.equal(artifact.indexingPolicy, "pilot_noindex");
   assert.equal(artifact.pilotNoindexConfirmed, true);
-  assert.deepEqual(artifact.findings, []);
+  assert.equal(artifact.summary.declaredReadyForFinalHumanGate, true);
+  assert.equal(artifact.summary.domainEvidenceVerification, "not_performed");
+  assert.deepEqual(artifact.findings, [
+    "launch_evidence:domain_verification_not_performed",
+  ]);
   assert.equal(artifact.writes.deployment, "none");
 });
 

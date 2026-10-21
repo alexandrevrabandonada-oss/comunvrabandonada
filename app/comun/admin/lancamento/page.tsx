@@ -32,9 +32,9 @@ export default async function ComunLaunchReadinessPage() {
             Lançamento integral do COMUN
           </h1>
           <p className="mt-2 max-w-3xl">
-            Esta é a fonte única de verdade da V1. O sistema avança por domínios
-            e só apresenta o gate humano de lançamento quando todos estiverem
-            verdes.
+            Este painel reúne os estados declarados da V1. O lançamento exige
+            todos os domínios verdes e suas evidências obrigatórias verificadas.
+            A contagem de estados não comprova essa verificação.
           </p>
         </div>
         <Link className="btn" href="/comun">
@@ -116,9 +116,9 @@ export default async function ComunLaunchReadinessPage() {
             : "COMUN_V1_DELIVERABILITY_IN_PROGRESS"}
         </p>
         <p className="mt-2">
-          O lançamento integral permanece fechado. O Mapa das Calçadas continua
-          operando dentro do piloto já autorizado, sem converter automaticamente
-          o restante da plataforma em lançamento público.
+          O lançamento integral permanece fechado. A janela original do piloto
+          das Calçadas terminou em 06/08/2026 e seu fechamento exige evidências
+          reais. Este painel não reinicia a janela nem autoriza novos envios.
         </p>
       </section>
     </AdminShell>

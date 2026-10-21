@@ -193,11 +193,20 @@ export function summarizeComunLaunchProgram(
   return {
     counts,
     total: domains.length,
-    readyForFinalHumanGate:
+    declaredReadyForFinalHumanGate:
+      domains.length === COMUN_V1_LAUNCH_PROGRAM.domains.length &&
+      COMUN_V1_LAUNCH_PROGRAM.domains.every(
+        (required) =>
+          domains.filter((domain) => domain.id === required.id).length === 1,
+      ) &&
       counts.green === domains.length &&
       counts.blocked === 0 &&
       counts.evidenceRequired === 0 &&
       counts.inProgress === 0,
+    // States are declarations; this summary does not independently verify
+    // recovery, editorial rights, pilot evidence or consented human sessions.
+    domainEvidenceVerification: "not_performed" as const,
+    readyForFinalHumanGate: false,
     remaining: counts.blocked + counts.evidenceRequired + counts.inProgress,
   };
 }
