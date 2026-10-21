@@ -127,6 +127,91 @@ fabricar sinais de atividade e não escalar funcionalidades
 dependentes de massa crítica. Provar **uma comunidade
 real de uso, não um catálogo de possibilidades**.
 
+### Crítica institucional: quem decide e quem responde?
+
+A sobreposição entre rede aberta e movimento organizado só é legítima
+se a plataforma deixar compreensível quem mantém infraestrutura,
+quem define curadoria e moderação, quem controla fundos e quais
+decisões pertencem a núcleos ou organizações. A associação promotora
+não equivale automaticamente à representação de todos os usuários.
+Regras públicas, conflito de interesse, recurso e prestação de contas
+precedem alegações de "governança comunitária".
+Não tratar engajamento cultural como adesão política nem inferir
+filiação pela navegação. Um núcleo precisa de coordenação substituta,
+suporte e capacidade efetiva de acolhimento; software não cria isso.
+
+### Crítica de operação: conteúdo e moderação são o produto
+
+O plano depende de quatro insumos que a base de código não fornece:
+obras culturais publicáveis com direitos claros; organizações com
+ofertas e capacidade de responder; pessoas dispostas a conversar
+e criar com consentimento; e facilitadores com disponibilidade
+para acolher, deliberar, cumprir tarefas e moderar abusos.
+Sem responsáveis, horários de atendimento, protocolos de retirada
+e processo de atualização, uma vitrine tecnicamente funcional pode
+ser vazia, insegura ou decepcionante. Cada piloto deve explicitar
+responsável editorial/operacional, capacidade máxima, prazo de
+retorno realista, canal de recurso e possibilidade de suspensão.
+Não inventar SLA nem escala sem pessoas confirmadas.
+
+### Revisão da metodologia de trabalho — decisão de contenção
+
+- **P0: fonte operacional fresca.** Começar cada ciclo confrontando
+  `main`, PRs, checks por SHA e evidências Production com o resumo
+  executivo. `reports/current/comun-execution-checkpoint.json`
+  ainda registra data 15/10 e SHA histórico; não executá-lo como
+  fila ativa sem reconciliação. Preservar histórico, não apagá-lo.
+- **P1: limitar frentes ativas.** Conservar no máximo uma entrega
+  funcional de valor e uma correção de risco impeditivo sob
+  execução coordenada; ramos antigos ficam em triagem, não
+  contam como autorização para merge em bloco. A documentação
+  entra no PR da frente pertinente sempre que seguro.
+- **P2: proposta exige hipótese falsificável.** Antes do código,
+  registrar pessoa, problema, rota atual, menor mudança,
+  direitos/autorizações, material real disponível, evidência
+  esperada e quem vai operar. Se faltar insumo, não abrir
+  nova funcionalidade para disfarçar vazio.
+- **P3: separar provas.** Teste unitário, browser controlado,
+  Preview READY, Production READY, recuperação remota,
+  operação editorial e uso humano são evidências distintas.
+  Resultado `SKIPPED`, fixture ou seed nunca vira
+  `PASS` de atividade humana.
+- **P4: fechar o ciclo.** Entrega só é concluída com resultado
+  comparado à hipótese, regressões aplicáveis, link de prova,
+  decisão explícita de merge/rollback e registro na linha
+  canônica; interrupções devem deixar próximo bloqueio único.
+- **P5: saneamento documental.** Conservar o arquivo histórico
+  existente e manter no topo um quadro curto com SHA atual,
+  estado por domínio, donos funcionais, próximo experimento
+  e gates. Não duplicar decisões em mais documentos.
+
+### Ensaios decisivos, sem alegar números inexistentes
+
+1. **Pessoa curiosa sem conta:** encontra uma obra, jogo,
+   rádio, item ou história real, identifica origem e volta
+   naturalmente ou encerra satisfeita. Medir conclusão,
+   compreensão e barreiras, não minutos de tela.
+2. **Pessoa que quer expressar-se:** consegue mostrar algo
+   com audiência compreendida e retirar; outra pessoa
+   responde voluntariamente. Testar silêncio, bloqueio
+   e moderação antes de escalar comentários/contatos.
+3. **Pessoa que precisa de algo:** usa ferramenta ou
+   encontra oferta/ajuda, faz contato consentido e
+   obtém resposta ou estado honesto de indisponibilidade.
+4. **Pessoa que quer organizar:** encontra grupo real,
+   escolhe vínculo, aceita função concreta, acessa
+   formação/agenda, conclui ou devolve responsabilidade
+   e acompanha prestação de contas sem exposição pública
+   de filiação ou dados pessoais.
+
+**Critério para prioridades futuras:** antes de ampliar
+feed, social graph, perfis, comunicação privada ou
+núcleos, comprovar ao menos uma jornada real em seu
+respectivo eixo com participantes consentidos, conteúdo
+autorizado e equipe que possa sustentá-la. Não atribuir
+percentuais, retenção ou satisfação sem janela, amostra
+e denominador; documentar inclusive recusas e falhas.
+
 **Condição de governança:** operações de núcleos,
 convites, formação e tarefas respeitam o direito de
 participação voluntária e a não inferência de filiação.
