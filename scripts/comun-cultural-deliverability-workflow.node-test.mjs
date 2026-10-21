@@ -1,11 +1,40 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { load } from "js-yaml";
 
 const workflowUrl = new URL(
   "../.github/workflows/comun-cultural-deliverability.yml",
   import.meta.url,
 );
+
+test("pinned public CA is scoped to the read-only inventory step without weakening TLS", async () => {
+  const workflow = load(await readFile(workflowUrl, "utf8"));
+  const selected = workflow.jobs["remote-audit"].steps.find(
+    (step) => step.name === "Generate sanitized aggregate inventory",
+  );
+  assert.ok(selected);
+  assert.deepEqual(selected.env, {
+    NODE_EXTRA_CA_CERTS:
+      "${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt",
+  });
+  assert.match(
+    selected.run,
+    /node scripts\/audit-comun-cultural-deliverability\.mjs/,
+  );
+  assert.equal(workflow.env?.NODE_EXTRA_CA_CERTS, undefined);
+  for (const job of Object.values(workflow.jobs)) {
+    assert.equal(job.env?.NODE_EXTRA_CA_CERTS, undefined);
+    for (const step of job.steps ?? []) {
+      if (step !== selected)
+        assert.equal(step.env?.NODE_EXTRA_CA_CERTS, undefined);
+    }
+  }
+  assert.doesNotMatch(
+    JSON.stringify(workflow),
+    /NODE_TLS_REJECT_UNAUTHORIZED|rejectUnauthorized/,
+  );
+});
 
 test("lane de PR é local e não injeta credenciais remotas", async () => {
   const workflow = await readFile(workflowUrl, "utf8");
