@@ -197,6 +197,8 @@ jobs:
       - name: Generate sanitized aggregate inventory
         id: audit
         shell: bash
+          env:
+            NODE_EXTRA_CA_CERTS: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
         run: |
           set -euo pipefail
           node scripts/audit-comun-cultural-deliverability.mjs \
