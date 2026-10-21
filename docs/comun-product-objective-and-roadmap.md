@@ -1,5 +1,7 @@
 # Objetivo final e roadmap auditado do COMUN
 
+> **Norte de produto (20/10/2026):** [SOC-D10 — Arquitetura integral da rede social do comum](#soc-d10--arquitetura-integral-da-rede-social-do-comum). O COMUN deve ser uma rede social de vida comunitária, útil e prazerosa sem exigir ativismo, preservando a potência cívica, cultural e econômica já construída. A visão e a implementação permanecem estados distintos.
+
 ## Feirinha — reconciliação da primeira conexão privada (20/10/2026)
 
 Estado: CANDIDATO NO PR #549, sem aceite humano nem integração.
@@ -2220,6 +2222,17 @@ rápido à denúncia:
   perfil social público, sem confundir dados privados
   e publicações. Caixa permanece comunicação e
   acompanhamento privado, não quinto feed.
+
+**Lacuna exata na navegação atual:** o contrato
+`COMUN_ROOT_TABS.explorar` ainda aponta para
+`/comun/observatorios/panorama` com o rótulo
+"Entender", enquanto existe uma rota distinta
+`/comun/explorar` com cartões de categorias.
+O redesenho precisa avaliar se `Explorar`
+se torna entrada abrangente, preservando
+"Entender a cidade" como intenção cívica
+acessível em um toque, sem alterar rotas
+ou tabs antes de testar.
 
 **Não decidir por layout imaginado:** produzir
 protótipos de jornadas em 360–430 px, desktop,
