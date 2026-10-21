@@ -1,14 +1,203 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   assertCulturalAuditReadOnly,
   assertSanitizedCulturalArtifact,
+  buildCulturalAuditFailure,
   fetchPublicImageSha256,
   fixedCulturalAuditSql,
   sanitizeCulturalMetrics,
   validateCulturalDatabaseTarget,
 } from "./audit-comun-cultural-deliverability.mjs";
 import { expectedCulturalBuckets } from "./comun-cultural-remote-state.mjs";
+
+test("failure diagnostics distinguish recognized transport and database codes", () => {
+  const groups = {
+    "tls-verification": [
+      "UNABLE_TO_VERIFY_LEAF_SIGNATURE",
+      "UNABLE_TO_GET_ISSUER_CERT_LOCALLY",
+      "SELF_SIGNED_CERT_IN_CHAIN",
+      "DEPTH_ZERO_SELF_SIGNED_CERT",
+      "CERT_HAS_EXPIRED",
+      "ERR_TLS_CERT_ALTNAME_INVALID",
+    ],
+    network: [
+      "ETIMEDOUT",
+      "ECONNREFUSED",
+      "ENOTFOUND",
+      "EAI_AGAIN",
+      "ECONNRESET",
+      "ENETUNREACH",
+      "EHOSTUNREACH",
+    ],
+    authentication: ["28P01", "28000"],
+    authorization: ["42501"],
+    schema: ["42P01", "42703", "3F000"],
+    capacity: ["53300", "53200", "53100"],
+    "query-cancelled": ["57014"],
+    "server-shutdown": ["57P01"],
+  };
+  for (const [category, codes] of Object.entries(groups))
+    for (const code of codes)
+      for (const error of [{ code }, { cause: { code } }]) {
+        const failure = buildCulturalAuditFailure(error, "connect");
+        assert.deepEqual(failure.diagnostic, {
+          phase: "connect",
+          category,
+          code,
+        });
+        assert.equal(failure.result, "COMUN_CULTURAL_AUDIT_FAILED");
+        assert.equal(failure.target.verified, false);
+      }
+});
+
+test("messages cannot establish a cause and unknown codes never escape", () => {
+  for (const error of [
+    null,
+    undefined,
+    "TLS quota password secret-canary",
+    { message: "TLS quota secret-canary", code: "secret-canary" },
+    { message: "COMUN_SECRET_CANARY", code: "COMUN_SECRET_CANARY" },
+    { code: "__proto__" },
+    { code: { secret: "secret-canary" } },
+    {
+      get code() {
+        throw Error("secret-canary");
+      },
+      get cause() {
+        throw Error("secret-canary");
+      },
+    },
+  ]) {
+    const failure = buildCulturalAuditFailure(error, "secret-canary");
+    assert.deepEqual(failure.diagnostic, {
+      phase: "unknown",
+      category: "unknown",
+      code: "UNKNOWN",
+    });
+    assert.equal(failure.result, "COMUN_CULTURAL_AUDIT_FAILED");
+    assert.doesNotMatch(
+      JSON.stringify(failure),
+      /secret-canary|SECRET_CANARY|TLS quota/,
+    );
+  }
+});
+
+test("causes are bounded, cycle safe, and the nearest recognized code wins", () => {
+  const cycle = {};
+  cycle.cause = cycle;
+  assert.equal(buildCulturalAuditFailure(cycle).diagnostic.code, "UNKNOWN");
+  const nested = { code: "42501", cause: { code: "CERT_HAS_EXPIRED" } };
+  assert.equal(
+    buildCulturalAuditFailure(nested).diagnostic.category,
+    "authorization",
+  );
+  const tooDeep = { cause: { cause: { cause: { code: "ETIMEDOUT" } } } };
+  assert.equal(buildCulturalAuditFailure(tooDeep).diagnostic.code, "UNKNOWN");
+});
+
+test("only internal phases and fixed failure markers are retained", () => {
+  for (const phase of [
+    "preflight",
+    "target-validation",
+    "connect",
+    "transaction",
+    "query",
+    "enrichment",
+    "sanitization",
+    "rollback",
+    "persist",
+  ])
+    assert.equal(buildCulturalAuditFailure({}, phase).diagnostic.phase, phase);
+  const failure = buildCulturalAuditFailure(
+    { message: "COMUN_CULTURAL_AUDIT_WRITE_BLOCKED" },
+    "preflight",
+  );
+  assert.equal(failure.result, "COMUN_CULTURAL_AUDIT_WRITE_BLOCKED");
+  assert.equal(failure.databaseWrites, "none");
+  assert.equal(failure.storageWrites, "none");
+});
+
+test("raw messages, SQL, stack, host and nested private fields are never persisted", () => {
+  const secret = "do-not-export-this-canary";
+  const error = Object.assign(
+    new Error(`postgresql://user:${secret}@example.invalid/db`),
+    {
+      code: "42501",
+      detail: secret,
+      hint: secret,
+      schema: secret,
+      table: secret,
+      host: secret,
+      query: `select '${secret}'`,
+      cause: { message: secret },
+    },
+  );
+  error.stack = secret;
+  const failure = buildCulturalAuditFailure(error, "query");
+  assert.doesNotMatch(
+    JSON.stringify(failure),
+    /do-not-export|postgresql:|select /,
+  );
+  assert.deepEqual(failure.diagnostic, {
+    phase: "query",
+    category: "authorization",
+    code: "42501",
+  });
+});
+
+test("CLI target refusal writes sanitized JSON and markdown and still exits 1", () => {
+  const directory = mkdtempSync(join(tmpdir(), "comun-cultural-failure-"));
+  const secret = "never-persist-this-canary";
+  try {
+    const result = spawnSync(
+      process.execPath,
+      [
+        fileURLToPath(
+          new URL("./audit-comun-cultural-deliverability.mjs", import.meta.url),
+        ),
+        "--output",
+        join(directory, "audit.json"),
+      ],
+      {
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          SUPABASE_DB_URL: `postgresql://user:${secret}@db.projectref.supabase.co/db`,
+          SUPABASE_PROJECT_REF: "projectref",
+          COMUN_CULTURAL_ALLOWED_PROJECT_REFS: "other-project",
+        },
+      },
+    );
+    assert.equal(result.status, 1);
+    const json = readFileSync(join(directory, "audit.json"), "utf8");
+    const markdown = readFileSync(join(directory, "audit.md"), "utf8");
+    const failure = JSON.parse(json);
+    assert.equal(
+      failure.result,
+      "COMUN_CULTURAL_AUDIT_PROJECT_NOT_ALLOWLISTED",
+    );
+    assert.deepEqual(failure.diagnostic, {
+      phase: "target-validation",
+      category: "unknown",
+      code: "UNKNOWN",
+    });
+    assert.match(markdown, /falhou fechada/);
+    assert.match(markdown, /target-validation/);
+    assert.doesNotMatch(
+      json + markdown + result.stdout + result.stderr,
+      /never-persist|postgresql:|db\.projectref/,
+    );
+  } finally {
+    assert(directory.startsWith(join(tmpdir(), "comun-cultural-failure-")));
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
 
 const greenInput = {
   target: { verified: true },
