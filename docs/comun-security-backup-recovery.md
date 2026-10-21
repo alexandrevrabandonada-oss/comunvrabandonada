@@ -74,6 +74,21 @@ efêmero a ponto de recuperação durável nem liberam o domínio de segurança.
 Nunca restaurar sobre produção. Um restore real do projeto Supabase continua
 sendo ação destrutiva e exige gate específico.
 
+### Pós-condição dos objetos sintéticos no restore CLI
+
+O recorte #568 exige que a limpeza seja concluída antes de publicar evidência
+verde. A verificação complementar requer também observação independente de
+ausência após a exclusão de cada objeto sintético: `HeadObject` com HTTP 404
+no R2 ou listagem de nome exato na pasta correspondente do Storage local.
+Se restar um objeto, se a leitura falhar ou se a listagem for ambígua ou
+incompleta, o sucesso é bloqueado por
+`COMUN_STORAGE_DELETE_POSTFLIGHT_FAILED`, sem incluir detalhes privados
+nas mensagens de erro ou emitir envelope verde.
+
+Isso comprova somente pós-condições para objetos sintéticos do ensaio.
+Não é prova de recuperação real de dados do usuário, de Auth ou de PITR.
+Testes automatizados com mocks não substituem ensaio remoto independente.
+
 ## Transição de credencial do scheduler
 
 Uma divergência entre o bearer guardado no GitHub e o runtime não autoriza

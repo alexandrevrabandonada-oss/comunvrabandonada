@@ -9,6 +9,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
+import { assertStorageObjectsMissing } from "./assert-storage-deletion.mjs";
 import { RESULT, validateRemoteTarget } from "./comun-security-contract.mjs";
 
 const rehearsalFiles = [
@@ -481,5 +482,58 @@ test("signing and network failures cannot certify expiry", async () => {
       },
     }),
     /network failed/,
+  );
+});
+
+test("Storage post-delete requires explicit absence of every recorded key", async () => {
+  const seen = [];
+  await assertStorageObjectsMissing(
+    {
+      exists: async (scope, key) => {
+        seen.push([scope, key]);
+        return false;
+      },
+    },
+    [
+      ["private_image", "security-rehearsal/one/source/a.jpg"],
+      ["public_image", "security-rehearsal/one/source/b.jpg"],
+    ],
+  );
+  assert.equal(seen.length, 2);
+});
+
+test("Storage post-delete rejects deletion acknowledged with surviving object", async () => {
+  await assert.rejects(
+    assertStorageObjectsMissing(
+      { exists: async () => true },
+      [["private_image", "synthetic"]],
+    ),
+    { message: "COMUN_STORAGE_DELETE_POSTFLIGHT_FAILED" },
+  );
+});
+
+for (const answer of [undefined, null, "missing"]) {
+  test(`Storage post-delete rejects ambiguous response ${String(answer)}`, async () => {
+    await assert.rejects(
+      assertStorageObjectsMissing(
+        { exists: async () => answer },
+        [["public_image", "synthetic"]],
+      ),
+      { message: "COMUN_STORAGE_DELETE_POSTFLIGHT_FAILED" },
+    );
+  });
+}
+
+test("Storage post-delete sanitizes failed existence request", async () => {
+  await assert.rejects(
+    assertStorageObjectsMissing(
+      {
+        exists: async () => {
+          throw new Error("private-storage-provider-secret");
+        },
+      },
+      [["private_image", "synthetic"]],
+    ),
+    { message: "COMUN_STORAGE_DELETE_POSTFLIGHT_FAILED" },
   );
 });
