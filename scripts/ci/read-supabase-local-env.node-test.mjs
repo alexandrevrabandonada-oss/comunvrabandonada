@@ -235,3 +235,82 @@ test("direct execution resolves the workflow's relative helper path", () => {
     true,
   );
 });
+
+test("fixture status uses the installed CI CLI without npx and sanitizes failures", async (t) => {
+  if (process.platform === "win32") {
+    t.skip("POSIX executable fixture; Windows parsing contract is covered separately");
+    return;
+  }
+  const { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } =
+    await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { dirname, join } = await import("node:path");
+  const root = mkdtempSync(join(tmpdir(), "comun-fixture-cli-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  for (const file of [
+    "tests/fixtures/comun/local-fixtures.mjs",
+    "scripts/local-environment.mjs",
+    "scripts/comun-local-env.mjs",
+    "scripts/ci/read-supabase-local-env.mjs",
+  ]) {
+    const target = join(root, file);
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, readFileSync(file, "utf8"));
+  }
+  const packageDir = join(root, "node_modules/@supabase/supabase-js");
+  mkdirSync(packageDir, { recursive: true });
+  writeFileSync(
+    join(packageDir, "package.json"),
+    JSON.stringify({ type: "module", exports: "./index.js" }),
+  );
+  writeFileSync(
+    join(packageDir, "index.js"),
+    'export function createClient() { throw new Error("Client must not be created in status test"); }',
+  );
+  const bin = join(root, "bin");
+  mkdirSync(bin);
+  const cli = join(bin, "supabase");
+  writeFileSync(
+    cli,
+    "#!/bin/sh\n" +
+      '[ "$*" = "status -o env" ] || exit 70\n' +
+      "printf '%s\\n' " +
+      [
+        'API_URL="http://127.0.0.1:54321"',
+        'ANON_KEY="synthetic-anon"',
+        'SERVICE_ROLE_KEY="synthetic-service"',
+        'DB_URL="postgresql://local:synthetic@127.0.0.1:54322/postgres"',
+      ].map((line) => "'" + line + "'").join(" ") +
+      "\n",
+  );
+  chmodSync(cli, 0o755);
+  const npx = join(bin, "npx");
+  writeFileSync(npx, "#!/bin/sh\necho NPX_MUST_NOT_RUN >&2\nexit 73\n");
+  chmodSync(npx, 0o755);
+  const probe = join(root, "fixture-probe.mjs");
+  writeFileSync(
+    probe,
+    'import assert from "node:assert/strict"; ' +
+      'import { localPublicConfig } from "./tests/fixtures/comun/local-fixtures.mjs"; ' +
+      'assert.deepEqual(localPublicConfig(), { url: "http://127.0.0.1:54321", anonKey: "synthetic-anon" });',
+  );
+  const run = () =>
+    spawnSync(process.execPath, [probe], {
+      cwd: root,
+      encoding: "utf8",
+      env: {
+        PATH: bin + ":" + process.env.PATH,
+        GITHUB_ACTIONS: "true",
+        ALLOW_LOCAL_TESTS: "true",
+        COMUN_BASE_URL: "http://localhost:3000",
+      },
+    });
+  const success = run();
+  assert.equal(success.status, 0, success.stderr);
+  assert.doesNotMatch(success.stdout + success.stderr, /NPX_MUST_NOT_RUN|synthetic-service/);
+  writeFileSync(cli, "#!/bin/sh\necho private-credential-must-not-leak >&2\nexit 1\n");
+  const failure = run();
+  assert.notEqual(failure.status, 0);
+  assert.match(failure.stderr, /COMUN_LOCAL_STATUS_RETRY_FAILED/);
+  assert.doesNotMatch(failure.stdout + failure.stderr, /NPX_MUST_NOT_RUN|private-credential-must-not-leak/);
+});

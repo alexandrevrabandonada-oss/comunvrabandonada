@@ -1,5 +1,24 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Reconciliação do U0 residual — 20/10/2026
+
+Estado: CANDIDATO NO PR #546; certificação do novo SHA pendente.
+Base integrada: main `0e6dc4cd`, com busca #553, Ajuda #558
+e armazenamento opcional PWA #559. A Production dessa base está READY
+e sua API pública anuncia o SHA exato; isso não comprova aceite humano.
+
+Este candidato preserva o recorte PWA já integrado e recupera o restante
+da auditoria U0: rascunho de pauta por aba, limpeza por revisão, tarefas
+e contagens públicas sem conteúdo interno e validação de referências de
+prática na aplicação. O teste de storage negado mantém Ajuda/offline e
+a criação de pauta como casos separados. Sem mudança de migration, flags,
+Auth, indexação ou agendamento. Preflights da base são reconciliados com
+os certificados de domínio existentes, sem dispensar leitura, TLS ou RLS.
+
+Próxima dependência: certificar este candidato; depois reconciliar #549
+para completar a conexão privada da Feirinha com consentimento atual.
+Os checkpoints abaixo preservam o histórico e não substituem este estado.
+
 ## U0 — extração independente de armazenamento PWA (20/10/2026)
 
 - **Falha de certificação e correção focal no #559:** a Quality
@@ -161,6 +180,25 @@ vigente. Esta atualização prevalece quando houver conflito de status.
 **Estado desta passada:** teste endurecido no PR #554 e checkpoint da auditoria proposto no mesmo documento canônico. Nenhum merge, publicação, schema ou agendamento executado. Próxima ação única: conferir CI do novo HEAD, diagnosticar eventual perda de `q` e classificar COST-02/Preview; não forçar entrega incompatível com segurança.
 
 > **Atualização transversal (14/10/2026):** [Consolidação de rede social, convivência, atratividade e sustentabilidade](#consolidação-canônica--rede-social-convivência-e-atratividade-14102026). Esta seção integra decisões e hipóteses ao roadmap único; não significa implementação nem lançamento.
+
+## Estado atual da auditoria integral — U0.2
+
+**Uma fila, uma entrega principal:** revisar e fechar o PR draft #546 / pacote `codex/comun-product-audit-20261014` antes de iniciar novas implementações. Esta seção é o ponto de retomada; os registros abaixo preservam decisões e evidências históricas. A proposta de sequência consolida prioridades, sem revogar gates vigentes.
+
+**Produto:** rede comunitária de vida cotidiana, ajuda mútua, organização de base, Feirinha (venda/troca/doação), ferramentas por pauta, observatórios, formação/Fábrica, cultura e memória. Todas compartilham busca, território, privacidade, continuidade e distribuição. Não é necessário transformar toda interação em pauta. Execução solo, sem orçamento adicional e sem participantes de teste disponíveis neste momento.
+
+| Estado               | Resultado / próximo passo                                                                                                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Inventário estático  | 240 páginas / 46 famílias; 52 arquivos de ações / 187 exports async. Não certifica funcionamento ou disponibilidade                                                                        |
+| Correções candidatas | Rascunho por aba com revisão para limpeza segura; tarefas públicas e contagens sem internas; controles administrativos explícitos; seleção e referência de prática protegidas na aplicação |
+| Verificação          | 1.486 unitários, lint completo, TypeScript e seis contratos de superfícies/coerência PASS; build final PASS                                                                                |
+| Bloqueio             | Browser E2E: Chromium indisponível (download truncado); 21 casos descobertos não contam como executados                                                                                    |
+| Escola               | Migration/manifest pinados intactos; ativação e atomicidade de referências no banco seguem pendentes                                                                                       |
+| Item ativo           | PR draft #546 publicado; conferir novo checkpoint Preview, transporte TLS e gates do SHA                                                                                                   |
+
+Fontes e limites estão no [checkpoint U0](../reports/current/comun-u0-product-inventory.md). O índice de ações não cobre automaticamente endpoints, `app/actions.ts` ou dependências transitivas; o arquivo central foi examinado apenas no rastreio focal.
+
+Sequência única de produto: consolidar → operação solo/coerência → organização de base → Feirinha → ferramentas/observatórios → formação/cultura → distribuição → ensaio solo → uso comunitário. Segurança, recuperação e acessibilidade acompanham cada etapa. Migrations, flags, indexação e configurações dos provedores não foram alteradas neste pacote. O retorno do CI motivou ajuste focal de CA pinada nos cinco preflights históricos, mantendo verificação TLS, leitura e todos os gates.
 
 ## 49-E4 — candidato de continuidade em comunidades — 14/10/2026
 

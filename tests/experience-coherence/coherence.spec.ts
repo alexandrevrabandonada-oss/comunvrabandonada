@@ -135,6 +135,56 @@ test("Pautas permite escrever antes do login e preserva a intenção sem auto-su
   await expectNoOverflow(page);
 });
 
+test("rascunho de pauta conserva a última edição após recarregar e respeita texto apagado", async ({
+  page,
+}) => {
+  await page.goto("/comun/pautas/nova");
+  const question = page.getByLabel("O que você quer entender ou mudar?");
+  await question.fill("Como organizar uma atividade no bairro?");
+  await page.reload();
+  await expect(question).toHaveValue("Como organizar uma atividade no bairro?");
+  await question.fill("Como preparar uma reunião comunitária?");
+  await page.reload();
+  await expect(question).toHaveValue("Como preparar uma reunião comunitária?");
+  await question.fill("");
+  await page.reload();
+  await expect(question).toHaveValue("");
+  await expectNoOverflow(page);
+});
+
+test("storage recusado preserva texto na tela e oferece saída explícita", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "sessionStorage", {
+      get() {
+        throw new DOMException("Storage denied", "SecurityError");
+      },
+    });
+  });
+  await page.goto("/comun/pautas/nova");
+  const question = page.getByLabel("O que você quer entender ou mudar?");
+  await question.fill("Como organizar uma atividade no bairro?");
+  await page.getByRole("button", { name: "Entrar e continuar" }).click();
+  await expect(page).toHaveURL(/\/comun\/pautas\/nova$/);
+  await expect(question).toHaveValue("Como organizar uma atividade no bairro?");
+  const recoveryAlert = page
+    .locator("form")
+    .filter({ has: question })
+    .getByRole("alert");
+  await expect(recoveryAlert).toHaveCount(1);
+  await expect(recoveryAlert).toContainText("Copie sua questão");
+  await expect(
+    page.getByRole("link", {
+      name: "Já copiei o texto; entrar sem restaurá-lo",
+    }),
+  ).toHaveAttribute("href", /\/comun\/entrar\?/);
+  expect(errors).toEqual([]);
+  await expectNoOverflow(page);
+});
+
 test("navegação canônica não promove objetos internos como portas principais", async ({
   page,
 }) => {

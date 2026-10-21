@@ -1,0 +1,1361 @@
+{
+  "scope": "app/comun/**/*actions.ts",
+  "method": "static regex index; mentions do not prove effective authorization or complete dependency coverage",
+  "files": [
+    {
+      "path": "app/comun/acervo/arte/actions.ts",
+      "exports": [
+        "submitArtworkContribution",
+        "createArtworkAdminAction",
+        "publishArtworkAdminAction",
+        "saveArtworkCreditAction",
+        "saveArtworkRightsAction",
+        "uploadArtworkOriginalLocalAction",
+        "processArtworkDerivativesLocalAction"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/archive/artwork-storage",
+        "@/lib/archive/territorial-art",
+        "@/lib/community-auth",
+        "@/lib/comun-cultural-progressive-rights",
+        "@/lib/media-storage",
+        "@/lib/supabase/server",
+        "next/cache",
+        "next/navigation",
+        "node:crypto"
+      ],
+      "guards_mentions": [
+        "getCommunitySession",
+        "isComunCulturalProgressiveRightsEnabled",
+        "requireComunAdmin",
+        "required_credit",
+        "required_credit_public"
+      ],
+      "tables_literals": [
+        "comun_archive_agents",
+        "comun_archive_artwork_credits",
+        "comun_archive_artwork_editorial_versions",
+        "comun_archive_artwork_rights",
+        "comun_archive_artwork_safety_reviews",
+        "comun_archive_artwork_submissions",
+        "comun_archive_artworks",
+        "comun_archive_assets",
+        "comun_archive_items"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/acervo/contribuir/artista/actions.ts",
+      "exports": [
+        "submitArtistContribution",
+        "submitArtistClaim"
+      ],
+      "imports": [
+        "@/lib/archive/local-music",
+        "@/lib/supabase/server",
+        "next/headers",
+        "node:crypto"
+      ],
+      "guards_mentions": [],
+      "tables_literals": [
+        "comun_archive_artist_claims",
+        "comun_archive_artist_submissions"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/acervo/identificar/actions.ts",
+      "exports": [
+        "submitIdentificationComment",
+        "reportIdentificationComment",
+        "withdrawIdentificationComment"
+      ],
+      "imports": [
+        "@/lib/archive-identification",
+        "@/lib/archive-identification-rules",
+        "@/lib/community-auth",
+        "@/lib/community-inbox",
+        "@/lib/comun-experience",
+        "@/lib/supabase/server",
+        "next/cache",
+        "next/navigation",
+        "zod"
+      ],
+      "guards_mentions": [
+        "requireCommunitySession"
+      ],
+      "tables_literals": [
+        "comun_archive_identification_items",
+        "comun_archive_identification_reports",
+        "comun_archive_item_suggestions"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/acoes/actions.ts",
+      "exports": [
+        "updateCollectiveActionParticipation",
+        "claimCollectiveActionTask",
+        "releaseCollectiveActionTask"
+      ],
+      "imports": [
+        "@/lib/collective-actions-release",
+        "@/lib/community-auth",
+        "@/lib/comun-collective-actions-canonical-feature",
+        "@/lib/supabase/server",
+        "next/cache",
+        "next/navigation"
+      ],
+      "guards_mentions": [
+        "isComunCollectiveActionsCanonicalExperienceEnabled",
+        "requireCollectiveActionsRelease",
+        "requireCommunitySession"
+      ],
+      "tables_literals": [
+        "comun_collective_action_participations",
+        "comun_collective_action_task_assignments",
+        "comun_collective_action_tasks",
+        "comun_collective_actions"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/acervo/actions.ts",
+      "exports": [
+        "saveArchiveItem",
+        "setArchiveWorkflow",
+        "reviewArchiveAsset",
+        "updateArchiveAsset",
+        "createCollection",
+        "addItemToCollection"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/archive/generic-publication-boundary",
+        "@/lib/historical-photo",
+        "@/lib/media-storage",
+        "@/lib/supabase/server",
+        "next/cache",
+        "next/navigation",
+        "zod"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_archive_artworks",
+        "comun_archive_assets",
+        "comun_archive_collection_items",
+        "comun_archive_collections",
+        "comun_archive_items",
+        "comun_archive_oral_histories",
+        "comun_radio_episodes",
+        "comun_radio_programs"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/acervo/artistas/actions.ts",
+      "exports": [
+        "createArtist",
+        "addMusicLink",
+        "createRelease",
+        "publishMusicItem",
+        "reviewClaim",
+        "updateArtist",
+        "saveMembership",
+        "addRightsReview",
+        "runLinkCheck",
+        "saveTrack"
+      ],
+      "imports": [],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_admin_alerts",
+        "comun_archive_artist_claims",
+        "comun_archive_artist_memberships",
+        "comun_archive_artist_profiles",
+        "comun_archive_external_links",
+        "comun_archive_items",
+        "comun_archive_music_editorial_versions",
+        "comun_archive_music_releases",
+        "comun_archive_music_rights_reviews",
+        "comun_archive_music_tracks"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/acervo/artistas/contribuicoes/actions.ts",
+      "exports": [
+        "reviewArtistSubmission"
+      ],
+      "imports": [],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_archive_artist_submissions"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/acervo/contribuicoes/actions.ts",
+      "exports": [
+        "updateSubmissionStatus",
+        "createArchiveItemFromSubmission",
+        "generateSubmissionDerivatives"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/archive/cultural-curation-readiness",
+        "@/lib/archive/photo-processing-queue",
+        "@/lib/supabase/server",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_archive_assets",
+        "comun_archive_items",
+        "comun_archive_submission_assets",
+        "comun_archive_submissions"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/acervo/historias-orais/actions.ts",
+      "exports": [
+        "createOralHistory",
+        "saveParticipant",
+        "saveConsent",
+        "saveTranscript",
+        "saveSegment",
+        "updateOralHistoryWorkflow",
+        "reviewOralHistoryAsset"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/archive/oral-history-rules",
+        "@/lib/supabase/server",
+        "next/cache",
+        "next/navigation"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_archive_asset_custody_events",
+        "comun_archive_assets",
+        "comun_archive_items",
+        "comun_archive_oral_histories",
+        "comun_archive_oral_history_consents",
+        "comun_archive_oral_history_editorial_versions",
+        "comun_archive_oral_history_participant_approvals",
+        "comun_archive_oral_history_participants",
+        "comun_archive_oral_history_segments",
+        "comun_archive_oral_history_third_party_statements",
+        "comun_archive_oral_history_transcript_versions",
+        "comun_archive_oral_history_transcription_work",
+        "comun_archive_oral_history_withdrawals"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/acervo/historias-orais/pilot-actions.ts",
+      "exports": [
+        "saveConsentTemplate",
+        "saveLegalReview",
+        "saveConsentSession",
+        "saveInterviewPlan",
+        "saveCustodyEvent",
+        "saveTranscriptionWork",
+        "saveThirdPartyStatement",
+        "saveParticipantApproval"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/archive/oral-history-pilot-rules",
+        "@/lib/supabase/server",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_archive_asset_custody_events",
+        "comun_archive_assets",
+        "comun_archive_consent_legal_reviews",
+        "comun_archive_consent_templates",
+        "comun_archive_oral_history_consent_sessions",
+        "comun_archive_oral_history_interview_plans",
+        "comun_archive_oral_history_participant_approvals",
+        "comun_archive_oral_history_third_party_statements",
+        "comun_archive_oral_history_transcription_work"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/acervo/identificacao/actions.ts",
+      "exports": [
+        "moderateIdentificationComment",
+        "saveIdentificationSummary",
+        "setIdentificationDisplayState",
+        "setIdentificationCampaignState",
+        "moderateIdentificationReport"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/community-inbox",
+        "@/lib/supabase/server",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_archive_identification_campaigns",
+        "comun_archive_identification_items",
+        "comun_archive_identification_reports",
+        "comun_archive_identification_summaries",
+        "comun_archive_item_suggestions"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/acervo/processamento/actions.ts",
+      "exports": [
+        "processQueueNow",
+        "retryJob",
+        "cancelJob"
+      ],
+      "imports": [
+        "@/lib/admin-auth",
+        "@/lib/archive/photo-processing-worker",
+        "@/lib/supabase/server",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_archive_processing_jobs"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/acervo/specialized-provenance-actions.ts",
+      "exports": [
+        "materializeOralHistorySuggestionPrivateRoot",
+        "materializeRadioContributionPrivateRoot",
+        "linkRadioContributionPrivateRoot",
+        "materializeArtworkSubmissionPrivateRoot",
+        "linkArtworkSubmissionPrivateRoot"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/archive/cultural-curation-readiness",
+        "@/lib/supabase/server",
+        "next/cache",
+        "next/navigation"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin",
+        "requirePrivateRootReadiness"
+      ],
+      "tables_literals": [
+        "comun_archive_artwork_submissions",
+        "comun_archive_artworks",
+        "comun_archive_items",
+        "comun_archive_oral_history_suggestions",
+        "comun_radio_contributions",
+        "comun_radio_programs"
+      ],
+      "rpc_literals": [
+        "comun_link_artwork_submission_private_root_v1",
+        "comun_link_radio_contribution_private_root_v1",
+        "comun_materialize_artwork_submission_private_root_v1",
+        "comun_materialize_oral_history_suggestion_private_root_v1",
+        "comun_materialize_radio_contribution_private_root_v1"
+      ]
+    },
+    {
+      "path": "app/comun/admin/acervo/storage/actions.ts",
+      "exports": [
+        "runArchiveStorageHealthcheck"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/media-storage",
+        "next/cache",
+        "node:crypto"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/acervo/sugestoes/actions.ts",
+      "exports": [
+        "moderateArchiveSuggestion"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/supabase/server",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_archive_item_suggestions"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/acervo/verificacao/actions.ts",
+      "exports": [
+        "runArchiveProductionVerificationAction"
+      ],
+      "imports": [
+        "@/lib/admin-auth",
+        "@/lib/archive/production-verification",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/acoes/actions.ts",
+      "exports": [
+        "createCollectiveAction",
+        "updateCollectiveAction",
+        "publishCollectiveAction",
+        "moveCollectiveActionToAwaitingResult",
+        "startCollectiveAction",
+        "createCollectiveActionTask",
+        "updateCollectiveActionTask",
+        "publishCollectiveActionUpdate",
+        "saveCollectiveActionForwarding",
+        "recordCollectiveActionResult",
+        "completeCollectiveAction",
+        "publishCollectiveActionMemory",
+        "addCollectiveActionMemoryAsset",
+        "linkCollectiveActionSidewalkRecord"
+      ],
+      "imports": [
+        "@/lib/admin-auth",
+        "@/lib/collective-actions",
+        "@/lib/collective-actions-admin",
+        "@/lib/collective-actions-release",
+        "@/lib/supabase/server",
+        "next/cache",
+        "node:crypto"
+      ],
+      "guards_mentions": [
+        "requireAction",
+        "requireAdminRelease",
+        "requireCollectiveActionsRelease",
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_collective_action_forwardings",
+        "comun_collective_action_memory_assets",
+        "comun_collective_action_participations",
+        "comun_collective_action_sidewalk_records",
+        "comun_collective_action_tasks",
+        "comun_collective_action_updates",
+        "comun_collective_actions"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/alertas/actions.ts",
+      "exports": [
+        "updateAlert"
+      ],
+      "imports": [
+        "@/lib/admin-auth",
+        "@/lib/supabase/server",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_admin_alerts"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/calcadas/actions.ts",
+      "exports": [
+        "moderateSidewalkRecord",
+        "moderateSidewalkObservation",
+        "decideSidewalkDuplicate"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/sidewalk-operational-release",
+        "@/lib/sidewalk-photos",
+        "@/lib/supabase/server",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin",
+        "requireSidewalkOperationalRelease"
+      ],
+      "tables_literals": [
+        "comun_archive_assets",
+        "comun_archive_items",
+        "comun_member_inbox",
+        "comun_sidewalk_duplicate_suggestions",
+        "comun_sidewalk_observations",
+        "comun_sidewalk_record_photos",
+        "comun_sidewalk_records"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/calcadas/encaminhamentos/actions.ts",
+      "exports": [
+        "prepareSidewalkForwarding",
+        "saveForwardingDraft",
+        "reviewForwarding",
+        "registerForwardingProtocol",
+        "registerForwardingResponse",
+        "recordForwardingResult",
+        "preserveForwardingMemory",
+        "publishForwardingMemory"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/operational-authorization",
+        "@/lib/sidewalk-operational-release",
+        "@/lib/supabase/server",
+        "next/cache",
+        "next/navigation"
+      ],
+      "guards_mentions": [
+        "requireComunAdminProfile",
+        "requireSidewalkOperationalRelease"
+      ],
+      "tables_literals": [
+        "comun_circle_synthesis_links",
+        "comun_hub_results",
+        "comun_hub_territories",
+        "comun_member_inbox",
+        "comun_mobilization_actions",
+        "comun_official_protocols",
+        "comun_pauta_spaces",
+        "comun_reports",
+        "comun_sidewalk_cycle_memories",
+        "comun_sidewalk_forwarding_events",
+        "comun_sidewalk_forwardings",
+        "comun_sidewalk_priorities",
+        "comun_sidewalk_record_links",
+        "comun_sidewalk_records"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/calcadas/exact-actions.ts",
+      "exports": [
+        "moderateSidewalkRecordExact"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/media-storage",
+        "@/lib/sidewalk-operational-release",
+        "@/lib/sidewalk-photos",
+        "@/lib/supabase/server",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin",
+        "requireSidewalkOperationalRelease"
+      ],
+      "tables_literals": [
+        "comun_archive_assets",
+        "comun_archive_items",
+        "comun_member_inbox",
+        "comun_sidewalk_record_photos",
+        "comun_sidewalk_records",
+        "comun_sidewalk_uploads"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/calcadas/prioridade/actions.ts",
+      "exports": [
+        "createSidewalkPriority"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/operational-authorization",
+        "@/lib/sidewalk-operational-release",
+        "@/lib/supabase/server",
+        "next/cache",
+        "next/navigation"
+      ],
+      "guards_mentions": [
+        "requireComunAdminProfile",
+        "requireSidewalkOperationalRelease"
+      ],
+      "tables_literals": [
+        "comun_circle_syntheses",
+        "comun_circle_synthesis_links",
+        "comun_construction_circle_rounds",
+        "comun_construction_circles",
+        "comun_mobilization_actions",
+        "comun_pauta_spaces",
+        "comun_pauta_tasks",
+        "comun_sidewalk_priorities",
+        "comun_sidewalk_records"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/calcadas/relatos/actions.ts",
+      "exports": [
+        "reviewSidewalkRelata"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/comun-sidewalk-p4-feature",
+        "@/lib/comun-sidewalk-review-runtime",
+        "@/lib/supabase/server",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "isComunSidewalkPublicProjectionEnabled",
+        "isComunSidewalkRelataEnabled",
+        "requireComunAdmin"
+      ],
+      "tables_literals": [],
+      "rpc_literals": [
+        "comun_sidewalk_intake_review"
+      ]
+    },
+    {
+      "path": "app/comun/admin/comunidades/actions.ts",
+      "exports": [
+        "reviewCommunityMembership",
+        "grantCommunityRole",
+        "revokeCommunityRole",
+        "createCommunityWorkGroup",
+        "changeCommunityWorkGroupMember"
+      ],
+      "imports": [
+        "@/lib/admin-auth",
+        "@/lib/community-administration",
+        "@/lib/community-inbox",
+        "@/lib/supabase/server",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin",
+        "requiredId"
+      ],
+      "tables_literals": [
+        "comun_communities",
+        "comun_community_audit_log",
+        "comun_community_memberships",
+        "comun_community_role_assignments",
+        "comun_community_work_group_members",
+        "comun_community_work_groups",
+        "comun_editorial_operation_events",
+        "comun_editorial_operation_items",
+        "comun_pauta_spaces"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/entidades/actions.ts",
+      "exports": [
+        "listCollectiveEntityLegitimacyReviewQueueAction",
+        "reviewCollectiveEntityCandidateAction",
+        "listCollectiveEntityProjectionReviewQueueAction",
+        "decideCollectiveEntityProjectionAction",
+        "decideCollectiveEntityProjectionFormAction",
+        "reviewCollectiveEntityCandidateFormAction"
+      ],
+      "imports": [
+        "@/lib/admin-auth",
+        "@/lib/comun-collective-entity-legitimacy-runtime",
+        "@/lib/comun-collective-entity-projection-runtime",
+        "next/cache",
+        "next/navigation"
+      ],
+      "guards_mentions": [
+        "requireComunAdminRole",
+        "requires"
+      ],
+      "tables_literals": [],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/equipe/actions.ts",
+      "exports": [
+        "provisionExistingSpecialistRoleAction"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/supabase/server",
+        "@/lib/types",
+        "next/cache",
+        "next/navigation"
+      ],
+      "guards_mentions": [
+        "requireComunAdminRole"
+      ],
+      "tables_literals": [
+        "comun_admin_profiles",
+        "comun_admin_users",
+        "comun_member_profiles"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/escola/actions.ts",
+      "exports": [
+        "reviewPractice"
+      ],
+      "imports": [
+        "@/lib/admin-auth",
+        "@/lib/learning/core",
+        "@/lib/learning/server",
+        "next/cache",
+        "next/navigation",
+        "zod"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [],
+      "rpc_literals": [
+        "comun_learning_review_practice"
+      ]
+    },
+    {
+      "path": "app/comun/admin/observatorios/actions.ts",
+      "exports": [
+        "reviewObservation",
+        "generateMetrics",
+        "publishSnapshot",
+        "saveFormVersion"
+      ],
+      "imports": [],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_metric_snapshots",
+        "comun_observation_form_versions",
+        "comun_observation_verification_events",
+        "comun_observations"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/observatorios/campaign-actions.ts",
+      "exports": [
+        "createCampaign",
+        "saveSamplingPlan",
+        "saveSamplingSlot",
+        "reviewCampaignObservation",
+        "convertCampaignToEvidence",
+        "generateCampaignAction",
+        "submitFieldCampaignObservation"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/observation-campaign-rules",
+        "@/lib/observation-campaigns",
+        "@/lib/observatory-rules",
+        "@/lib/supabase/server",
+        "next/cache",
+        "node:crypto"
+      ],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_mobilization_actions",
+        "comun_observation_campaign_evidence_links",
+        "comun_observation_campaigns",
+        "comun_observation_form_versions",
+        "comun_observation_quality_reviews",
+        "comun_observation_sampling_plans",
+        "comun_observation_sampling_slots",
+        "comun_observations",
+        "comun_observatory_action_links",
+        "comun_pauta_evidence_items"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/observatorios/field-access-actions.ts",
+      "exports": [
+        "createCampaignFieldGrant",
+        "revokeCampaignFieldGrant"
+      ],
+      "imports": [],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_observation_campaign_access_grants",
+        "comun_observation_campaign_field_sessions"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/operacao/actions.ts",
+      "exports": [
+        "assumeOperationalItem",
+        "releaseOwnOperationalItem"
+      ],
+      "imports": [
+        "@/lib/admin-auth",
+        "@/lib/operational-responsibility",
+        "@/lib/supabase/server",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "requireComunAdminProfile",
+        "requiredRole",
+        "required_role"
+      ],
+      "tables_literals": [
+        "comun_editorial_operation_assignments",
+        "comun_editorial_operation_events",
+        "comun_editorial_operation_items"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/organizacao/actions.ts",
+      "exports": [
+        "linkReportToPauta",
+        "createHubAction",
+        "createHubResult",
+        "createCommunicationMaterial"
+      ],
+      "imports": [],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_hub_communication_materials",
+        "comun_hub_pauta_reports",
+        "comun_hub_results",
+        "comun_mobilization_actions",
+        "comun_pauta_timeline_events"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/organizacao/onboarding-actions.ts",
+      "exports": [
+        "reviewOrganizationOnboardingAction",
+        "approveOrganizationOnboardingAction"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/comun-solidarity-organization-onboarding",
+        "@/lib/server/comun-solidarity-organization-onboarding",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "isComunSolidarityOrganizationOnboardingEnabled",
+        "requireComunAdmin"
+      ],
+      "tables_literals": [],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/organizacao/solidarity-actions.ts",
+      "exports": [
+        "reviewFirstOrganizationAccessAction",
+        "revokeOrganizationAccessAsAdminAction"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/comun-solidarity-organization-governance",
+        "@/lib/server/comun-solidarity-organization-governance",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "isComunSolidarityOrganizationGovernanceEnabled",
+        "requireComunAdmin"
+      ],
+      "tables_literals": [],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/admin/pautas/[id]/political-cycle-actions.ts",
+      "exports": [
+        "initializePautaActionCycle",
+        "createPautaDecisionDraft",
+        "publishPautaDecision",
+        "linkPautaActionCycleEntities",
+        "transitionPautaActionCycle"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/collective-actions-admin",
+        "@/lib/collective-actions-release",
+        "@/lib/pauta-action-cycle",
+        "@/lib/supabase/server",
+        "next/cache",
+        "node:crypto"
+      ],
+      "guards_mentions": [
+        "requireCollectiveActionsRelease",
+        "requireComunAdmin",
+        "requireOwnedCycle",
+        "requirePoliticalEditor"
+      ],
+      "tables_literals": [
+        "comun_collective_action_forwardings",
+        "comun_collective_actions",
+        "comun_communities",
+        "comun_community_memberships",
+        "comun_hub_results",
+        "comun_member_inbox",
+        "comun_pauta_action_cycles",
+        "comun_pauta_decisions",
+        "comun_pauta_evidence_items",
+        "comun_pauta_spaces",
+        "comun_pauta_synthesis_versions"
+      ],
+      "rpc_literals": [
+        "comun_transition_pauta_action_cycle"
+      ]
+    },
+    {
+      "path": "app/comun/admin/territorio/actions.ts",
+      "exports": [
+        "createTerritory",
+        "createNeed",
+        "specializeTerritory",
+        "addTerritorialSource"
+      ],
+      "imports": [],
+      "guards_mentions": [
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_hub_territories",
+        "comun_territorial_needs",
+        "comun_territorial_ownership_assertions",
+        "comun_territorial_sources",
+        "comun_territory_layers"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/c/[slug]/participar/actions.ts",
+      "exports": [
+        "changeCommunityMembership"
+      ],
+      "imports": [
+        "@/lib/community-auth",
+        "@/lib/community-membership",
+        "next/cache",
+        "next/navigation"
+      ],
+      "guards_mentions": [
+        "requireCommunitySession"
+      ],
+      "tables_literals": [],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/caixa-de-entrada/actions.ts",
+      "exports": [
+        "markInboxRead",
+        "markInboxUnread",
+        "archiveInboxItem"
+      ],
+      "imports": [
+        "@/lib/community-auth",
+        "@/lib/supabase/server",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "requireCommunitySession"
+      ],
+      "tables_literals": [
+        "comun_member_inbox"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/calcadas/registros/[slug]/actions.ts",
+      "exports": [
+        "submitSidewalkObservation"
+      ],
+      "imports": [
+        "@/lib/community-auth",
+        "@/lib/sidewalk-operational-release",
+        "@/lib/supabase/server",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "requireCommunitySession",
+        "requireSidewalkOperationalRelease"
+      ],
+      "tables_literals": [
+        "comun_member_inbox",
+        "comun_sidewalk_observations",
+        "comun_sidewalk_records"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/campo/actions.ts",
+      "exports": [
+        "exchangeFieldAccessCode",
+        "confirmFieldOnboarding",
+        "startFieldShift",
+        "completeFieldShift"
+      ],
+      "imports": [],
+      "guards_mentions": [
+        "requireCampaignFieldSession"
+      ],
+      "tables_literals": [
+        "comun_observation_campaign_access_grants",
+        "comun_observation_campaign_field_sessions",
+        "comun_observation_campaigns"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/campo/turno/registrar/actions.ts",
+      "exports": [
+        "submitOwnFieldObservation"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/campaign-field-session",
+        "@/lib/observation-campaign-rules",
+        "@/lib/observatory-rules",
+        "@/lib/supabase/server",
+        "next/navigation",
+        "node:crypto"
+      ],
+      "guards_mentions": [
+        "requireCampaignFieldSession"
+      ],
+      "tables_literals": [
+        "comun_observation_campaign_field_sessions",
+        "comun_observation_campaigns",
+        "comun_observation_form_versions",
+        "comun_observations"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/cooperativas/[slug]/actions.ts",
+      "exports": [
+        "requestOrganizationAccessAction",
+        "withdrawOrganizationAccessAction",
+        "leaveOrganizationAccessAction",
+        "governOrganizationAccessAction"
+      ],
+      "imports": [
+        "@/lib/community-auth",
+        "@/lib/comun-solidarity-organization-governance",
+        "@/lib/server/comun-solidarity-organization-governance",
+        "next/cache",
+        "next/navigation"
+      ],
+      "guards_mentions": [
+        "isComunSolidarityOrganizationGovernanceEnabled",
+        "requireCommunitySession"
+      ],
+      "tables_literals": [],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/cooperativas/[slug]/connection-actions.ts",
+      "exports": [
+        "createSolidarityConnectionAction",
+        "reviewSolidarityConnectionAction",
+        "withdrawSolidarityConnectionAction"
+      ],
+      "imports": [
+        "@/lib/community-auth",
+        "@/lib/community-return",
+        "@/lib/comun-solidarity-private-connections",
+        "@/lib/server/comun-solidarity-organization-governance",
+        "@/lib/server/comun-solidarity-private-connections",
+        "next/cache",
+        "next/navigation"
+      ],
+      "guards_mentions": [
+        "getCommunitySession",
+        "isComunSolidarityPrivateConnectionsEnabled",
+        "requireCommunitySession"
+      ],
+      "tables_literals": [],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/cooperativas/[slug]/economic-actions.ts",
+      "exports": [
+        "createSolidarityOfferAction",
+        "mutateSolidarityOfferAction",
+        "createSolidarityNeedAction",
+        "mutateSolidarityNeedAction"
+      ],
+      "imports": [
+        "@/lib/community-auth",
+        "@/lib/community-return",
+        "@/lib/comun-pauta-low-friction",
+        "@/lib/comun-solidarity-economic-content",
+        "@/lib/server/comun-solidarity-economic-content",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "getCommunitySession",
+        "isComunSolidarityEconomicContentWritesEnabled"
+      ],
+      "tables_literals": [],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/cooperativas/[slug]/editar-perfil/actions.ts",
+      "exports": [
+        "updateSolidarityOrganizationProfileAction"
+      ],
+      "imports": [
+        "@/lib/community-auth",
+        "@/lib/community-return",
+        "@/lib/comun-pauta-low-friction",
+        "@/lib/comun-solidarity-organization-profile",
+        "@/lib/server/comun-solidarity-organization-profile",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "getCommunitySession",
+        "isComunSolidarityOrganizationProfileSelfEditEnabled"
+      ],
+      "tables_literals": [],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/cooperativas/nova/actions.ts",
+      "exports": [
+        "createSolidarityOrganizationOnboardingDraftAction",
+        "saveSolidarityOrganizationOnboardingDetailsAction",
+        "withdrawSolidarityOrganizationOnboardingAction"
+      ],
+      "imports": [
+        "@/lib/community-auth",
+        "@/lib/community-return",
+        "@/lib/comun-pauta-low-friction",
+        "@/lib/comun-solidarity-organization-onboarding",
+        "@/lib/server/comun-solidarity-organization-onboarding",
+        "next/cache"
+      ],
+      "guards_mentions": [
+        "getCommunitySession",
+        "isComunSolidarityOrganizationOnboardingEnabled"
+      ],
+      "tables_literals": [],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/entidades/actions.ts",
+      "exports": [
+        "createCollectiveEntityAction",
+        "setCollectiveEntityConsentAction",
+        "revokeCollectiveRepresentationAction",
+        "prepareOwnCollectiveEntityCandidateAction",
+        "listOwnCollectiveEntityLegitimacyAction",
+        "createCollectiveEntityFormAction",
+        "setCollectiveEntityConsentFormAction",
+        "prepareCollectiveEntityCandidateFormAction",
+        "revokeCollectiveRepresentationFormAction"
+      ],
+      "imports": [
+        "@/lib/community-auth",
+        "@/lib/comun-collective-entity-consent",
+        "@/lib/comun-collective-entity-legitimacy-runtime",
+        "@/lib/comun-collective-entity-runtime",
+        "next/cache",
+        "next/navigation"
+      ],
+      "guards_mentions": [
+        "requireCommunitySession",
+        "requireUuid"
+      ],
+      "tables_literals": [],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/mapa/contribuir/actions.ts",
+      "exports": [
+        "submitTerritorialContribution",
+        "authorizeSidewalkPhotoUpload",
+        "confirmSidewalkPhotoUpload",
+        "submitAuthenticatedSidewalkRecord"
+      ],
+      "imports": [
+        "@/lib/community-auth",
+        "@/lib/community-return",
+        "@/lib/comun-experience",
+        "@/lib/comun-journey-context",
+        "@/lib/comun-shell-contract",
+        "@/lib/comun/canonical-editorial-pautas",
+        "@/lib/media-storage",
+        "@/lib/sidewalk-operational-release",
+        "@/lib/sidewalk-photos",
+        "@/lib/supabase/server",
+        "next/navigation",
+        "node:crypto"
+      ],
+      "guards_mentions": [
+        "requireCommunitySession",
+        "requireSidewalkOperationalRelease"
+      ],
+      "tables_literals": [
+        "archive-private-originals",
+        "comun_archive_assets",
+        "comun_archive_items",
+        "comun_member_inbox",
+        "comun_pauta_memberships",
+        "comun_pauta_spaces",
+        "comun_sidewalk_record_photos",
+        "comun_sidewalk_records",
+        "comun_sidewalk_uploads",
+        "comun_territorial_contributions"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/observatorios/[slug]/registrar/actions.ts",
+      "exports": [
+        "submitObservation"
+      ],
+      "imports": [],
+      "guards_mentions": [],
+      "tables_literals": [
+        "comun_observation_form_versions",
+        "comun_observations",
+        "comun_observatories"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/participar/actions.ts",
+      "exports": [
+        "submitParticipation"
+      ],
+      "imports": [
+        "@/lib/supabase/server",
+        "next/navigation"
+      ],
+      "guards_mentions": [],
+      "tables_literals": [
+        "comun_hub_participation_interests"
+      ],
+      "rpc_literals": []
+    },
+    {
+      "path": "app/comun/pautas/nova/actions.ts",
+      "exports": [
+        "createLowFrictionPautaAction"
+      ],
+      "imports": [
+        "@/lib/community-auth",
+        "@/lib/comun-pauta-low-friction",
+        "@/lib/comun-public-evidence-resolver",
+        "@/lib/rate-limit",
+        "@/lib/supabase/server",
+        "next/cache",
+        "next/navigation",
+        "node:crypto"
+      ],
+      "guards_mentions": [
+        "getCommunitySession",
+        "isComunPautaLowFrictionCreationEnabled"
+      ],
+      "tables_literals": [],
+      "rpc_literals": [
+        "comun_create_pauta_low_friction_v1"
+      ]
+    },
+    {
+      "path": "app/comun/radio/actions.ts",
+      "exports": [
+        "submitRadioContribution",
+        "createRadioProgram",
+        "createRadioEpisode",
+        "publishRadioEpisode",
+        "addRadioEditorialData",
+        "unpublishRadioEpisode"
+      ],
+      "imports": [
+        "@/lib/admin-audit",
+        "@/lib/admin-auth",
+        "@/lib/community-auth",
+        "@/lib/radio",
+        "@/lib/supabase/server",
+        "next/cache",
+        "next/navigation",
+        "node:crypto"
+      ],
+      "guards_mentions": [
+        "getCommunitySession",
+        "requireComunAdmin"
+      ],
+      "tables_literals": [
+        "comun_archive_assets",
+        "comun_archive_items",
+        "comun_radio_contributions",
+        "comun_radio_credits",
+        "comun_radio_episode_chapters",
+        "comun_radio_episodes",
+        "comun_radio_music_uses",
+        "comun_radio_programs",
+        "comun_radio_safety_reviews",
+        "comun_radio_schedule_entries",
+        "comun_radio_transcript_versions",
+        "comun_radio_voice_consents"
+      ],
+      "rpc_literals": []
+    }
+  ]
+}
