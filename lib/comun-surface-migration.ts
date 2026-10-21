@@ -78,6 +78,7 @@ const INSTITUTIONAL_TITLES: Record<string, string> = {
 const PUBLIC_WEB_PREFIXES = [
   "/comun/acervo",
   "/comun/arte",
+  "/comun/jogos",
   "/comun/radio",
   "/comun/dossies",
   "/comun/observatorios",
@@ -132,6 +133,7 @@ const FAMILY_LABELS: Record<string, string> = {
   dossies: "Dossiês",
   entidades: "Entidades coletivas",
   escola: "Escola",
+  jogos: "Jogos",
   mapa: "Mapa",
   observatorios: "Observatórios",
   pautas: "Pautas",
