@@ -7,6 +7,21 @@ test.beforeEach(async ({ page }) => {
     return u.origin === base ? route.continue() : route.abort();
   });
 });
+test("Jogos tem destino público real no laboratório, sem fixture 404", async ({
+  page,
+  request,
+}) => {
+  const response = await request.get("/comun/jogos");
+  expect(response.status()).toBe(200);
+  await page.goto("/comun/explorar?experiencia=legacy&categoria=radio");
+  await expect(page.getByRole("link", { name: "Jogos" })).toHaveAttribute(
+    "href",
+    "/comun/jogos",
+  );
+  await page.getByRole("link", { name: "Jogos" }).click();
+  await expect(page.getByRole("heading", { name: "VR: Cidade em Disputa" })).toBeVisible();
+});
+
 test("real Explorar page exposes three public sources without account or writes", async ({
   page,
 }) => {

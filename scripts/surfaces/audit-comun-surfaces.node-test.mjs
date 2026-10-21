@@ -19,7 +19,7 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   // R5 adds one publisher-only collective-entity projection desk.
   // The operational chain adds member onboarding plus one R4 reviewer desk.
   // Escola R0 adds six learner pages and one civic/editorial review desk.
-  assert.equal(summary.total, 240);
+  assert.equal(summary.total, 241);
   // Also includes the public read-only first-action guide from #520.
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
@@ -92,6 +92,7 @@ test("keeps roots, nested routes, immersive tools and admin surfaces distinct", 
     "institutional",
   );
   assert.equal(byRoute.get("/comun/explorar")?.shell_mode, "member_root");
+  assert.equal(byRoute.get("/comun/jogos")?.shell_mode, "public_web");
   assert.equal(
     byRoute.get("/comun/cooperativas/[slug]")?.shell_mode,
     "public_web",
