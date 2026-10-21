@@ -18,7 +18,6 @@ Na consulta após #569 há **9 PRs abertas**, todas candidatas/draft: **#436, #5
 
 **Critério para o próximo relato:** separar `DECIDIDO`, `IMPLEMENTADO`, `CI CERTIFICADA`, `MERGED`, `PRODUCTION READY`, `HUMANAMENTE VALIDADO` e `LANÇADO`. Não converter `SKIPPED` em `SUCCESS`; não usar o bloqueio da Escola para travar entregas independentes nem contorná-lo para liberar seu próprio domínio.
 
-
 > **Norte de produto (20/10/2026):** [SOC-D10 — Arquitetura integral da rede social do comum](#soc-d10--arquitetura-integral-da-rede-social-do-comum). O COMUN deve ser uma rede social de vida comunitária, útil e prazerosa sem exigir ativismo, preservando a potência cívica, cultural e econômica já construída. A visão e a implementação permanecem estados distintos.
 
 ## Feirinha — reconciliação da primeira conexão privada (20/10/2026)
