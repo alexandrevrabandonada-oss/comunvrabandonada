@@ -2626,6 +2626,48 @@ não rearranjo cosmético da home. Sem merge,
 deploy, schema ou lançamento autorizado por
 esta seção documental.
 
+#### SOC-D10.L/P0 — Reconciliação efetiva do passivo de PRs (21/10/2026)
+
+**FATOS CONSULTADOS NO GITHUB / SNAPSHOT, NÃO AUTORIZAÇÃO DE MERGE.**
+Base `main@80e0fce5`; onze PRs abertos, todos `draft`
+nesta consulta. O fato de um check ser `skipped` não o
+torna prova de execução. Nenhum PR amplo pode ser
+integrado por simples ausência de conflito.
+
+| PR | Head consultado | Estado da comparação e gates | Tratamento P0 |
+| --- | --- | --- | --- |
+| [#564](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/564) | `8e543c3` | Docs somente, sem conflito; 6 checks `success`, 40 `skipped` no head | Candidato de integração isolada, após conferir revisão/proteções e estado exato |
+| [#565](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/565) | `15c9870` | Dois scripts de auditoria, sem conflito; COST-02 falhou com `preview-not-valid-for-checkpoint` | Bloquear merge; conferir deploy Preview do mesmo SHA e prova do gate, sem contornar |
+| [#542](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/542) | `921351c` | Conflito com main; laboratório da recuperação da Escola em base histórica; COST-02 falhou | Preservar prova; extrair delta ainda útil em branch atual antes de ensaio, não integrar como está |
+| [#523](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/523) | `6c52ec9` | Conflito; grande diff de guia contextual, projeções públicas e workflows | Comparar por arquivo com main atual e recortar o que não estiver integrado |
+| [#556](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/556) | `5b936fb` | Conflito; contrato do PR declara ORCH-V2 fora da fila ativa | Manter draft estacionado; sem lançamento de scheduler ou reconciliador |
+| [#551](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/551) | `d35c8b3` | Conflito; descoberta pública de Jogos, COST-02 falhou | Reavaliar delta contra navegação SOC-D10; novo Preview e testes humanos antes de integrar |
+| [#539](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/539) | `0ac5293` | Conflito; falha COST-02 e em superfícies admin autenticadas | Isolar correção de gate de evidências e dependências; não transferir rótulos de prontidão |
+| [#524](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/524) | `2f2d8a8` | Sem conflito imediato, mas COST-02 falhou e jobs foram cancelados; ferramenta Editais desligada por padrão | Preservar como piloto administrativo candidato, fora da liberação social |
+| [#517](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/517) | `357f010` | Conflito; reconciliação SQL da Rádio e contratos | Verificar equivalência das proteções e compatibilidade real do schema antes de rebase |
+| [#516](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/516) | `5c658c5` | Conflito; melhorias de limpeza de ensaios de recuperação | Comparar com a recuperação já presente na main; preservar apenas lacunas verificadas |
+| [#436](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/436) | `d222cac` | Conflito; diff multissuperfície/migrations e base de setembro | NÃO fazer merge em bloco; separar segurança editorial, dados e histórico já integrado |
+
+**SEQUÊNCIA DE REDUÇÃO DO PASSIVO.** (a) Resolver apenas
+candidatos pequenos com HEAD e gates exatos; (b) classificar
+os PRs conflitantes por mudança ainda ausente na main,
+regressão e dependência; (c) preparar deltas mínimos
+independentes e ensaiá-los em base atual; (d) fechar
+como superseded somente quando a comparação comprovar
+substituição integral e o motivo estiver registrado.
+Uma PR antiga verde na própria base não equivale
+a validação após rebase. Não transformar a triagem
+em liberação de migration, dados sensíveis, indexação
+ou Production. O gate humano de SOC-D10 permanece.
+
+**RAIZ COMPROVADA DA FALHA COST-02 DO #565:**
+job `119281705573`, run `39617337326`,
+`COMUN_COST_02_FAIL:preview-not-valid-for-checkpoint`.
+O marcador `[comun-preview]` está presente no commit,
+logo não presumir ausência de marcador. Investigar
+o Preview válido para o SHA e não executar bypass
+nem rerun indiscriminado.
+
 ### SOC-D10.M — Organização viva por escolha, dentro da rede inteira (21/10/2026)
 
 **OBJETIVO / PRINCÍPIO DECIDIDO.** O COMUN também deve sustentar
