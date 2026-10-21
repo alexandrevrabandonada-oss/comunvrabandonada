@@ -1994,9 +1994,9 @@ Nota de conciliação (19/10/2026): as regras históricas de ciclos acima não r
 
 ### SOC-D10 — Arquitetura integral da rede social do comum
 
-**Estado:** objetivo de produto e princípios \`PRINCÍPIO DECIDIDO\`; jornadas,
+**Estado:** objetivo de produto e princípios `PRINCÍPIO DECIDIDO`; jornadas,
 rótulos, perfil público, publicação espontânea e descoberta integrada
-\`HIPÓTESE A VALIDAR\`; etapas abaixo \`PLANEJADAS\`. Esta decisão unifica
+`HIPÓTESE A VALIDAR`; etapas abaixo `PLANEJADAS`. Esta decisão unifica
 os registros de SOC-D01 a SOC-D09, as frentes 49-E/U0–U8/50 e o contrato
 V1. Não substitui os critérios existentes, não reabre migrações nem declara
 implementação ou validação humana.
@@ -2073,10 +2073,10 @@ e navegação, não uma migração para tabela universal de eventos.
   padrão; notificações indicam respostas reais e estados
   relevantes, jamais urgência inventada para estimular visitas.
 
-**Lacuna auditada no código da main:** \`/comun/conta\` já permite nome,
-bio e visibilidade; \`/comun/minha-participacao\` é uma área privada
+**Lacuna auditada no código da main:** `/comun/conta` já permite nome,
+bio e visibilidade; `/comun/minha-participacao` é uma área privada
 densa, não um perfil social público completo. A home App V2 prioriza
-relatar/pautas/atenção; \`/comun/explorar\` agrega sobretudo categorias
+relatar/pautas/atenção; `/comun/explorar` agrega sobretudo categorias
 e atalhos. A Feirinha tem diretório e conexões organizacionais
 protegidas. Acervo/Rádio/Arte têm contratos editoriais.
 NÃO inferir publicação espontânea livre, seguindo pessoas,
@@ -2097,7 +2097,7 @@ depois de auditar Auth, RLS, bloqueio e moderação:
 2. **Minha área (privado):** continuidades, itens salvos,
    respostas, contribuições, trocas, rascunhos e
    notificações relevantes. Preservar a base já existente
-   de \`Minha participação\`, mas tornar compreensível
+   de `Minha participação`, mas tornar compreensível
    para quem não participa de ações cívicas.
 3. **Perfil social (publicação opt-in):** apresentação,
    nome escolhido, bio, imagem autorizada, interesses
@@ -2127,8 +2127,8 @@ ou doações em métrica de status pessoal.
 de expressão (texto breve, foto autorizada, pergunta ou
 link cultural) que possa existir sem pauta formal.
 No momento de publicar, a pessoa compreende autoria,
-destino e audiência: \`público\`, \`comunidade autorizada\`
-ou \`privado/rascunho\` conforme os controles que forem
+destino e audiência: `público`, `comunidade autorizada`
+ou `privado/rascunho` conforme os controles que forem
 efetivamente desenvolvidos. Pré-visualização e revisão
 de dados pessoais são essenciais; ausência de conta
 não pode transformar criação em perda silenciosa.
@@ -2155,10 +2155,10 @@ tornam públicos por linkagem nem por resumos de IA.
 
 **A hipótese de descoberta não é um feed algorítmico único.**
 Oferecer modos distintos com escolhas visíveis:
-\`Conhecer\` (curadoria diversificada de conteúdo público),
-\`Novidades\` (recentes com contexto e regras compreensíveis)
+`Conhecer` (curadoria diversificada de conteúdo público),
+`Novidades` (recentes com contexto e regras compreensíveis)
 e, quando houver relação real consentida,
-\`Acompanho\` (autores, comunidades e assuntos).
+`Acompanho` (autores, comunidades e assuntos).
 Não depender de inferência de crenças, condições de
 saúde ou filiação política. Não comprar distribuição
 nem ranquear pessoas por engajamento. Controles
@@ -2206,9 +2206,9 @@ rápido à denúncia:
   lugar e categoria; conteúdos publicados de Acervo,
   Rádio, jogos, Feirinha, comunidades, pautas e ferramentas.
   Filtrar por tipo não exige conhecer nomes internos.
-- **Ação central:** acesso simples a \`Vi um problema\`
-  e opções contextuais de \`Compartilhar\`,
-  \`Contribuir\`, \`Oferecer\` e \`Propor\`
+- **Ação central:** acesso simples a `Vi um problema`
+  e opções contextuais de `Compartilhar`,
+  `Contribuir`, `Oferecer` e `Propor`
   apenas quando a respectiva jornada é real.
   Não sacrificar o relato em um menu genérico confuso.
 - **Participar / Comunidades:** vínculos e atividades
@@ -2225,7 +2225,7 @@ rápido à denúncia:
 protótipos de jornadas em 360–430 px, desktop,
 teclado, leitor de tela, zoom e conexão limitada;
 comparar com navegação existente antes de alterar
-\`COMUN_ROOT_TABS\`, shell ou rotas. Mostrar a
+`COMUN_ROOT_TABS`, shell ou rotas. Mostrar a
 home para visitante anônimo, novo membro sem
 relações e membro retornando. A capa só exibe
 cards com registros elegíveis, títulos e imagens
@@ -2369,9 +2369,9 @@ alteração de produção ou novo lançamento
 
 ### Reconciliação do identificador duplicado SOC-D09
 
-O título histórico \`SOC-D09 — descoberta pública
-contextual (15/10/2026)\` era uma colisão
-com \`SOC-D09 — Jogos no COMUN\` já integrado.
+O título histórico `SOC-D09 — descoberta pública
+contextual (15/10/2026)` era uma colisão
+com `SOC-D09 — Jogos no COMUN` já integrado.
 Para referências futuras, **SOC-D09-JOGOS**
 designa o conjunto de Jogos e
 **SOC-D09-DESC** a descoberta contextual;
