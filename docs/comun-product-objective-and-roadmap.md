@@ -15,6 +15,125 @@ e Acervo. A ação cívica primária, os limites de privacidade e os
 bloqueios da Escola, da restauração remota e do lançamento V1
 continuam preservados.
 
+## Avaliação crítica do produto — 21/10/2026
+
+**Natureza:** diagnóstico e hipóteses de priorização derivados do código
+e do roadmap da `main@242f19cd`; **não** certificação de experiência
+social, lançamento, nem decisão de implementação automática.
+Reutiliza SOC-D01–D10, V1, 49-M e a fila SOC-D10.L; não abre outro
+programa de produto. Revalidar após cada integração importante.
+
+### Veredito e desequilíbrio a corrigir
+
+- **Proposta diferenciada, ainda não comprovada socialmente.**
+  Unir cultura, convivência, utilidade, troca e organização voluntária
+  é coerente; a existência de rotas e ferramentas não demonstra
+  rede viva nem uso recorrente.
+- **Profundidade cívica maior que densidade social.**
+  Home, Minha Participação e navegação ainda carregam semântica
+  de processos, participação e tarefas. Perfil social público,
+  expressão cotidiana livre e vínculos entre pessoas continuam
+  hipóteses, não capacidades comprovadas.
+- **Demasiadas promessas na mesma janela.**
+  Acervo, Rádio, Feirinha, Escola, Fábrica, Jogos, serviços,
+  observatórios e núcleos não podem competir pelo mesmo
+  pequeno orçamento de operação, moderação, conteúdo e QA.
+  Aparência de completude por módulos é um falso critério.
+- **Conteúdo e pessoas reais são dependência de produto.**
+  Build READY, seeds, fixtures, catálogos vazios e contadores
+  de rotas não provam obras publicáveis, transações, reciprocidade,
+  engajamento saudável, grupo ativo ou facilitadores disponíveis.
+  A avaliação não encontrou amostra humana atual suficiente para
+  atribuir sucesso de retenção, uso ou capacidade de operação.
+- **O roadmap perdeu legibilidade executiva.**
+  O arquivo contém quase três mil linhas de histórico e
+  checkpoints antigos, alguns sobre PRs depois integrados.
+  Preservar evidência histórica, mas manter no topo só
+  norte, estado atual validado, bloqueio único por trilha,
+  fila pequena, critérios de saída e links para provas.
+  O checkpoint JSON de execução também precisa ser
+  reconciliado antes de servir de fonte operacional.
+- **Segurança técnica não substitui governança social.**
+  Moderação, direitos autorais, direito de saída, segurança
+  de denunciantes e privacidade de filiação/posição política
+  exigem equipe, procedimento, prestação de contas e
+  ensaio humano. Não lançar DM aberta, social graph público,
+  upload executável nem ingresso em núcleos sem isso.
+
+### Escolhas de produto — manter, alterar e adiar
+
+**MANTER:** um COMUN, com identidade e contexto reutilizáveis
+e domínios que conservam suas próprias autorizações;
+valor cultural sem militância; relato urgente disponível;
+conviver, colaborar pontualmente e organizar como
+vínculos voluntários distintos; direitos e privacidade
+anteriores a personalização e crescimento.
+
+**ALTERAR A PRIORIDADE, não a missão:** privilegiar
+experiências concluídas e relações reais sobre quantidade de
+módulos. Não redesenhar home isoladamente: testar
+Início → Explorar → conteúdo/autor → ação opcional →
+retorno; no mesmo ensaio verificar Relata e Minha área.
+Feirinha precisa de primeira conexão real com resposta;
+núcleos precisam de um ciclo consentido com facilitador
+e substituto antes de expandir a Escola/trilhas internas.
+
+**ADIAR sem descartar:** feed personalizado, seguimento
+público em escala, DM geral, novos badges/reputação,
+gamificação de militância, marketplace aberto a todas
+as pessoas, hospedagem de jogos de terceiros, novas
+migrations para social graph e lançamento de massa.
+Não usar esses itens para compensar ausência de conteúdo
+ou dificuldade de navegação.
+
+### Portões de prova da próxima execução existente
+
+1. **Reconciliação da base e WIP (SOC-D10.L/P0):**
+   comparar cada PR aberto com a `main`, o risco e os
+   checks do SHA, fechando substituídos motivadamente.
+   Não combinar PRs históricos ou contar `SKIPPED`
+   como `SUCCESS`. Não reabrir #571 (Jogos) já integrada.
+2. **Primeiro valor sem conta (P1):** com fontes públicas
+   elegíveis e reais, visitante encontra algo interessante,
+   entende origem e autora, compartilha ou retorna sem login;
+   caminho de relato permanece claro. Estado sem conteúdo
+   e indisponibilidade são apresentados honestamente.
+3. **Continuidade pessoal (P2):** distinguir conta,
+   Minha área, perfil público e vínculos organizativos.
+   Mostrar apenas o que de fato persiste e existe;
+   não fabricar itens salvos, conexões ou timeline.
+4. **Prova social mínima (P3):** com pessoas reais e
+   moderação responsável, testar criação opt-in e
+   resposta voluntária entre duas pessoas, incluindo
+   silêncio, bloqueio, retirada e proteção de público/privado.
+   Protótipo antes de banco, política de abuso antes de DM.
+5. **Reciprocidade e organização (P4/49-M1):** uma troca
+   ou oferta com contato seguro e retorno; um convite
+   opt-in, encontro, tarefa aceita, devolutiva e rotação
+   com coletivo real. Não converter uso da cultura em
+   recrutamento nem publicar filiações em perfis.
+6. **Ensaio de conjunto (P5/50):** pessoa curiosa,
+   criadora, moradora em necessidade e organizadora
+   usam a mesma navegação. Medir conclusão de valor,
+   obstáculos, compreensão, confiança, retorno
+   espontâneo, incidentes e horas reais de moderação.
+   Reprovação relevante volta ao desenho, não cria
+   rapidamente outro módulo.
+
+**Critério de parada:** se não houver conteúdo real
+autorizado ou capacidade humana mínima de operação,
+não chamar o produto de rede social validada, não
+fabricar sinais de atividade e não escalar funcionalidades
+dependentes de massa crítica. Provar **uma comunidade
+real de uso, não um catálogo de possibilidades**.
+
+**Condição de governança:** operações de núcleos,
+convites, formação e tarefas respeitam o direito de
+participação voluntária e a não inferência de filiação.
+O COMUN não é ferramenta de pontuação política,
+vigilância dos membros ou coleta de preferências
+sensíveis por comportamento.
+
 ## Checkpoint canônico operacional — 21/10/2026, após #569
 
 **Fonte de verdade neste checkpoint:** `main@f47885b1769281ac79da54f248a266af3a4f6c88`, merge por squash da [#569](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/569). O deployment Vercel do mesmo SHA foi observado em **Production READY**; isso comprova entrega técnica, **não** aceite humano, restauração real, ativação da Escola ou certificação de lançamento V1.
