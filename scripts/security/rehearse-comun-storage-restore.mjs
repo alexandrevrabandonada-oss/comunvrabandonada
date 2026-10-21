@@ -30,6 +30,7 @@ import {
 } from "./comun-security-contract.mjs";
 
 import { finalizeRestoreEvidence } from "./finalize-restore-evidence.mjs";
+import { assertStorageObjectsMissing } from "./assert-storage-deletion.mjs";
 
 const local = process.argv.includes("--local");
 const startedAt = Date.now();
@@ -74,6 +75,7 @@ try {
   await provider.assertSignedUrlExpiry(sourceKeys[0][0], sourceKeys[0][1]);
 
   await provider.remove(sourceKeys);
+  await assertStorageObjectsMissing(provider, sourceKeys);
   sourceKeys = [];
   for (const [index, backup] of backedUp.entries()) {
     const key = `${restorePrefix}/${backup.fixture.name}`;
@@ -116,6 +118,7 @@ try {
     throw new Error("COMUN_STORAGE_RELATION_COUNT_MISMATCH");
 
   await provider.remove(restoreKeys);
+  await assertStorageObjectsMissing(provider, restoreKeys);
   restoreKeys = [];
   if (archiveItemId) {
     const { error } = await supabase
@@ -176,8 +179,11 @@ try {
       cleanupMarker: "COMUN_STORAGE_RESTORE_CLEANUP_FAILED",
       cleanup: [
         async () => {
-          if (provider && (sourceKeys.length || restoreKeys.length))
-            await provider.remove([...sourceKeys, ...restoreKeys]);
+          const leftovers = [...sourceKeys, ...restoreKeys];
+          if (provider && leftovers.length) {
+            await provider.remove(leftovers);
+            await assertStorageObjectsMissing(provider, leftovers);
+          }
         },
         async () => {
           if (archiveItemId) {
@@ -358,6 +364,17 @@ function r2Provider() {
           throw new Error("COMUN_STORAGE_REMOVE_FAILED");
       }
     },
+    async exists(scope, key) {
+      try {
+        await client.send(
+          new HeadObjectCommand({ Bucket: bucket(scope), Key: key }),
+        );
+        return true;
+      } catch (error) {
+        if (error?.$metadata?.httpStatusCode === 404) return false;
+        throw new Error("COMUN_STORAGE_DELETE_POSTFLIGHT_FAILED");
+      }
+    },
     async publicStatus(scope, key) {
       if (scope.startsWith("public")) {
         return fetch(
@@ -424,6 +441,16 @@ async function supabaseProvider(supabase) {
           .remove(keys);
         if (error) throw new Error("COMUN_STORAGE_REMOVE_FAILED");
       }
+    },
+    async exists(scope, key) {
+      const directory = path.posix.dirname(key);
+      const filename = path.posix.basename(key);
+      const { data, error } = await supabase.storage
+        .from(bucket(scope))
+        .list(directory, { limit: 1000, offset: 0, search: filename });
+      if (error || !Array.isArray(data) || data.length >= 1000)
+        throw new Error("COMUN_STORAGE_DELETE_POSTFLIGHT_FAILED");
+      return data.some((entry) => entry?.name === filename);
     },
     async publicStatus(scope, key) {
       const { data } = supabase.storage.from(bucket(scope)).getPublicUrl(key);
