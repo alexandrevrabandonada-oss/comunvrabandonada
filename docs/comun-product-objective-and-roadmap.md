@@ -3302,6 +3302,44 @@ revisão técnica. O passivo de PRs de SOC-D10.L permanece P0;
 este registro não autoriza merge funcional, migration,
 flags, produção, indexação ou envio de convites.
 
+### SOC-D10.M3 — Mesa privada em modo leitura (candidato no #572)
+
+**21/10/2026 · implementação candidata; sem merge nem Production.**
+O incremento acrescenta `/comun/c/[slug]/mesa` sem entrada pública
+e sem novos papéis, tabelas, migrations, convites ou registros.
+É uma **projeção privada experimental**, não o cadastro de núcleos.
+
+**Autorização fail-closed:** autenticação ativa pela sessão canônica,
+vínculo `member` na comunidade específica e papel comunitário
+`coordinator` ou `facilitator` não revogado, no escopo `community`
+e já iniciado. Qualquer ausência de acesso resulta em 404; falha de
+infraestrutura resulta em indisponibilidade, sem conteúdo privado.
+Os papéis são comunitários; nenhum equivale automaticamente a
+filiação, mandato ou autorização de um núcleo permanente.
+
+**Dados mínimos:** cinco seções (encontro, atribuições, formação,
+decisão/memória, cuidado). Somente atribuições próprias e ativas de
+ações públicas da mesma comunidade, quando o gate de ações coletivas
+estiver efetivamente liberado. Não afirmar aceite voluntário por
+existir uma atribuição. Escola exige seu gate; calendário ICS não
+vira reunião privada. Não há nomes de terceiros, atas internas,
+local reservado, lista de presença, notificação, voto ou progresso
+fabricado. Não há gravação nem rota pública para a Mesa.
+
+**Provas no código:** `lib/community-mesa-contract.ts` com filtros
+puros; `lib/community-mesa.ts` com verificação server-side e
+consulta exclusivamente por `member_user_id`; teste unitário
+`lib/community-mesa-contract.test.ts` cobre estado de vínculo,
+papéis, outra pessoa/comunidade, tarefas privadas/liberadas/inativas.
+O código candidato requer Prettier, TypeScript, build, CI e testes
+autenticados reais; **testes unitários não comprovam RLS ou operação
+de núcleo**. O PR segue draft, sem merge.
+
+**Próxima lacuna real (49-M1):** diferenciar explicitamente ingresso
+num núcleo de papel comunitário, documentar facilitador/substituto,
+confirmar reunião e devolutiva com coletivo real e testar saída.
+Sem essas provas, esta rota é só um ensaio de leitura restrito.
+
 ### Reconciliação do identificador duplicado SOC-D09
 
 O título histórico `SOC-D09 — descoberta pública
