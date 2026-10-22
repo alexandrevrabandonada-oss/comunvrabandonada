@@ -29,22 +29,20 @@ function fixture({ failPinned = [], failEcr = [], mismatch = [] } = {}) {
 test("prefers pinned official images and verifies local alias IDs", () => {
   const f = fixture();
   const result = prepareM6Images(f);
-  assert.deepEqual(result.map((x) => x.source), [
-    "ghcr-digest-pinned",
-    "ghcr-digest-pinned",
-  ]);
+  const observed = result.map((image) => image.source);
+  const expected = ["ghcr-digest-pinned", "ghcr-digest-pinned"];
+  assert.deepEqual(observed, expected);
   for (const image of M6_SUPABASE_IMAGES) {
-    assert.ok(f.calls.some((x) => x[0] === "pull" && x[1] === image.pinned));
-    assert.ok(
-      f.calls.some(
-        (x) =>
-          x[0] === "tag" && x[1] === image.pinned && x[2] === image.alias,
-      ),
+    const ghcrPull = f.calls.some((x) => x[0] === "pull" && x[1] === image.pinned);
+    assert.ok(ghcrPull);
+    const validAlias = f.calls.some(
+      (x) => x[0] === "tag" && x[1] === image.pinned && x[2] === image.alias,
     );
-    assert.equal(
-      f.calls.some((x) => x[0] === "pull" && x[1] === image.alias),
-      false,
+    assert.ok(validAlias);
+    const usedFallback = f.calls.some(
+      (x) => x[0] === "pull" && x[1] === image.alias,
     );
+    assert.equal(usedFallback, false);
   }
 });
 
@@ -54,7 +52,10 @@ test("labels the ECR fallback when GHCR is unavailable", () => {
   const result = prepareM6Images(f);
   assert.equal(result[1].source, "ecr-version-tag-fallback");
   assert.ok(f.calls.some((x) => x[0] === "pull" && x[1] === image.alias));
-  assert.ok(f.messages.includes("M6_IMAGE_FALLBACK_TO_EXISTING_ECR:postgrest"));
+  const recorded = f.messages.includes(
+    "M6_IMAGE_FALLBACK_TO_EXISTING_ECR:postgrest",
+  );
+  assert.ok(recorded);
 });
 
 test("fails if neither registry can supply a required image", () => {
