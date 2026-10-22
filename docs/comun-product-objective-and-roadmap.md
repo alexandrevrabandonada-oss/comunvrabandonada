@@ -3741,3 +3741,38 @@ combinações com a migration própria de outra lane. Os 27 contratos do classif
 passaram em Linux com Node 22.19.0. Esta correção não comprova o gate M6, não aplica
 a migration e não altera autorização remota; o novo SHA ainda precisa de readback
 CI/Preview próprio. M6 continua sendo a estação atual.
+
+**Readback autenticado M6 no SHA `6befd3131efa258a60f90e60daa65990352b3661` —
+22/10/2026.** O job próprio
+[`SOC-D10.M6 / authenticated continuity and RLS`](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/39840946177/job/120041477532)
+terminou SUCCESS no SHA exato. O workflow executou em Linux a suite POSIX, o build
+do contexto versionado, Auth A/B real, PostgreSQL/RLS, PostgREST, Mesa via Next HTTP
+com cookies SSR e Chromium sintético. O artefato sanitizado
+`comun-m6-authenticated-39840946177` contém 28 verificações PASS e hashes das fontes,
+fixture e imagens. Entre os casos: seguir/solicitar vínculo sem aprovação automática;
+concessão controlada no laboratório; isolamento por pessoa e comunidade; aceite e
+devolução voluntários; identidade imutável; revogação com JWT já emitido; papel futuro;
+perfil suspenso; pausa/saída; URL conhecida; cache/offline e histórico revogado; e
+bloqueio de reativação RLS após fechamento. A tarefa permanece atribuída à pessoa que
+saiu até a devolução voluntária; não é transferida, e não se apaga seu histórico.
+
+A limpeza do artefato confirmou contas sintéticas removidas e ausência dos quatro
+containers, volume anônimo do owner e rede descartável. `proofKind` é
+`REAL_AUTH_DATABASE_NEXT_HTTP_AND_SYNTHETIC_CHROMIUM`; não é aceite humano. A fixture
+importa o SQL candidato em schema mínimo, não equivale ao schema integral já migrado.
+Vínculo/papel foram preparados por administração controlada, não pelo percurso de
+autoatendimento do produto. O Chromium cobre a Mesa sintética e seus estados/cache,
+não o percurso organizativo integral nem a compreensão de participantes.
+
+O deployment Preview do mesmo SHA está READY; o endpoint protegido `quality-status`,
+consultado com acesso autenticado à Vercel, retornou o SHA completo e
+`comun-pwa-v4`. `/comun/acoes` respondeu 200 com `private, no-store` e manteve a
+operação fechada: nenhuma participação/tarefa é registrada por essa tela; as pautas
+públicas continuam disponíveis. No readback dos checks, o gate COST-02 e o
+`pr-contract` ainda estavam pendentes, assim como outros workflows; `SKIPPED` não é
+PASS. Logo, este resultado fecha a prova autenticada descartável do M6, mas não a
+certificação integral da estação, liberação funcional em ambiente, nem aceite humano.
+Não houve aplicação remota da migration, alteração de Production, flag, convite ou
+merge. Próximo incremento da mesma estação: reconciliar COST-02, `pr-contract` e os
+checks relevantes do SHA final; manter documentadas a ausência de vínculo persistente
+de núcleo, mandato, suplência aceita, deliberação e transferência consentida.
