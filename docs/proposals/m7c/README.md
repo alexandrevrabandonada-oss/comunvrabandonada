@@ -1,0 +1,120 @@
+# SOC-D10.M7.C — Fundação candidata dos Núcleos Permanentes
+
+**Proposta executável somente em laboratório.** `nucleus-candidate.sql` fica fora
+de `supabase/migrations` e de `supabase/local-migrations`. Não há rota do produto,
+flag, migration registrada, persistência remota ou inscrição real neste incremento.
+O roadmap continua sendo `docs/comun-product-objective-and-roadmap.md`.
+
+## Modelo e responsabilidade de autorização
+
+Comunidade e seus vínculos continuam canônicos. `nuclei` referencia a comunidade,
+mas não deriva núcleo de grupo de trabalho, acompanhamento, papel, curso ou ação.
+As dez tabelas privadas representam finalidade/regras, consentimento, pedido,
+autoridade de revisão específica, decisão, matrícula, mandato, oferta de suplência,
+decisão independente da suplência e eventos mínimos. Não duplicam ações, tarefas,
+Escola, pautas, encontros ou memória.
+
+Cada pedido usa um consentimento novo e exclusivo, identificado por núcleo,
+comunidade e titular, com versão de regras e hash da finalidade exata apresentados.
+O banco recusa versões/digests antigos na solicitação; poderes dependem também de
+coincidirem com a finalidade e as regras correntes. O aviso é a sequência UTF-8 definida em
+`lib/community-nucleus-contract.ts`, unida com LF e sem LF final; teste calcula
+SHA-256, em vez de apenas verificar seu formato. A evidência afirmativa é imutável;
+revogação acrescenta horário e encerra poderes. Ela não prova por si só base legal
+ou compreensão humana. Matrícula só nasce de decisão independente aprovada;
+FKs compostas, checks e trigger verificam a cadeia. `left`/`revoked` não voltam a
+`active`; reingresso exige consentimento, pedido, revisão e matrícula novos.
+
+Uma autoridade de revisão é específica para pedido, titular, núcleo e comunidade,
+tem início, término, revogação e referência mínima ao fundamento revisado.
+**Não existe API para criar essa autoridade ou um núcleo.** A administração sintética
+do laboratório é bootstrap explícito; a legitimidade e o procedimento de concessão
+em ambiente real ainda dependem de revisão humana. Papel comunitário não a substitui.
+O design TypeScript de leitura exige evidência do mesmo instante da operação;
+não autoriza cache de poderes ou uso de provas fornecidas pelo cliente.
+
+Mandatos têm oferta distinta do aceite pessoal, duração máxima candidata de 90
+dias, início/fim, devolução e revogação. Um mandato expirado, futuro, revogado, sem
+aceite ou ligado a matrícula/consentimento/vínculo inativos não concede poder.
+A suplência é ofertada pelo titular vigente a outra matrícula no mesmo escopo;
+o aceite da candidata só permite revisão. A decisão exige revisor diferente de
+candidata e proponente. Mesmo aprovação não cria mandato nem transfere tarefas,
+documentos ou acesso: um novo mandato e aceite seriam operação separada futura.
+
+## RLS, minimização e fronteiras privilegiadas
+
+Todas as dez tabelas têm ENABLE/FORCE RLS. `anon` e `service_role` não recebem
+USAGE, SELECT, DML ou EXECUTE neste schema candidato. `authenticated` só recebe
+SELECT dos recibos próprios e colunas mínimas; revisores recebem apenas o pedido
+específico enquanto a autorização, perfil e vínculo estiverem vigentes. Não há
+SELECT cliente para núcleos, autoridades, decisões ou lista de integrantes.
+Recibos próprios sobrevivem à saída comunitária/organizativa, mas são negados
+a perfil suspenso. Colunas de terceiros, como ator de auditoria e proponente,
+não entram nos grants de recibo. SELECT `*` nessas tabelas minimizadas é recusado.
+
+DML cliente é sempre negado. Funções de operação são SECURITY DEFINER com
+`search_path=''`, nomes qualificados, identidade `auth.uid()`, estado atual e
+escopo validados no PostgreSQL. EXECUTE público é revogado antes do commit;
+somente funções explicitamente revisadas recebem grant autenticado. Helpers
+arbitrários que poderiam ler vínculos alheios permanecem sem EXECUTE cliente.
+Uma operação negada não distingue ID inexistente de ID alheio por `no_data_found`.
+Não se usa `user_metadata`, nem se confia em um `userId` recebido do formulário.
+
+O owner/superuser ainda pode contornar RLS, alterar DDL e fabricar evidência.
+O laboratório usa essa capacidade apenas para fixtures e concessão/revogação
+controladas. Nenhuma prova elimina esse limite de confiança. Uma futura integração
+server-side deve preferir sessão do titular, revalidar `getUser`, minimizar DTOs
+e impedir que um serviço com bypass reutilize recibo de outra pessoa. Não ampliar
+grants de `service_role` para fazer uma rota passar. O schema privado não deverá
+ser adicionado aos schemas Data API em ambiente real sem decisão específica.
+
+## Ensaio reproduzível
+
+```powershell
+node scripts/organization/rehearse-organizational-cycle.mjs --run-disposable --with-nucleus-model --output <diretorio-novo>
+```
+
+O mesmo owner cria GoTrue, PostgreSQL, PostgREST e rede interna sem portas. A/B são
+as protagonistas e C é uma revisora sintética independente para provar a suplência.
+Sessões são emitidas e verificadas pelo Auth real; chamadas ao schema candidato
+passam pelo PostgREST e RLS reais. Só no laboratório o schema é exposto no PostgREST.
+Não se confunde isso com rota Next/SSR M7 ou produto disponível a pessoas reais.
+
+O modo M6 `--with-next-http --with-browser` permanece obrigatório no workflow de PR;
+o M7.C acrescenta seus casos e hashes ao mesmo artefato sanitizado. A prova M7.C é
+separada da Mesa M6 no navegador. O laboratório remove o schema candidato, apaga
+as contas e verifica ausência de containers, volume e rede próprios; não usa prune.
+O resultado/fonte SHA e os limites constam no JSON, inclusive nas falhas.
+
+## Estratégia de migração e reversão para revisão
+
+1. Revisar finalidade, retenção dos recibos, exclusão de conta, pessoas legítimas
+   para revisão, procedimento de recurso e base de tratamento de dados sensíveis.
+2. Revisar DDL/grants/definers com o schema integral. Hoje os FKs de usuário são
+   RESTRICT: a política de exclusão/anomização é uma decisão pendente, não esconder
+   esse bloqueio sob CASCADE. Provar concorrência e troca de autoridade em staging
+   descartável antes de qualquer integração.
+3. Só com autorização específica gerar migration pela ferramenta canônica,
+   forward-only, sem copiar automaticamente este arquivo para o deploy. Sem backfill
+   por inferência, sem matrícula inicial, sem bootstrap automático de revisores.
+4. Rollback de liberação: fechar operações/rotas e revogar grants em mudança
+   descendente revisada, preservar os recibos e a trilha; nunca DROP remoto para
+   retornar versão. O `DROP SCHEMA` do harness é exclusivo do banco descartável.
+5. Portão M7.D: backend autenticado com a candidata aprovada e ensaio de UI móvel,
+   acessível, revogação/URLs conhecidas/cache e limpeza. Só depois ensaio humano e
+   eventual liberação independente. Nada neste documento concede esses portões.
+
+## Texto de experiência a ensaiar, sem rota funcional
+
+"Você pode acompanhar esta comunidade e colaborar em atividades sem entrar em
+um núcleo. Se quiser uma participação continuada, conheça a finalidade, as regras,
+o tempo esperado e quem revisará seu pedido."
+
+O futuro formulário deve exibir o núcleo específico e o aviso antes de um controle
+de aceite **desmarcado**, oferecendo "Enviar pedido para revisão" e "Agora não".
+Mandato: "Recebi uma proposta" antes de "Aceitar responsabilidade" ou "Recusar".
+Suplência: "Meu aceite ainda será revisado; não recebo tarefas ou arquivos de outra
+pessoa automaticamente". Saída: "Pausar ou sair encerra os poderes; meus recibos
+mínimos permanecem privados". Cada superfície deve manter contexto de comunidade,
+Mesa, ações e formação voluntária. Não há ranking, recrutamento obrigatório,
+notificação real ou divulgação automática de vínculo neste incremento.

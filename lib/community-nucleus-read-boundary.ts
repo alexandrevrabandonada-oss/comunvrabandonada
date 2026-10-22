@@ -20,10 +20,17 @@ export type VerifiedNucleusReviewer = {
   communityId: string;
   active: boolean;
   evidenceVerifiedAt: string;
+  requestId: string;
+  subjectUserId: string;
+  startsAt: string;
+  endsAt: string;
+  revokedAt: string | null;
 };
 
 export function canReadNucleusPrivateRecord(input: {
   sessionVerified: boolean;
+  now: string;
+  requestId: string | null;
   actorUserId: string;
   subjectUserId: string;
   nucleusId: string;
@@ -60,19 +67,42 @@ export function canReadNucleusPrivateRecord(input: {
   if (resource === "private_memory") return false;
 
   if (resource === "review_request_summary") {
+    const now = Date.parse(input.now);
+    const verified = Date.parse(reviewer?.evidenceVerifiedAt ?? "");
+    const starts = Date.parse(reviewer?.startsAt ?? "");
+    const ends = Date.parse(reviewer?.endsAt ?? "");
     return Boolean(
+      Number.isFinite(now) &&
+      Number.isFinite(verified) &&
+      verified === now &&
+      Number.isFinite(starts) &&
+      Number.isFinite(ends) &&
+      starts <= now &&
+      now < ends &&
+      reviewer?.revokedAt === null &&
+      input.requestId &&
+      reviewer.requestId === input.requestId &&
+      reviewer.subjectUserId === subjectUserId &&
       actorUserId !== subjectUserId &&
-        reviewer?.active === true &&
-        reviewer.userId === actorUserId &&
-        reviewer.nucleusId === nucleusId &&
-        reviewer.communityId === communityId &&
-        Number.isFinite(Date.parse(reviewer.evidenceVerifiedAt)),
+      reviewer?.active === true &&
+      reviewer.userId === actorUserId &&
+      reviewer.nucleusId === nucleusId &&
+      reviewer.communityId === communityId &&
+      Number.isFinite(Date.parse(reviewer.evidenceVerifiedAt)),
     );
   }
 
   // Signed-in individuals retain access to their own minimum receipts even
   // after pausing or leaving. No nucleus role or active enrollment inferred.
-  return actorUserId === subjectUserId;
+  return (
+    [
+      "own_consent_receipt",
+      "own_request_status",
+      "own_enrollment_history",
+      "own_mandate_history",
+      "own_succession_offer",
+    ].includes(resource) && actorUserId === subjectUserId
+  );
 }
 
 /** A read decision never confers mutations, enrollment, office or publication. */

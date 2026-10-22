@@ -6,6 +6,7 @@ import { createHmac, createHash, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
+import { rehearseNucleusCandidate } from "./nucleus-disposable-domain.mjs";
 import { resolveCommunitySelfServiceState } from "../../lib/community-administration.ts";
 import { releaseOwnCollectiveTask } from "../../lib/collective-action-task-release.ts";
 import {
@@ -53,7 +54,13 @@ const wait = async (check) => {
 };
 const check = async (name, run) => {
   await run();
-  results.push({ name, result: "PASS" });
+  results.push({
+    name,
+    result: "PASS",
+    ...(name.startsWith("M7 ")
+      ? { scope: "M7C_REAL_AUTH_POSTGRES_RLS_PROPOSAL_NOT_PRODUCT" }
+      : {}),
+  });
   console.log(`PASS ${name}`);
 };
 try {
@@ -94,7 +101,9 @@ try {
     auth: { persistSession: false },
   });
   const accounts = [];
-  for (const label of ["A", "B"]) {
+  for (const label of process.env.COMUN_M7C === "1"
+    ? ["A", "B", "Reviewer"]
+    : ["A", "B"]) {
     const email = `${label.toLowerCase()}-${owner}@example.invalid`;
     const created = await service.auth.admin.createUser({
       email,
@@ -624,7 +633,7 @@ try {
   await check(
     withHttp
       ? "future role denies access; suspended profile redirects real HTTP"
-      : "future role denies access; suspended-profile HTTP NOT_RUN",
+      : "future role denies access (domain only)",
     async () => {
       assert(
         !(
@@ -792,6 +801,14 @@ try {
     results.push({
       name: "real Next HTTP: SSR cookies, A allowed; B/other/revoked/future/paused/left denied; suspended/anonymous redirected; private no-store",
       result: "PASS",
+    });
+  if (process.env.COMUN_M7C === "1")
+    await rehearseNucleusCandidate({
+      accounts,
+      service,
+      check,
+      owner,
+      password,
     });
   for (const identity of accounts)
     assert(!(await service.auth.admin.deleteUser(identity.id)).error);

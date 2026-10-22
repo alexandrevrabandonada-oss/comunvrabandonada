@@ -33,7 +33,9 @@ test("prefers pinned official images and verifies local alias IDs", () => {
   const expected = ["ghcr-digest-pinned", "ghcr-digest-pinned"];
   assert.deepEqual(observed, expected);
   for (const image of M6_SUPABASE_IMAGES) {
-    const ghcrPull = f.calls.some((x) => x[0] === "pull" && x[1] === image.pinned);
+    const ghcrPull = f.calls.some(
+      (x) => x[0] === "pull" && x[1] === image.pinned,
+    );
     assert.ok(ghcrPull);
     const validAlias = f.calls.some(
       (x) => x[0] === "tag" && x[1] === image.pinned && x[2] === image.alias,

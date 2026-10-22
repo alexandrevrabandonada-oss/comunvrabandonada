@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
   NUCLEUS_CONSENT_NOTICE,
@@ -25,6 +26,9 @@ const context = {
 };
 const consent: NucleusConsent = {
   ...context,
+  id: "consent-a",
+  rulesVersion: "rules-v1",
+  purposeSha256: "a".repeat(64),
   scope: NUCLEUS_CONSENT_SCOPE,
   noticeVersion: NUCLEUS_CONSENT_VERSION,
   noticeSha256: NUCLEUS_CONSENT_NOTICE_SHA256,
@@ -35,10 +39,22 @@ const consent: NucleusConsent = {
 const request: NucleusRequest = {
   ...context,
   id: "request-a",
+  consentId: consent.id,
   state: "requested",
   requestedAt: "2026-10-22T17:05:00Z",
 };
+const authority = {
+  ...context,
+  id: "authority-a",
+  requestId: request.id,
+  reviewerUserId: "reviewer-b",
+  startsAt: "2026-10-22T17:30:00Z",
+  endsAt: "2026-10-23T00:00:00Z",
+  revokedAt: null,
+};
 const review: NucleusReview = {
+  ...context,
+  authorizationId: authority.id,
   requestId: request.id,
   reviewerUserId: "reviewer-b",
   decision: "approved",
@@ -54,10 +70,13 @@ const enrollment: NucleusEnrollment = {
 const activeInput: Parameters<typeof evaluateNucleusAccess>[0] = {
   context,
   authenticatedUserId: context.userId,
+  rulesVersion: consent.rulesVersion,
+  purposeSha256: consent.purposeSha256,
   communityMembershipState: "member",
   consent,
   request,
   review,
+  reviewAuthorization: authority,
   enrollment,
   now,
 };
@@ -70,6 +89,7 @@ const candidateDecision = {
 const mandate: NucleusMandate = {
   id: "mandate-a",
   nucleusId: context.nucleusId,
+  communityId: context.communityId,
   assigneeUserId: context.userId,
   role: "facilitation",
   state: "active",
@@ -82,6 +102,7 @@ const mandate: NucleusMandate = {
 };
 const offer: NucleusSuccessionOffer = {
   nucleusId: context.nucleusId,
+  communityId: context.communityId,
   outgoingMandateId: mandate.id,
   candidateUserId: "user-b",
   proposedByUserId: context.userId,
@@ -99,6 +120,7 @@ function withMandate(overrides: Partial<NucleusMandate> = {}) {
   return hasAcceptedNucleusMandate({
     mandate: { ...mandate, ...overrides },
     nucleusId: context.nucleusId,
+    communityId: context.communityId,
     subjectUserId: context.userId,
     activeNucleusAccess: activeDecision,
     now,
@@ -240,6 +262,7 @@ describe("SOC-D10.M7 — mandato aceito e sucessão sem transferência", () => {
       hasAcceptedNucleusMandate({
         mandate,
         nucleusId: context.nucleusId,
+        communityId: context.communityId,
         subjectUserId: context.userId,
         activeNucleusAccess: {
           allowed: false,
@@ -256,6 +279,7 @@ describe("SOC-D10.M7 — mandato aceito e sucessão sem transferência", () => {
         offer,
         authenticatedUserId: "user-b",
         nucleusId: context.nucleusId,
+        communityId: context.communityId,
         activeNucleusAccess: candidateDecision,
         now,
       }),
@@ -277,6 +301,7 @@ describe("SOC-D10.M7 — mandato aceito e sucessão sem transferência", () => {
           offer: replacement,
           authenticatedUserId: "user-b",
           nucleusId: context.nucleusId,
+          communityId: context.communityId,
           activeNucleusAccess: candidateDecision,
           now,
         }),
@@ -290,6 +315,7 @@ describe("SOC-D10.M7 — mandato aceito e sucessão sem transferência", () => {
         offer,
         authenticatedUserId: "user-b",
         nucleusId: context.nucleusId,
+        communityId: context.communityId,
         activeNucleusAccess: activeDecision,
         now,
       }),
@@ -298,6 +324,7 @@ describe("SOC-D10.M7 — mandato aceito e sucessão sem transferência", () => {
       hasAcceptedNucleusMandate({
         mandate,
         nucleusId: context.nucleusId,
+        communityId: context.communityId,
         subjectUserId: context.userId,
         activeNucleusAccess: candidateDecision,
         now,
@@ -311,10 +338,58 @@ describe("SOC-D10.M7 — mandato aceito e sucessão sem transferência", () => {
         offer,
         authenticatedUserId: "user-b",
         nucleusId: context.nucleusId,
+        communityId: context.communityId,
         activeNucleusAccess: {
           allowed: false,
           reason: "community_not_active",
         },
+        now,
+      }),
+    ).toBe("forbidden");
+  });
+});
+
+describe("M7 consent and scope regressions", () => {
+  it("hashes the exact UTF-8 notice, LF joined without trailing LF", () => {
+    expect(
+      createHash("sha256")
+        .update(NUCLEUS_CONSENT_NOTICE.join("\n"), "utf8")
+        .digest("hex"),
+    ).toBe(NUCLEUS_CONSENT_NOTICE_SHA256);
+  });
+  it("rejects another consent, pre-consent requests and invalid dates", () => {
+    expect(access({ rulesVersion: "changed" }).allowed).toBe(false);
+    expect(access({ purposeSha256: "b".repeat(64) }).allowed).toBe(false);
+    expect(access({ request: { ...request, consentId: "old" } }).allowed).toBe(
+      false,
+    );
+    expect(
+      access({ request: { ...request, requestedAt: "2026-10-22T16:00:00Z" } })
+        .allowed,
+    ).toBe(false);
+    expect(access({ now: "2026-02-30T20:00:00Z" }).allowed).toBe(false);
+  });
+  it("requires scoped independent reviewer authority at decision time", () => {
+    for (const a of [
+      null,
+      { ...authority, requestId: "other" },
+      { ...authority, userId: "user-b" },
+      { ...authority, communityId: "other" },
+      { ...authority, reviewerUserId: context.userId },
+      { ...authority, endsAt: review.decidedAt },
+      { ...authority, revokedAt: review.decidedAt },
+    ])
+      expect(access({ reviewAuthorization: a }).allowed).toBe(false);
+  });
+  it("rejects cross-community mandates and succession", () => {
+    expect(withMandate({ communityId: "other" })).toBe(false);
+    expect(
+      evaluateSuccessionAcceptance({
+        offer: { ...offer, communityId: "other" },
+        authenticatedUserId: "user-b",
+        nucleusId: context.nucleusId,
+        communityId: context.communityId,
+        activeNucleusAccess: candidateDecision,
         now,
       }),
     ).toBe("forbidden");

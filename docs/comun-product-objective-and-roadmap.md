@@ -3857,3 +3857,84 @@ para DDL/RLS em ambiente descartável, seguida por Auth A/B real.
 Não criar automaticamente filiação, mandato, acesso, evento, flag,
 busca pública ou transferência de responsabilidade. A PR #572 segue
 em draft; M6 e os gates do HEAD exato permanecem independentes.
+
+### SOC-D10.M6 → M7.C — Certificação Auth e fundação candidata (22/10/2026)
+
+**Reconciliação e autorização.** Continuação da PR draft #572 sobre
+`5838c9c7fb2b11eeea16a6db947d11760aa6d60f`, main
+`242f19cd1c2fe948c28eedcc67d424ec47b5e180`. A instrução humana desta passada
+autoriza DDL candidata fora de migrations e execução estritamente descartável;
+não autoriza banco compartilhado, migration remota, flag, merge ou Production.
+Os portões históricos M7.C acima são atualizados somente nesse escopo de proposta.
+
+**M6 — bloqueio de formatação corrigido.** O job Auth do SHA `5838c9c7` falhou no
+Prettier antes de Auth, enquanto `pr-contract` e COST-02 desse SHA passaram.
+O Prettier real 3.9.6 foi executado sobre
+`scripts/organization/prepare-m6-images.node-test.mjs`, preservando os cinco casos
+e resultados esperados. Os cinco contratos passaram em Node Linux 22.19.0.
+O workflow existente exige a prova Auth/SQL/Next HTTP/Chromium do HEAD próprio;
+não há rerun/dispatch, exclusão de testes ou herança de aprovação histórica.
+
+**M7.A/B — correções concretas.** Consentimento tem ID, vínculo ao pedido,
+versão de regras e hash da finalidade específica. Teste calcula SHA-256 do aviso
+UTF-8 unido por LF sem LF final e confirma o valor publicado. Datas de calendário
+inválidas e pedido anterior ao consentimento são negados. Revisão exige prova
+independente vinculada ao pedido/titular/núcleo/comunidade e válida no instante
+da decisão. Mandato e suplência incluem comunidade, impedindo reutilizar prova
+em escopo incompatível. A leitura de revisor é específica do pedido/titular,
+com início/fim/revogação e evidência do mesmo instante da operação, sem cache
+de autoridade. Recurso não reconhecido é negado. São contratos de design,
+não sessões verificadas ou autorização por si mesmos. Suíte focal: 26 PASS;
+regressão unitária local: 1.724 PASS.
+
+**M7.C — incremento executável.** A candidata
+`docs/proposals/m7c/nucleus-candidate.sql` e sua análise
+`docs/proposals/m7c/README.md` derivam do schema real de comunidades. Dez tabelas
+privadas separam núcleo/finalidade, consentimento, pedido, autoridade específica
+de revisão, decisão, matrícula, mandato, oferta e decisão de suplência e auditoria
+mínima. FKs compostas impedem desvio de titular/comunidade/núcleo; checks, índices
+e triggers preservam histórico, impedem reativação terminal e exigem cadeia
+aprovada. Aceite pessoal, termo delimitado, devolução/revogação de mandato e
+suplência com decisão independente não transferem tarefa, mandato ou memória.
+Nenhuma ferramenta de ações, pautas, Escola ou comunidade foi duplicada.
+
+Todas as tabelas candidatas têm FORCE RLS. `anon` e `service_role` não têm acesso
+ao schema; clientes não têm DML. Recibos usam RLS própria e grants de colunas
+mínimas; revisor só lê o resumo do pedido explicitamente autorizado. Funções
+privilegiadas têm `search_path` fechado, EXECUTE revogado por padrão, identidade
+`auth.uid()` e validações SQL de estado/escopo. O owner privilegiado continua
+sendo limite de confiança e é usado apenas para fixture e bootstrap controlados.
+Não há API de concessão de legitimidade a revisores nem de criação de núcleo.
+
+**Prova funcional e limites.** `--with-nucleus-model` estende o mesmo laboratório
+M6: A/B são protagonistas e C é revisora sintética independente, com dois núcleos
+e duas comunidades. GoTrue emite sessões reais; operações atravessam PostgREST,
+funções SQL e RLS reais. O schema privado é exposto somente nesse PostgREST
+descartável, nunca no ambiente COMUN. Ensaio preliminar do candidato: 37 grupos
+PASS, incluindo 11 de M7, com schema candidato removido, contas apagadas e
+containers/volume/rede do owner ausentes. Evidência em
+`E:/COMUN-M6-LAB-20261022/evidence/m7c-candidate-expanded/authenticated-cycle.json`:
+fonte `dirty=true` e hashes próprios; não certifica o HEAD histórico `5838c9c7`.
+O JSON do job final separa M7.C Auth/RLS de M6 HTTP/Chromium e inclui SHA, hashes,
+imagens, resultados e limpeza. O topo executivo da mesma PR registra o readback
+do SHA publicado, CI/COST-02 e Preview exatos, sem tratá-los como aceite humano.
+
+**Riscos e pendências reais.** Fixture mínima não substitui schema integral.
+Bootstrap de revisores, finalidade/base de tratamento, retenção e exclusão de
+contas (FK RESTRICT), recursos contra decisão, concorrência e revisão dos definers
+precisam de decisão específica. Revogar autoridade de revisor impede poderes
+futuros; anular decisão histórica é um ato distinto, não revoga matrículas de
+terceiros silenciosamente. Não há persistência organizativa no produto, rota de
+inscrição, interface M7 autenticada, integrantes reais ou aceite humano.
+O texto proposto mostra acompanhar/colaborar/ingressar como possibilidades
+independentes, com aceite desmarcado, recusa, tempo esperado, pausa/saída e recibos
+privados; cultura e convivência continuam legítimas sem ingresso em núcleo.
+
+**SOC-D10.M7.D — próximo incremento específico.** Depois dos gates técnicos e
+da revisão de finalidade/legitimidade/retenção e autorização do backend, integrar
+pedido e recibo ao contexto de comunidade/Mesa por sessão verificada, DTO mínimo
+e RLS, com aceite/recusa de mandato e suplência em ambiente descartável. Ensaiar
+mobile/acessibilidade, URLs antigas, revogação e cache sem habilitar matrícula real
+por esta proposta. Qualquer migration aplicável ou persistência compartilhada
+continua bloqueada até autorização própria. Automação permanece PAUSED;
+desenvolvimento sob demanda, mesma ferrovia e PR draft.

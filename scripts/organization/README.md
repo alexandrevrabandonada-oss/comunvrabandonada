@@ -101,3 +101,18 @@ banco remoto, fixture, comportamento organizativo ou testes de RLS.
 Digests de referência:
 `https://github.com/supabase/auth/pkgs/container/gotrue/versions` e
 `https://github.com/supabase/cli/pkgs/container/postgrest`.
+
+## Candidata M7.C no mesmo laboratório
+
+`--with-nucleus-model` importa explicitamente a DDL de
+`docs/proposals/m7c/nucleus-candidate.sql`, fora das migrations aplicáveis, depois
+de o GoTrue criar `auth.users`. Somente o PostgREST descartável expõe o schema
+privado candidato. A/B protagonizam o ciclo; C é uma revisora sintética independente.
+As operações usam sessões Auth reais, RLS e funções no banco, incluindo aceites,
+revogação, saída e recibos mínimos. O SQL candidato não é aplicado ao produto.
+
+Os resultados `M7` trazem escopo próprio no mesmo JSON: Auth/PostgREST/SQL reais
+não equivalem a backend Next ou interface M7 disponível. O schema é removido,
+as contas são apagadas e a limpeza do owner é verificada. O job M6 de PR exige
+esse modo junto de Next HTTP/Chromium da Mesa. Nenhuma credencial ou flag remota
+é utilizada. Modelo, riscos, privilégios e portões em `docs/proposals/m7c/README.md`.

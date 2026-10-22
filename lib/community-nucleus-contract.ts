@@ -22,6 +22,9 @@ export type NucleusContext = {
 };
 
 export type NucleusConsent = NucleusContext & {
+  id: string;
+  rulesVersion: string;
+  purposeSha256: string;
   scope: typeof NUCLEUS_CONSENT_SCOPE;
   noticeVersion: typeof NUCLEUS_CONSENT_VERSION;
   noticeSha256: string;
@@ -31,12 +34,23 @@ export type NucleusConsent = NucleusContext & {
 };
 
 export type NucleusRequest = NucleusContext & {
+  consentId: string;
   id: string;
   state: "requested" | "withdrawn" | "rejected";
   requestedAt: string;
 };
 
-export type NucleusReview = {
+export type NucleusReviewAuthorization = NucleusContext & {
+  id: string;
+  requestId: string;
+  reviewerUserId: string;
+  startsAt: string;
+  endsAt: string;
+  revokedAt: string | null;
+};
+
+export type NucleusReview = NucleusContext & {
+  authorizationId: string;
   requestId: string;
   reviewerUserId: string;
   decision: "approved" | "rejected";
@@ -67,7 +81,10 @@ function timestamp(value: string | null | undefined): number | null {
   if (!value || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z$/.test(value))
     return null;
   const ms = Date.parse(value);
-  return Number.isFinite(ms) ? ms : null;
+  return Number.isFinite(ms) &&
+    new Date(ms).toISOString().slice(0, 19) === value.slice(0, 19)
+    ? ms
+    : null;
 }
 
 function sameContext(
@@ -76,12 +93,12 @@ function sameContext(
 ): boolean {
   return Boolean(
     expected.userId &&
-      expected.nucleusId &&
-      expected.communityId &&
-      actual &&
-      actual.userId === expected.userId &&
-      actual.nucleusId === expected.nucleusId &&
-      actual.communityId === expected.communityId,
+    expected.nucleusId &&
+    expected.communityId &&
+    actual &&
+    actual.userId === expected.userId &&
+    actual.nucleusId === expected.nucleusId &&
+    actual.communityId === expected.communityId,
   );
 }
 
@@ -89,14 +106,24 @@ function sameContext(
 export function evaluateNucleusAccess(input: {
   context: NucleusContext;
   authenticatedUserId: string;
+  rulesVersion: string;
+  purposeSha256: string;
   communityMembershipState: string | null;
   consent: NucleusConsent | null;
   request: NucleusRequest | null;
   review: NucleusReview | null;
+  reviewAuthorization: NucleusReviewAuthorization | null;
   enrollment: NucleusEnrollment | null;
   now: string;
 }): NucleusAccessDecision {
-  const { context, consent, request, review, enrollment } = input;
+  const {
+    context,
+    consent,
+    request,
+    review,
+    enrollment,
+    reviewAuthorization: authority,
+  } = input;
   const now = timestamp(input.now);
   if (
     !now ||
@@ -104,6 +131,8 @@ export function evaluateNucleusAccess(input: {
     input.authenticatedUserId !== context.userId ||
     (consent && !sameContext(context, consent)) ||
     (request && !sameContext(context, request)) ||
+    (review && !sameContext(context, review)) ||
+    (authority && !sameContext(context, authority)) ||
     (enrollment && !sameContext(context, enrollment))
   )
     return { allowed: false, reason: "wrong_identity_or_scope" };
@@ -113,7 +142,11 @@ export function evaluateNucleusAccess(input: {
 
   const consentAt = timestamp(consent?.affirmedAt);
   if (
-    !consent ||
+    !consent?.id ||
+    !input.rulesVersion ||
+    !/^[a-f0-9]{64}$/.test(input.purposeSha256) ||
+    consent.rulesVersion !== input.rulesVersion ||
+    consent.purposeSha256 !== input.purposeSha256 ||
     consent.scope !== NUCLEUS_CONSENT_SCOPE ||
     consent.noticeVersion !== NUCLEUS_CONSENT_VERSION ||
     consent.noticeSha256 !== NUCLEUS_CONSENT_NOTICE_SHA256 ||
@@ -127,15 +160,31 @@ export function evaluateNucleusAccess(input: {
   const requestedAt = timestamp(request?.requestedAt);
   if (
     !request?.id ||
+    request.consentId !== consent.id ||
     request.state !== "requested" ||
     !requestedAt ||
+    requestedAt < consentAt ||
     requestedAt > now
   )
     return { allowed: false, reason: "request_not_open" };
 
   const reviewedAt = timestamp(review?.decidedAt);
+  const authorityStart = timestamp(authority?.startsAt);
+  const authorityEnd = timestamp(authority?.endsAt);
+  const authorityRevocation = timestamp(authority?.revokedAt);
   if (
     !review ||
+    !authority?.id ||
+    authority.id !== review.authorizationId ||
+    authority.requestId !== request.id ||
+    authority.reviewerUserId !== review.reviewerUserId ||
+    !authorityStart ||
+    !authorityEnd ||
+    !reviewedAt ||
+    authorityStart > reviewedAt ||
+    reviewedAt >= authorityEnd ||
+    (authority.revokedAt !== null &&
+      (!authorityRevocation || authorityRevocation <= reviewedAt)) ||
     review.requestId !== request.id ||
     !review.reviewerUserId ||
     review.reviewerUserId === context.userId ||
@@ -163,6 +212,7 @@ export function evaluateNucleusAccess(input: {
 }
 
 export type NucleusMandate = {
+  communityId: string;
   id: string;
   nucleusId: string;
   assigneeUserId: string;
@@ -181,6 +231,7 @@ export function hasAcceptedNucleusMandate(input: {
   mandate: NucleusMandate | null;
   nucleusId: string;
   subjectUserId: string;
+  communityId: string;
   activeNucleusAccess: NucleusAccessDecision;
   now: string;
 }): boolean {
@@ -191,7 +242,8 @@ export function hasAcceptedNucleusMandate(input: {
     !now ||
     !input.activeNucleusAccess.allowed ||
     input.activeNucleusAccess.userId !== input.subjectUserId ||
-    input.activeNucleusAccess.nucleusId !== input.nucleusId
+    input.activeNucleusAccess.nucleusId !== input.nucleusId ||
+    input.activeNucleusAccess.communityId !== input.communityId
   )
     return false;
   const offered = timestamp(mandate.offeredAt);
@@ -200,25 +252,27 @@ export function hasAcceptedNucleusMandate(input: {
   const ends = timestamp(mandate.endsAt);
   return Boolean(
     mandate.id &&
-      mandate.role &&
-      mandate.nucleusId === input.nucleusId &&
-      mandate.assigneeUserId === input.subjectUserId &&
-      mandate.acceptedByUserId === input.subjectUserId &&
-      mandate.state === "active" &&
-      mandate.revokedAt === null &&
-      offered &&
-      accepted &&
-      starts &&
-      ends &&
-      offered <= accepted &&
-      accepted <= now &&
-      starts <= now &&
-      now < ends &&
-      starts < ends,
+    mandate.role &&
+    mandate.nucleusId === input.nucleusId &&
+    mandate.communityId === input.communityId &&
+    mandate.assigneeUserId === input.subjectUserId &&
+    mandate.acceptedByUserId === input.subjectUserId &&
+    mandate.state === "active" &&
+    mandate.revokedAt === null &&
+    offered &&
+    accepted &&
+    starts &&
+    ends &&
+    offered <= accepted &&
+    accepted <= now &&
+    starts <= now &&
+    now < ends &&
+    starts < ends,
   );
 }
 
 export type NucleusSuccessionOffer = {
+  communityId: string;
   nucleusId: string;
   outgoingMandateId: string;
   candidateUserId: string;
@@ -237,6 +291,7 @@ export function evaluateSuccessionAcceptance(input: {
   offer: NucleusSuccessionOffer | null;
   authenticatedUserId: string;
   nucleusId: string;
+  communityId: string;
   activeNucleusAccess: NucleusAccessDecision;
   now: string;
 }): "ready_for_review" | "forbidden" {
@@ -249,12 +304,14 @@ export function evaluateSuccessionAcceptance(input: {
     !input.activeNucleusAccess.allowed ||
     input.activeNucleusAccess.userId !== input.authenticatedUserId ||
     input.activeNucleusAccess.nucleusId !== input.nucleusId ||
+    input.activeNucleusAccess.communityId !== input.communityId ||
     !now ||
     !offered ||
     !expires ||
     offered > now ||
     now >= expires ||
     offer.nucleusId !== input.nucleusId ||
+    offer.communityId !== input.communityId ||
     offer.candidateUserId !== input.authenticatedUserId ||
     offer.proposedByUserId === input.authenticatedUserId ||
     !offer.proposedByUserId ||

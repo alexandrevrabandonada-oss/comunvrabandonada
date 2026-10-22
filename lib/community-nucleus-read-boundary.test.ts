@@ -9,6 +9,8 @@ import {
 
 const base = {
   sessionVerified: true,
+  now: "2026-10-22T18:00:00Z",
+  requestId: "request-a",
   actorUserId: "user-a",
   subjectUserId: "user-a",
   nucleusId: "nucleus-a",
@@ -43,9 +45,9 @@ describe("SOC-D10.M7.B — private read boundary (design only)", () => {
     expect(
       canReadNucleusPrivateRecord({ ...base, sessionVerified: false }),
     ).toBe(false);
-    expect(
-      canReadNucleusPrivateRecord({ ...base, actorUserId: "" }),
-    ).toBe(false);
+    expect(canReadNucleusPrivateRecord({ ...base, actorUserId: "" })).toBe(
+      false,
+    );
     expect(
       canReadNucleusPrivateRecord({
         ...base,
@@ -80,6 +82,11 @@ describe("SOC-D10.M7.B — private read boundary (design only)", () => {
       communityId: base.communityId,
       active: true,
       evidenceVerifiedAt: "2026-10-22T18:00:00Z",
+      requestId: base.requestId,
+      subjectUserId: base.subjectUserId,
+      startsAt: "2026-10-22T17:00:00Z",
+      endsAt: "2026-10-23T18:00:00Z",
+      revokedAt: null,
     };
     expect(
       canReadNucleusPrivateRecord({
@@ -111,6 +118,11 @@ describe("SOC-D10.M7.B — private read boundary (design only)", () => {
       communityId: base.communityId,
       active: true,
       evidenceVerifiedAt: "2026-10-22T18:00:00Z",
+      requestId: base.requestId,
+      subjectUserId: base.subjectUserId,
+      startsAt: "2026-10-22T17:00:00Z",
+      endsAt: "2026-10-23T18:00:00Z",
+      revokedAt: null,
     };
     const asReviewer = {
       ...base,
@@ -120,6 +132,12 @@ describe("SOC-D10.M7.B — private read boundary (design only)", () => {
     };
     for (const invalid of [
       { ...reviewer, active: false },
+      { ...reviewer, requestId: "other" },
+      { ...reviewer, subjectUserId: "other" },
+      { ...reviewer, evidenceVerifiedAt: "2026-10-22T18:00:01Z" },
+      { ...reviewer, evidenceVerifiedAt: "2026-10-22T17:58:59Z" },
+      { ...reviewer, endsAt: base.now },
+      { ...reviewer, revokedAt: base.now },
       { ...reviewer, userId: "reviewer-c" },
       { ...reviewer, nucleusId: "nucleus-b" },
       { ...reviewer, communityId: "community-b" },

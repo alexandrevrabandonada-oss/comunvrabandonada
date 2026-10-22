@@ -28,6 +28,10 @@ const source = {
   dirty: Boolean(git(["status", "--porcelain"])),
 };
 const sourceFiles = [
+  "docs/proposals/m7c/nucleus-candidate.sql",
+  "lib/community-nucleus-contract.ts",
+  "lib/community-nucleus-read-boundary.ts",
+  "scripts/organization/nucleus-disposable-domain.mjs",
   "scripts/organization/mesa-browser-proof.mjs",
   "lib/collective-action-task-release.ts",
   "lib/community-mesa-contract.ts",
@@ -241,17 +245,6 @@ try {
   // GoTrue resolves its own tables without a schema prefix. Test-local role only.
   await sql("alter role postgres set search_path = auth, public;");
   await run(
-    "rest",
-    images.rest,
-    {
-      PGRST_DB_URI: `postgres://authenticator:${password}@${owner}-pg:5432/postgres`,
-      PGRST_DB_SCHEMAS: "public",
-      PGRST_DB_ANON_ROLE: "anon",
-      PGRST_JWT_SECRET: secret,
-    },
-    null,
-  );
-  await run(
     "auth",
     images.auth,
     {
@@ -268,6 +261,31 @@ try {
       GOTRUE_EXTERNAL_EMAIL_ENABLED: "true",
       GOTRUE_DISABLE_SIGNUP: "true",
       GOTRUE_SMTP_HOST: "127.0.0.1",
+    },
+    null,
+  );
+  if (process.argv.includes("--with-nucleus-model")) {
+    await wait(
+      async () =>
+        (await sql("select to_regclass('auth.users') is not null")) === "t",
+    );
+    await sql(
+      await fs.readFile(
+        path.join(root, "docs/proposals/m7c/nucleus-candidate.sql"),
+        "utf8",
+      ),
+    );
+  }
+  await run(
+    "rest",
+    images.rest,
+    {
+      PGRST_DB_URI: `postgres://authenticator:${password}@${owner}-pg:5432/postgres`,
+      PGRST_DB_SCHEMAS: process.argv.includes("--with-nucleus-model")
+        ? "public,comun_org_private"
+        : "public",
+      PGRST_DB_ANON_ROLE: "anon",
+      PGRST_JWT_SECRET: secret,
     },
     null,
   );
@@ -307,6 +325,10 @@ try {
     `COMUN_M6_NEXT_HTTP=${process.argv.includes("--with-next-http") ? "1" : "0"}`,
     "-e",
     `COMUN_M6_BROWSER=${process.argv.includes("--with-browser") ? "1" : "0"}`,
+    "-e",
+    `COMUN_M7C=${process.argv.includes("--with-nucleus-model") ? "1" : "0"}`,
+    "-e",
+    `COMUN_M7C_DB_HOST=${owner}-pg`,
     runner,
     "node",
     "--conditions=react-server",
@@ -423,6 +445,9 @@ try {
           : process.argv.includes("--with-next-http")
             ? "REAL_AUTH_DATABASE_AND_NEXT_HTTP; not full browser journey"
             : "REAL_AUTH_DATABASE_DOMAIN; not full Next/browser journey",
+        nucleusProposal: process.argv.includes("--with-nucleus-model")
+          ? "REAL_AUTH_POSTGREST_POSTGRES_RLS_CANDIDATE_ONLY; not product integration"
+          : "NOT_RUN",
         fixture_sha256: createHash("sha256").update(fixture).digest("hex"),
         results,
         cleanup,
