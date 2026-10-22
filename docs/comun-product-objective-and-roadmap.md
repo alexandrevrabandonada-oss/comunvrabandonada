@@ -3797,3 +3797,40 @@ O commit `[comun-preview]` somente solicita nova prova exata: exigir
 Preview READY e COST-02 no SHA, além do ensaio Auth M6, limpeza e
 RLS; não transportar os 28 PASS do candidato anterior `6befd313`.
 Sem merge, migration, flag, convite ou Production.
+### SOC-D10.M7.A — Contrato puro de ingresso, mandato e suplência consentida (22/10/2026)
+
+**Incremento implementado em branch/PR canônicos, sem persistência:**
+`lib/community-nucleus-contract.ts` fixa aviso de ingresso específico em
+núcleo com versão e SHA-256; a classificação de vínculo exige identidade
+verificada no servidor, vínculo comunitário ativo, consentimento afirmativo
+não revogado, solicitação ativa, revisão por outra pessoa e matrícula própria
+ativa vinculada ao mesmo pedido. Seguir comunidade, colaborar numa tarefa,
+ser facilitador ou integrar grupo de trabalho **não** satisfaz essa cadeia.
+
+Mandato é separado de papel comunitário: requer oferta, aceite da própria
+pessoa, período vigente, identidade e núcleo compatíveis, sem revogação.
+Uma oferta de suplência pode, no máximo, tornar-se elegível para revisão
+humana; aceite não atribui mandato, transfere tarefa ou revela memória.
+Filiação não tem projeção pública padrão. A suíte focada
+`lib/community-nucleus-contract.test.ts` cobre 16 casos incluindo
+outra identidade/comunidade, autoaprovação, revogação, saída, tempo,
+mandato alheio e transferência indevida. Contrato TS validado em análise
+local e testes de fumaça Node com dez asserções; regressão Vitest total
+permanece sujeita ao CI do SHA final.
+
+**Fronteira de segurança inalterada:** não há tabela de núcleos, matrícula
+persistida, formulário de ingresso, convite, lista de participantes, RPC,
+política RLS, migração aplicada, extensão de acesso à Mesa ou liberação de
+funcionalidade. A decisão pura serve para futura implementação auditada;
+não é substituta de Auth/RLS nem prova de legitimidade do revisor. Antes de
+persistir dados potencialmente sensíveis, exigir revisão específica de
+finalidade, minimização, base legal, retenção, cancelamento, direitos,
+capacidades de gestão e separação entre publicação e organização privada.
+
+**Portão M7.B (ainda não autorizado):** proposta da menor estrutura para
+núcleo/consentimento/solicitação/revisão/matrícula/mandato/suplência,
+autorização de schema, migração reversível e RLS com testes A/B e usuário
+revogado. Nunca inferir filiação ou transferir responsabilidade sem novo
+aceite. M6 permanece pendente até Auth/COST-02/pr-contract do HEAD próprio,
+sem transportar evidências de SHAs históricos. PR segue draft, sem merge,
+Production, migração, flag ou convite.
