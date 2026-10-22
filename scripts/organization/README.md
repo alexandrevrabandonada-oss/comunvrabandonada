@@ -50,8 +50,20 @@ limpeza da árvore e hashes; não monta o build Windows por cima do artefato Lin
 
 A saída inclui `PASS`, `FAIL` ou `PARTIAL`. Uma lacuna RLS reproduzida aparece
 como `KNOWN_GAP`, nunca como aprovação de segurança. O harness não modifica
-políticas para fazê-las passar: uma correção do banco exige revisão/autorização
-próprias. Não há transferência automática ou exclusão do histórico de atribuição.
+políticas apenas na fixture para fazê-las passar: carrega literalmente a migration
+candidata `20261022160000_comun_collective_task_release_boundary.sql`, autorizada
+para a PR e testes descartáveis. Essa migration restringe UPDATE autenticado à
+devolução e protege os identificadores por gatilho SECURITY INVOKER. Não há novos
+grants, transferência automática ou exclusão do histórico de atribuição.
+
+O contraexemplo anterior está preservado no artifact do run `39803345507`, SHA
+`e43a91a45c1c9836209dc22930bd735fde3b72b9`: 17 PASS / 1 KNOWN_GAP, `PARTIAL`.
+O candidato exige negação verificável de reativação, conservação da linha após
+tentativas de trocar identificadores, devolução direta própria, compatibilidade
+do upsert de serviço e fronteiras de INSERT (ação, tarefa, prazo, participação e
+capacidade). O teste do upsert é compatibilidade real de banco, não execução do
+formulário/Server Action no browser. A aplicação remota exige autorização separada;
+nenhuma aplicação é feita por este workflow de PR.
 
 No `finally`, somente recursos cujo label contém o owner deste ensaio são
 removidos. O relatório comprova ausência dos containers, volume anônimo e rede.

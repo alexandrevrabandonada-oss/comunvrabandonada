@@ -325,6 +325,192 @@ try {
     ),
   );
   await check(
+    "assignment identity cannot change while returning a task",
+    async () => {
+      const original = await service
+        .from("comun_collective_action_task_assignments")
+        .select("*")
+        .eq("task_id", ids.task)
+        .eq("member_user_id", a.id)
+        .single();
+      assert(!original.error);
+      const otherTask = randomUUID();
+      await write("comun_collective_action_tasks", {
+        id: otherTask,
+        action_id: ids.action,
+        title: "Outra tarefa sintética",
+        description: "Somente para testar imutabilidade",
+        state: "open",
+      });
+      for (const mutation of [
+        { id: randomUUID() },
+        { task_id: otherTask },
+        { member_user_id: b.id },
+        { created_at: "2020-01-01T00:00:00Z" },
+      ]) {
+        const changed = await a.client
+          .from("comun_collective_action_task_assignments")
+          .update({
+            ...mutation,
+            status: "released",
+            released_at: new Date().toISOString(),
+          })
+          .eq("id", original.data.id)
+          .select("id");
+        assert.equal(changed.error?.code, "23514");
+        assert(
+          changed.error.message.includes(
+            "COMUN_COLLECTIVE_TASK_ASSIGNMENT_IDENTITY_IMMUTABLE",
+          ),
+        );
+        const preserved = await service
+          .from("comun_collective_action_task_assignments")
+          .select("*")
+          .eq("id", original.data.id)
+          .single();
+        assert(!preserved.error);
+        assert.deepEqual(preserved.data, original.data);
+      }
+      assert(
+        !(
+          await service
+            .from("comun_collective_action_tasks")
+            .delete()
+            .eq("id", otherTask)
+        ).error,
+      );
+    },
+  );
+  await check(
+    "direct own return and privileged reaccept preserve assignment identity",
+    async () => {
+      const before = await service
+        .from("comun_collective_action_task_assignments")
+        .select("id,created_at")
+        .eq("task_id", ids.task)
+        .eq("member_user_id", a.id)
+        .single();
+      assert(!before.error);
+      const released = await a.client
+        .from("comun_collective_action_task_assignments")
+        .update({ status: "released", released_at: new Date().toISOString() })
+        .eq("id", before.data.id)
+        .select("id");
+      assert(!released.error);
+      assert.deepEqual(released.data, [{ id: before.data.id }]);
+      const denied = await a.client
+        .from("comun_collective_action_task_assignments")
+        .update({ status: "active", released_at: null })
+        .eq("id", before.data.id)
+        .select("id");
+      if (denied.error) assert.equal(denied.error.code, "42501");
+      else assert.deepEqual(denied.data, []);
+      // Database compatibility proof for the existing canonical service-role upsert;
+      // this does not claim to execute the browser or Server Action session handler.
+      const accepted = await service
+        .from("comun_collective_action_task_assignments")
+        .upsert(
+          {
+            task_id: ids.task,
+            member_user_id: a.id,
+            status: "active",
+            released_at: null,
+          },
+          { onConflict: "task_id,member_user_id" },
+        )
+        .select("id,created_at,status")
+        .single();
+      assert(!accepted.error, accepted.error?.message);
+      assert.equal(accepted.data.id, before.data.id);
+      assert.equal(accepted.data.created_at, before.data.created_at);
+      assert.equal(accepted.data.status, "active");
+    },
+  );
+  for (const scenario of [
+    "eligible",
+    "closed-action",
+    "internal-action",
+    "closed-task",
+    "expired-task",
+    "withdrawn",
+    "full",
+  ]) {
+    await check(`fresh acceptance boundary: ${scenario}`, async () => {
+      const actionId = randomUUID();
+      const taskId = randomUUID();
+      await write("comun_collective_actions", {
+        id: actionId,
+        community_id: ids.community,
+        slug: `m6-${actionId}`,
+        title: "Ação descartável",
+        visibility: scenario === "internal-action" ? "internal" : "public",
+        status: scenario === "closed-action" ? "archived" : "open",
+      });
+      await write("comun_collective_action_tasks", {
+        id: taskId,
+        action_id: actionId,
+        title: "Tarefa descartável",
+        description: "Teste de autorização",
+        state: scenario === "closed-task" ? "done" : "open",
+        due_at: scenario === "expired-task" ? "2020-01-01T00:00:00Z" : null,
+      });
+      await write("comun_collective_action_participations", {
+        action_id: actionId,
+        member_user_id: a.id,
+        status: scenario === "withdrawn" ? "withdrew" : "participating",
+      });
+      if (scenario === "full")
+        await write("comun_collective_action_task_assignments", {
+          task_id: taskId,
+          member_user_id: b.id,
+          status: "active",
+        });
+      const claimed = await a.client
+        .from("comun_collective_action_task_assignments")
+        .insert({ task_id: taskId, member_user_id: a.id, status: "active" })
+        .select("id");
+      if (scenario === "eligible") {
+        assert(!claimed.error, claimed.error?.message);
+        assert.equal(claimed.data.length, 1);
+      } else {
+        assert(claimed.error);
+        assert.equal(
+          claimed.error.code,
+          ["closed-task", "expired-task", "full"].includes(scenario)
+            ? "P0001"
+            : "42501",
+        );
+        const absent = await service
+          .from("comun_collective_action_task_assignments")
+          .select("id")
+          .eq("task_id", taskId)
+          .eq("member_user_id", a.id);
+        assert(!absent.error);
+        assert.deepEqual(absent.data, []);
+      }
+      for (const [table, column] of [
+        ["comun_collective_action_task_assignments", "task_id"],
+        ["comun_collective_action_participations", "action_id"],
+        ["comun_collective_action_tasks", "id"],
+        ["comun_collective_actions", "id"],
+      ])
+        assert(
+          !(
+            await service
+              .from(table)
+              .delete()
+              .eq(
+                column,
+                column === "task_id" ||
+                  table === "comun_collective_action_tasks"
+                  ? taskId
+                  : actionId,
+              )
+          ).error,
+        );
+    });
+  }
+  await check(
     "RLS hides A responsibility from B and rejects impersonation",
     async () => {
       const own = await a.client
@@ -560,29 +746,33 @@ try {
       await httpMesa(a, "m6-owned", 404);
     },
   );
-  // Record the current policy gap; never silently turn it into a green safety gate.
-  const reactivation = await a.client
-    .from("comun_collective_action_task_assignments")
-    .update({ status: "active", released_at: null })
-    .eq("member_user_id", a.id)
-    .select("id");
-  if (!reactivation.error && reactivation.data?.length) {
-    results.push({
-      name: "RLS permits direct reactivation of own assignment after closed action",
-      result: "KNOWN_GAP",
-      next: "Reviewed forward-only database authorization change required; not applied by M6",
-    });
-    const verified = await a.client.auth.getUser();
-    await releaseOwnCollectiveTask(service, {
-      userId: verified.data.user.id,
-      slug: "m6-action",
-      taskId: ids.task,
-    });
-  } else
-    results.push({
-      name: "RLS denies reactivation after closed action",
-      result: "PASS",
-    });
+  await check(
+    "RLS denies reactivation after closed action and preserves released history",
+    async () => {
+      const before = await service
+        .from("comun_collective_action_task_assignments")
+        .select("*")
+        .eq("task_id", ids.task)
+        .eq("member_user_id", a.id)
+        .single();
+      assert(!before.error);
+      assert.equal(before.data.status, "released");
+      const reactivation = await a.client
+        .from("comun_collective_action_task_assignments")
+        .update({ status: "active", released_at: null })
+        .eq("member_user_id", a.id)
+        .select("id");
+      if (reactivation.error) assert.equal(reactivation.error.code, "42501");
+      else assert.deepEqual(reactivation.data, []);
+      const after = await service
+        .from("comun_collective_action_task_assignments")
+        .select("*")
+        .eq("id", before.data.id)
+        .single();
+      assert(!after.error);
+      assert.deepEqual(after.data, before.data);
+    },
+  );
   if (withHttp)
     results.push({
       name: "real Next HTTP: SSR cookies, A allowed; B/other/revoked/future/paused/left denied; suspended/anonymous redirected; private no-store",

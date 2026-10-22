@@ -3653,3 +3653,26 @@ convite ou merge foi autorizada ou executada nesta mitigação.
 Um gate Auth M6 que falhe por essa razão deve continuar FAIL até
 haver correção aprovada, ensaio autenticado real e limpeza.
 
+**SOC-D10.M6 — candidata para fechar a transição RLS, 22/10/2026.** A autorização
+humana específica desta continuação permite criar/publicar a migration na PR #572
+e ensaiá-la somente em laboratório descartável. Não inclui aplicação remota,
+novos grants, merge ou Production. A baseline própria `e43a91a4`, run `39803345507`,
+completou Linux/POSIX, build e Auth A/B/Next HTTP; resultado PARTIAL por uma
+reativação direta indevida, com 17 verificações PASS e limpeza comprovada.
+
+A candidata `20261022160000_comun_collective_task_release_boundary.sql` limita
+UPDATE autenticado a atribuição própria ativa que se torne released e mantém
+`id`, `task_id`, `member_user_id` e `created_at` imutáveis por gatilho SECURITY
+INVOKER. Não altera INSERT, SELECT, vínculos, dados existentes ou papéis. O fluxo
+canônico de novo aceite usa serviço com validações próprias e upsert; a
+compatibilidade desse upsert e a devolução após pausa/saída/encerramento precisam
+continuar passando. Não se atribui proteção RLS ao cliente de serviço.
+
+O harness carrega a migration candidata literal e inclui negação de reativação,
+tentativas de retargeting, devolução direta própria, reaceite de serviço sem troca
+de identidade e fronteiras de aceite em ação/tarefa/prazo/participação/capacidade.
+O contraexemplo anterior fica preservado; no candidato uma reativação admitida é
+FAIL, sem converter falha de infraestrutura em aprovação. Certificação Auth real,
+CI, COST-02 e Preview próprios do novo SHA permanecem PENDING até seus resultados.
+A fixture continua mínima e não comprova schema integral, browser/offline ou
+aceite humano. M6 permanece a estação atual; aplicação remota exige outra decisão.

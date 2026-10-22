@@ -35,6 +35,7 @@ const sourceFiles = [
   "scripts/organization/rehearse-organizational-cycle.mjs",
   "supabase/migrations/20260726133409_comun_collective_actions_foundation.sql",
   "supabase/migrations/20260726161426_comun_collective_action_member_journey.sql",
+  "supabase/migrations/20261022160000_comun_collective_task_release_boundary.sql",
 ];
 const hashes = async () =>
   Object.fromEntries(
@@ -221,6 +222,16 @@ try {
   );
   assert(capacity.startsWith("create function"));
   await sql(capacity);
+  // Apply the actual candidate verbatim, only inside this owned disposable database.
+  await sql(
+    await fs.readFile(
+      path.join(
+        root,
+        "supabase/migrations/20261022160000_comun_collective_task_release_boundary.sql",
+      ),
+      "utf8",
+    ),
+  );
   // GoTrue resolves its own tables without a schema prefix. Test-local role only.
   await sql("alter role postgres set search_path = auth, public;");
   await run(

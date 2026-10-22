@@ -9,6 +9,7 @@ on:
       - "lib/**"
       - "scripts/journeys/**"
       - "scripts/organization/**"
+      - "supabase/migrations/*comun_collective*"
       - "tests/core-journeys/**"
       - "playwright.core-journeys.config.ts"
       - "package*.json"
@@ -22,6 +23,7 @@ on:
       - "components/**"
       - "lib/**"
       - "scripts/journeys/**"
+      - "supabase/migrations/*comun_collective*"
       - "tests/core-journeys/**"
       - "playwright.core-journeys.config.ts"
       - "package*.json"
@@ -53,7 +55,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(scripts/organization/|lib/(community-(mesa|membership|administration)|collective-action)|app/comun/(acoes/|minha-participacao/)|components/community-participation-onboarding|\.github/workflows/comun-core-journeys.yml)'; then
+          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(scripts/organization/|supabase/migrations/[^/]*comun_collective|lib/(community-(mesa|membership|administration)|collective-action)|app/comun/(acoes/|minha-participacao/)|components/community-participation-onboarding|\.github/workflows/comun-core-journeys.yml)'; then
             echo 'run=true' >> "$GITHUB_OUTPUT"
           fi
       - uses: actions/setup-node@v4
