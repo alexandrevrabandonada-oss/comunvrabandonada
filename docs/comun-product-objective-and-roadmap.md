@@ -3837,3 +3837,23 @@ revogado. Nunca inferir filiação ou transferir responsabilidade sem novo
 aceite. M6 permanece pendente até Auth/COST-02/pr-contract do HEAD próprio,
 sem transportar evidências de SHAs históricos. PR segue draft, sem merge,
 Production, migração, flag ou convite.
+
+### SOC-D10.M7.B — Proposta de persistência privada e matriz negativa (22/10/2026)
+
+A arquitetura detalhada `docs/comun-nucleus-m7b-persistence-and-rls.md`
+compara o modelo atual de comunidades/grupos à proposta de oito
+entidades privadas, sem DDL executável nem migração. O contrato puro
+`lib/community-nucleus-read-boundary.ts` e sua suíte de cinco cenários
+testam isolamento pessoal, escopo do núcleo/comunidade, evidência do
+revisor e negação de listas, memória e filiação públicas. Contrato
+não é regra de acesso implementada nem prova de banco: RLS/Auth real
+seguem obrigatórios antes de persistência. A pessoa poderá consultar
+seus recibos mínimos após saída sem recuperar poderes organizativos.
+Revisor terá no máximo resumo mínimo, sem autoaprovação.
+
+**Portão M7.C:** revisão LGPD e humana dos tratamentos potencialmente
+sensíveis, autoria legítima e limites de retenção; aprovação separada
+para DDL/RLS em ambiente descartável, seguida por Auth A/B real.
+Não criar automaticamente filiação, mandato, acesso, evento, flag,
+busca pública ou transferência de responsabilidade. A PR #572 segue
+em draft; M6 e os gates do HEAD exato permanecem independentes.
