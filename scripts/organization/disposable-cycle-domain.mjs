@@ -421,7 +421,9 @@ try {
     },
   );
   await check(
-    "future role denies access; suspended profile redirects HTTP",
+    withHttp
+      ? "future role denies access; suspended profile redirects real HTTP"
+      : "future role denies access; suspended-profile HTTP NOT_RUN",
     async () => {
       assert(
         !(
