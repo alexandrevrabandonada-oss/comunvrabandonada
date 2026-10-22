@@ -3676,3 +3676,24 @@ FAIL, sem converter falha de infraestrutura em aprovação. Certificação Auth 
 CI, COST-02 e Preview próprios do novo SHA permanecem PENDING até seus resultados.
 A fixture continua mínima e não comprova schema integral, browser/offline ou
 aceite humano. M6 permanece a estação atual; aplicação remota exige outra decisão.
+
+**SOC-D10.M6 — catálogo read-only após a candidata RLS, 22/10/2026.**
+O SHA `b8c48753` publicou a migration autorizada sem aplicação remota. Seu Preview
+exato ficou READY e COST-02 passou; a certificação Auth corrigida não executou,
+pois a preparação das imagens recebeu `toomanyrequests: Data limit exceeded`.
+A prova suplementar PostgreSQL/WASM teve 18 verificações PASS com claims SQL
+simulados; não substitui GoTrue, PostgREST, Next HTTP ou navegador reais.
+
+O catálogo read-only estava fixado em 116 migrations, causando falha do contrato
+unitário com a candidata presente. Esta continuação atualiza somente contagem e
+hash do catálogo completo para 117 arquivos. Não amplia a exceção Escola nem
+aceita a nova migration pendente: teste negativo específico exige recusa quando
+ela falta no histórico remoto ou aparece no diff da PR. Nenhuma rota, assertion,
+consulta remota, permissão ou política de aplicação foi suprimida. Os contratos
+Linux/WSL do classificador, captura e workflows passaram em 30 testes; outros 64
+contratos Linux de TLS e checkpoint Preview passaram. Os checks
+do novo SHA precisam de resultados próprios; preflights remotos continuam sujeitos
+às mesmas barreiras. Docker local respondeu HTTP 500, sem reinício ou limpeza de
+recursos compartilhados. M6 segue parcial; próximo passo é certificar o laboratório
+Auth nativo quando sua infraestrutura estiver disponível, preservando saída,
+revogação e devolução sem reativar acesso.
