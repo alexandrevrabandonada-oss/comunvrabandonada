@@ -3797,6 +3797,7 @@ O commit `[comun-preview]` somente solicita nova prova exata: exigir
 Preview READY e COST-02 no SHA, além do ensaio Auth M6, limpeza e
 RLS; não transportar os 28 PASS do candidato anterior `6befd313`.
 Sem merge, migration, flag, convite ou Production.
+
 ### SOC-D10.M7.A — Contrato puro de ingresso, mandato e suplência consentida (22/10/2026)
 
 **Incremento implementado em branch/PR canônicos, sem persistência:**
@@ -3809,10 +3810,12 @@ ser facilitador ou integrar grupo de trabalho **não** satisfaz essa cadeia.
 
 Mandato é separado de papel comunitário: requer oferta, aceite da própria
 pessoa, período vigente, identidade e núcleo compatíveis, sem revogação.
+A prova de acesso inclui identidade e núcleo e não pode ser reutilizada
+em mandatos ou propostas de suplência de terceiros.
 Uma oferta de suplência pode, no máximo, tornar-se elegível para revisão
 humana; aceite não atribui mandato, transfere tarefa ou revela memória.
 Filiação não tem projeção pública padrão. A suíte focada
-`lib/community-nucleus-contract.test.ts` cobre 16 casos incluindo
+`lib/community-nucleus-contract.test.ts` cobre 17 casos incluindo
 outra identidade/comunidade, autoaprovação, revogação, saída, tempo,
 mandato alheio e transferência indevida. Contrato TS validado em análise
 local e testes de fumaça Node com dez asserções; regressão Vitest total

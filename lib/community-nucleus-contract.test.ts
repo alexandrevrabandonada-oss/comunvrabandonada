@@ -61,7 +61,12 @@ const activeInput: Parameters<typeof evaluateNucleusAccess>[0] = {
   enrollment,
   now,
 };
-const activeDecision = { allowed: true } as const;
+const activeDecision = { allowed: true, ...context } as const;
+const candidateDecision = {
+  allowed: true,
+  ...context,
+  userId: "user-b",
+} as const;
 const mandate: NucleusMandate = {
   id: "mandate-a",
   nucleusId: context.nucleusId,
@@ -102,7 +107,7 @@ function withMandate(overrides: Partial<NucleusMandate> = {}) {
 
 describe("SOC-D10.M7 — ingresso separado, consentido e revogável", () => {
   it("exige cadeia completa de consentimento e aprovação independente", () => {
-    expect(access()).toEqual({ allowed: true });
+    expect(access()).toEqual({ allowed: true, ...context });
   });
 
   it("não infere ingresso de acompanhamento, pausa, saída ou suspensão", () => {
@@ -251,7 +256,7 @@ describe("SOC-D10.M7 — mandato aceito e sucessão sem transferência", () => {
         offer,
         authenticatedUserId: "user-b",
         nucleusId: context.nucleusId,
-        activeNucleusAccess: activeDecision,
+        activeNucleusAccess: candidateDecision,
         now,
       }),
     ).toBe("ready_for_review");
@@ -272,11 +277,32 @@ describe("SOC-D10.M7 — mandato aceito e sucessão sem transferência", () => {
           offer: replacement,
           authenticatedUserId: "user-b",
           nucleusId: context.nucleusId,
-          activeNucleusAccess: activeDecision,
+          activeNucleusAccess: candidateDecision,
           now,
         }),
       ).toBe("forbidden");
     }
+  });
+
+  it("não reutiliza autorização de outra pessoa ou núcleo", () => {
+    expect(
+      evaluateSuccessionAcceptance({
+        offer,
+        authenticatedUserId: "user-b",
+        nucleusId: context.nucleusId,
+        activeNucleusAccess: activeDecision,
+        now,
+      }),
+    ).toBe("forbidden");
+    expect(
+      hasAcceptedNucleusMandate({
+        mandate,
+        nucleusId: context.nucleusId,
+        subjectUserId: context.userId,
+        activeNucleusAccess: candidateDecision,
+        now,
+      }),
+    ).toBe(false);
   });
 
   it("bloqueia sucessão após perda do vínculo da candidata", () => {

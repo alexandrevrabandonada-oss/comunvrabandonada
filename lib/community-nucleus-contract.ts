@@ -51,7 +51,7 @@ export type NucleusEnrollment = NucleusContext & {
 };
 
 export type NucleusAccessDecision =
-  | { allowed: true }
+  | { allowed: true; userId: string; nucleusId: string; communityId: string }
   | {
       allowed: false;
       reason:
@@ -159,7 +159,7 @@ export function evaluateNucleusAccess(input: {
   )
     return { allowed: false, reason: "enrollment_not_active" };
 
-  return { allowed: true };
+  return { allowed: true, ...context };
 }
 
 export type NucleusMandate = {
@@ -186,7 +186,14 @@ export function hasAcceptedNucleusMandate(input: {
 }): boolean {
   const { mandate } = input;
   const now = timestamp(input.now);
-  if (!mandate || !now || !input.activeNucleusAccess.allowed) return false;
+  if (
+    !mandate ||
+    !now ||
+    !input.activeNucleusAccess.allowed ||
+    input.activeNucleusAccess.userId !== input.subjectUserId ||
+    input.activeNucleusAccess.nucleusId !== input.nucleusId
+  )
+    return false;
   const offered = timestamp(mandate.offeredAt);
   const accepted = timestamp(mandate.acceptedAt);
   const starts = timestamp(mandate.startsAt);
@@ -240,6 +247,8 @@ export function evaluateSuccessionAcceptance(input: {
   if (
     !offer ||
     !input.activeNucleusAccess.allowed ||
+    input.activeNucleusAccess.userId !== input.authenticatedUserId ||
+    input.activeNucleusAccess.nucleusId !== input.nucleusId ||
     !now ||
     !offered ||
     !expires ||
