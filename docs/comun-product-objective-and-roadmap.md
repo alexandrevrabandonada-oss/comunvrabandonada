@@ -3697,3 +3697,25 @@ do novo SHA precisam de resultados próprios; preflights remotos continuam sujei
 recursos compartilhados. M6 segue parcial; próximo passo é certificar o laboratório
 Auth nativo quando sua infraestrutura estiver disponível, preservando saída,
 revogação e devolução sem reativar acesso.
+
+**SOC-D10.M6 — Next HTTP certificado e prova de navegador, 22/10/2026.**
+No SHA `87435773`, o laboratório limpo concluiu 27 verificações PASS com GoTrue,
+PostgreSQL, PostgREST e Next HTTP reais: cookies SSR, isolamento A/B/comunidade,
+revogação/pausa/saída, suspensão e private/no-store. Quatro containers, volume,
+rede e usuários próprios removidos; relatório `next-http-fresh-deps-87435773`.
+O primeiro ensaio falhou por `server-only/package.json` zerado numa camada Docker
+antiga; FAIL preservado, reinstalação sem cache e integridade verificada antes
+da nova prova. Nenhum código ou gate do produto foi modificado para obter PASS.
+COST-02, Preview READY, pr-contract, PWA e coerência do 87435773 foram revalidados.
+
+Esta continuação acrescenta ao mesmo harness a opção `--with-browser`, exigida
+pelo workflow M6, com Chromium sintético isolado: Mesa móvel autorizada, histórico
+após revogação, negação direta, tentativa offline e inspeção de CacheStorage.
+O Dockerfile instala o navegador somente com argumento de laboratório explícito;
+não há flag de publicação, sessão real, nova migration ou operação remota.
+A prova do novo candidato permanece PENDING até execução; falha de histórico,
+cache, navegador ou infraestrutura não pode ser tratada como aceite. O ciclo não
+prova pertencimento persistente a núcleo, mandato, suplência ou deliberação.
+M6 segue atual até concluir suas provas; M7 deve priorizar devolução/continuidade
+inteligível e contrato mínimo de responsabilidade com consentimento, sem transferir
+atribuições automaticamente nem inferir filiação.

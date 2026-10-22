@@ -28,6 +28,7 @@ const source = {
   dirty: Boolean(git(["status", "--porcelain"])),
 };
 const sourceFiles = [
+  "scripts/organization/mesa-browser-proof.mjs",
   "lib/collective-action-task-release.ts",
   "lib/community-mesa-contract.ts",
   "scripts/organization/disposable-cycle-fixture.sql",
@@ -63,6 +64,11 @@ const images = {
 };
 if (process.argv.includes("--with-next-http"))
   images.node = `comun-m6-proof:${source.sha.slice(0, 12)}`;
+assert(
+  !process.argv.includes("--with-browser") ||
+    process.argv.includes("--with-next-http"),
+  "Browser proof requires the real Next HTTP mode",
+);
 const docker = (args, input) =>
   new Promise((resolve, reject) => {
     const child = execFile(
@@ -299,6 +305,8 @@ try {
     `COMUN_M6_REST_HOST=${owner}-rest`,
     "-e",
     `COMUN_M6_NEXT_HTTP=${process.argv.includes("--with-next-http") ? "1" : "0"}`,
+    "-e",
+    `COMUN_M6_BROWSER=${process.argv.includes("--with-browser") ? "1" : "0"}`,
     runner,
     "node",
     "--conditions=react-server",
@@ -312,6 +320,14 @@ try {
   results.push(
     ...JSON.parse(resultLine.slice("M6_RESULT_JSON=".length)).results,
   );
+  if (process.argv.includes("--with-browser")) {
+    await fs.mkdir(output, { recursive: true });
+    await docker([
+      "cp",
+      `${runner}:/tmp/comun-m6-browser.png`,
+      path.join(output, "mesa-synthetic-mobile.png"),
+    ]);
+  }
   console.log(JSON.stringify(results));
 } catch (error) {
   failure = error.message;
@@ -402,16 +418,20 @@ try {
             ? "PARTIAL"
             : "PASS",
         failure,
-        proofKind: process.argv.includes("--with-next-http")
-          ? "REAL_AUTH_DATABASE_AND_NEXT_HTTP; not full browser journey"
-          : "REAL_AUTH_DATABASE_DOMAIN; not full Next/browser journey",
+        proofKind: process.argv.includes("--with-browser")
+          ? "REAL_AUTH_DATABASE_NEXT_HTTP_AND_SYNTHETIC_CHROMIUM; not human acceptance"
+          : process.argv.includes("--with-next-http")
+            ? "REAL_AUTH_DATABASE_AND_NEXT_HTTP; not full browser journey"
+            : "REAL_AUTH_DATABASE_DOMAIN; not full Next/browser journey",
         fixture_sha256: createHash("sha256").update(fixture).digest("hex"),
         results,
         cleanup,
         limits: [
           "Minimal fixture, not whole migrated COMUN schema",
           "No publication flag enabled; route release gates unchanged",
-          "Follow/request UI, browser history/offline and human experience not certified by this harness",
+          process.argv.includes("--with-browser")
+            ? "Browser proof covers synthetic Mesa history/offline only, not the whole organizational UI or human experience"
+            : "Follow/request UI, browser history/offline and human experience not certified by this harness",
           "Membership/grant state setup is controlled test administration, not product self-service proof",
           "No shared or Production environment used",
         ],

@@ -84,10 +84,10 @@ jobs:
           mkdir -p "$context"
           git archive HEAD | tar -x -C "$context"
           sha="$(git rev-parse HEAD)"
-          docker build --build-arg "COMUN_SOURCE_SHA=$sha" -f scripts/organization/Dockerfile -t "comun-m6-proof:${sha:0:12}" "$context"
+          docker build --build-arg "COMUN_SOURCE_SHA=$sha" --build-arg COMUN_M6_BROWSER=1 -f scripts/organization/Dockerfile -t "comun-m6-proof:${sha:0:12}" "$context"
       - name: Auth A/B, RLS, Mesa HTTP e limpeza isolada
         if: steps.scope.outputs.run == 'true'
-        run: node scripts/organization/rehearse-organizational-cycle.mjs --run-disposable --with-next-http --output .ci-artifacts/organization-m6
+        run: node scripts/organization/rehearse-organizational-cycle.mjs --run-disposable --with-next-http --with-browser --output .ci-artifacts/organization-m6
       - name: Não converter lacuna de segurança em aprovação
         if: steps.scope.outputs.run == 'true'
         run: node -e "const x=require('./.ci-artifacts/organization-m6/authenticated-cycle.json');if(x.result!=='PASS')throw new Error('M6_AUTHENTICATED_CONTINUITY_NOT_CERTIFIED:'+x.result)"

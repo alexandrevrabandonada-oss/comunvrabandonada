@@ -36,6 +36,7 @@ const results = [];
 let gateway;
 let nextServer;
 let nextErrors = "";
+let browserProof;
 const token = (role) => {
   const enc = (x) => Buffer.from(JSON.stringify(x)).toString("base64url");
   const body = `${enc({ alg: "HS256", typ: "JWT" })}.${enc({ role, iss: "supabase", exp: Math.floor(Date.now() / 1000) + 3600 })}`;
@@ -301,6 +302,11 @@ try {
       await httpMesa(b, "m6-owned", 404);
       await httpMesa(a, "m6-other", 404);
       await httpMesa(null, "m6-owned", 307);
+      if (process.env.COMUN_M6_BROWSER === "1") {
+        const { openMesaBrowserProof } =
+          await import("./mesa-browser-proof.mjs");
+        browserProof = await openMesaBrowserProof(a);
+      }
     },
   );
   for (const person of [a, b])
@@ -596,6 +602,15 @@ try {
       );
       assert(!(await mesa(a, ids.community)));
       await httpMesa(a, "m6-owned", 404);
+      if (browserProof) {
+        await browserProof.assertRevokedHistoryAndOffline();
+        results.push({
+          name: "real Chromium mobile: authorized Mesa, revoked history, direct denial, offline and CacheStorage isolation",
+          result: "PASS",
+        });
+        await browserProof.close();
+        browserProof = null;
+      }
       assert(
         !(
           await service
@@ -786,6 +801,7 @@ try {
   results.push({ name: "synthetic Auth accounts removed", result: "PASS" });
   console.log("M6_RESULT_JSON=" + JSON.stringify({ results }));
 } finally {
+  if (browserProof) await browserProof.close();
   if (nextServer && nextServer.exitCode === null) {
     const exited = new Promise((r) => nextServer.once("exit", r));
     nextServer.kill("SIGTERM");

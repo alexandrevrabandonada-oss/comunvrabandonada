@@ -70,3 +70,19 @@ removidos. O relatório comprova ausência dos containers, volume anônimo e red
 Na conclusão normal, também consulta Auth para verificar zero usuários sintéticos
 antes da remoção do banco inteiro. Não usa `prune`, reset de lab compartilhado ou
 limpeza por prefixo. Os relatos de falhas de preparação permanecem separados.
+
+## Navegador autenticado opcional
+
+Para incluir Chromium real no mesmo laboratório, construa o contexto versionado
+com `--build-arg COMUN_M6_BROWSER=1` e execute o harness com
+`--with-next-http --with-browser`. Não usa o navegador pessoal, perfis, sessões
+existentes ou credenciais externas. O workflow M6 existente exige essa camada.
+
+A prova abre a Mesa com cookies SSR emitidos pelo GoTrue do lab, em 390x844,
+verifica conteúdo, erros de página e navega para o shell offline. Após revogação
+real do papel, volta pelo histórico, verifica a negação direta e tenta a rota
+sem rede; nenhuma projeção privada ou entrada de CacheStorage da Mesa é admitida.
+A screenshot `mesa-synthetic-mobile.png` contém somente a fixture descartável.
+Sem navegador instalado, SW pronto ou negação comprovada, o resultado é FAIL.
+Isso não certifica todos os navegadores, uso humano, ingresso organizativo ou o
+formulário de aceite; os limites anteriores permanecem.
