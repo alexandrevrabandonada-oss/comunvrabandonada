@@ -86,3 +86,19 @@ A screenshot `mesa-synthetic-mobile.png` contém somente a fixture descartável.
 Sem navegador instalado, SW pronto ou negação comprovada, o resultado é FAIL.
 Isso não certifica todos os navegadores, uso humano, ingresso organizativo ou o
 formulário de aceite; os limites anteriores permanecem.
+
+## Recuperação do download de imagens no runner
+
+O workflow M6 agora executa cinco contratos de preparação antes de
+chamar `prepare-m6-images.mjs`. O script tenta manifests oficiais
+de GoTrue `v2.196.0` e PostgREST `v16.2` no GHCR, fixados por
+digest SHA-256, e confirma que os nomes ECR locais usados pelo harness
+têm o mesmo image ID. Se GHCR estiver indisponível, preserva o antigo
+pull ECR por tag de versão, com identificação explícita do fallback.
+Se nenhuma origem servir, o ensaio falha. Não há ajuste em credenciais,
+banco remoto, fixture, comportamento organizativo ou testes de RLS.
+
+Digests de referência:
+`https://github.com/supabase/auth/pkgs/container/gotrue/versions` e
+`https://github.com/supabase/cli/pkgs/container/postgrest`.
+

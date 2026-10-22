@@ -3776,3 +3776,25 @@ Não houve aplicação remota da migration, alteração de Production, flag, con
 merge. Próximo incremento da mesma estação: reconciliar COST-02, `pr-contract` e os
 checks relevantes do SHA final; manter documentadas a ausência de vínculo persistente
 de núcleo, mandato, suplência aceita, deliberação e transferência consentida.
+
+### SOC-D10.M6 — CI imagens fixadas e checkpoint de Preview (22/10/2026)
+
+Readback factual do HEAD anterior `2ad7d6b4`: 73 SUCCESS, 199 SKIPPED,
+três FAILURE e zero em andamento. Auth M6 parou no pull de PostgREST
+por quota ECR; o workflow Security parou no pull de Mailpit, também por
+quota. COST-02 reprovou `checkpoint-stale` após mudanças de CI de
+alto risco sem checkpoint recente; `pr-contract` passou. Preview desse
+HEAD estava READY, o que não substitui COST-02.
+
+Nova mitigação somente no M6: os manifests oficiais GoTrue
+`v2.196.0` e PostgREST `v16.2` são obtidos de GHCR com digests SHA-256
+conferidos e alias local com mesmo image ID. O fallback ECR por versão
+é explicitamente rotulado, nunca chamado de digest-pinned; falha em
+ambas as origens continua reprovando o gate. Cinco contratos Node
+sintéticos locais PASS, sem simular download real. A imagem Mailpit
+do workflow Security é um bloqueio separado ainda não corrigido.
+O commit `[comun-preview]` somente solicita nova prova exata: exigir
+Preview READY e COST-02 no SHA, além do ensaio Auth M6, limpeza e
+RLS; não transportar os 28 PASS do candidato anterior `6befd313`.
+Sem merge, migration, flag, convite ou Production.
+

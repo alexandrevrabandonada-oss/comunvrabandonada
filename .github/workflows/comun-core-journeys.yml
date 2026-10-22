@@ -67,9 +67,8 @@ jobs:
         if: steps.scope.outputs.run == 'true'
         run: |
           npm ci --ignore-scripts
-          docker pull postgres:17
-          docker pull public.ecr.aws/supabase/gotrue:v2.196.0
-          docker pull public.ecr.aws/supabase/postgrest:v16.2
+          node --test scripts/organization/prepare-m6-images.node-test.mjs
+          node scripts/organization/prepare-m6-images.mjs
       - name: Unitários e contratos POSIX em Linux
         if: steps.scope.outputs.run == 'true'
         run: |
