@@ -3179,6 +3179,129 @@ documental não autoriza novas migrations, acesso
 a dados políticos, envios ou convites, flags,
 indexação, mudanças em Production ou merge funcional.
 
+### SOC-D10.M1 — Lacunas comprovadas e primeiro ciclo do núcleo
+
+**21/10/2026 · 49-M0, continuação da auditoria.** Decisões:
+`PRINCÍPIO DECIDIDO`; inventário: `AUDITORIA ESTÁTICA`;
+Mesa do Núcleo: `PLANEJADO`. Integra o SOC-D10.M já
+aprovado; não cria módulo, roadmap, papel global ou backend paralelo.
+O código consultado pertence à main `242f19cd`.
+Nenhum item abaixo comprova operação por pessoas reais.
+
+**O que o código de fato oferece e o que ainda falta:**
+
+1. **Vínculos comunitários:** `lib/community-membership.ts`
+   diferencia acompanhar, solicitar entrada, pausar, retomar e
+   sair, com fila de revisão. `lib/community-administration.ts`
+   prevê papéis server-side, revogáveis e restritos à comunidade.
+   **Lacuna:** associação a um núcleo permanente, com objetivo,
+   participantes autorizados, substituição e mandato explícito,
+   ainda não foi demonstrada.
+2. **Grupos de trabalho:** `lib/community-work-groups.ts`
+   lista grupos ativos ou concluídos, ligados a comunidade e pauta.
+   Não demonstra ciclo duradouro, sucessão ou responsável individual.
+   Quando a consulta falha, retorna uma lista vazia; antes de
+   depender dela numa Mesa, distinguir `empty` e `unavailable`
+   e revisar quais campos podem ser publicados sem vazamento.
+3. **Agenda:** `/comun/c/[slug]/agenda` é um endpoint `route.ts`
+   que exporta um convite `.ics` para uma atividade derivada
+   da experiência editorial da comunidade. **Não é** uma página
+   de calendário nem prova confirmação de presença, alteração,
+   cancelamento, notificações, permissões de local reservado
+   ou integração com tarefas e núcleos. Não declarar agenda pronta.
+4. **Compromissos:** `lib/personal-center.ts` agrega tarefas
+   de pautas e sinais de atenção; `lib/collective-actions.ts`
+   possui ações e designações de tarefas. A projeção agregada
+   **não prova**, sozinha, titularidade ou aceite individual.
+   O piloto deve reutilizar a designação canônica explicitamente
+   aceita, e não mostrar toda tarefa da pauta como "Minha tarefa".
+5. **Formação:** `components/learning/school.tsx` já prevê
+   Hoje, Trilhas, Prática, Materiais e Meu progresso. O catálogo
+   versionado descreve 24 missões em quatro trilhas e prática
+   revisável; `COMUN_LEARNING_R0_ENABLED` e seus gates continuam
+   necessários. Nem estudo, nem aprovação de prática, nem
+   frequência podem conceder papel político automaticamente.
+6. **Minha área:** `/comun/minha-participacao` reúne vínculos,
+   tarefas, aprendizagem e retornos, mas continua densa e voltada
+   à participação. **Lacuna de experiência:** mostrar a quem
+   escolheu organizar somente seus próximos compromissos reais,
+   com limite de informação e saída visível; quem não milita
+   não deve receber esse painel por padrão.
+
+**Contrato mínimo da Mesa do Núcleo — hipótese de UX:**
+
+- **Próximo encontro:** data, assunto, duração, facilitador e
+  acesso segundo permissão; alterações e cancelamentos explícitos.
+  O endereço reservado nunca entra em cards públicos,
+  metadados HTML, calendário público ou cache compartilhado.
+- **Responsabilidades escolhidas:** ação, tarefa, pessoa que
+  aceitou, apoio, esforço combinado, estado, impedimento,
+  devolutiva e opção de devolver a responsabilidade.
+  Papéis não são medalhas nem estatísticas de militância.
+- **Estudar e praticar:** microlição opcional do catálogo,
+  fonte legível e prática com retorno. Não oferecer "lição
+  do dia" como obrigação de presença nem pontos por adesão.
+- **Decisões e memória:** proposta, justificativa, divergência,
+  deliberação autorizada, próximos passos e registro saneado.
+  Uma reação social não equivale a voto; memória pública é
+  diferente de ata interna e de dado pessoal sensível.
+- **Acolhimento e cuidado:** saber quem pode orientar, pedir
+  ajuda, declarar indisponibilidade, solicitar revisão de papel,
+  indicar substituto e sair com dignidade. Não obrigar relato
+  de motivos pessoais ou rastrear ausências como punição.
+
+A Mesa é uma **projeção contextual dentro da mesma comunidade**
+e de Minha área, não um quinto feed, um segundo login ou uma aba
+global obrigatória. Quem só descobre a comunidade vê sua proposta
+e atividades públicas; quem participa pontualmente vê somente
+o próprio compromisso; quem ingressa no núcleo, após autorização,
+vê o conjunto restrito necessário ao seu papel.
+
+**Primeiro ciclo testável (49-M1), sem data nem integrantes fictícios:**
+
+1. Convidar um coletivo real que autorize o piloto, com
+   facilitador e suplente. Documentar regras, privacidade,
+   duração e direito de não continuar.
+2. Uma pessoa escolhe **acompanhar**, **ajudar uma vez** ou
+   **solicitar ingresso continuado**. Os três vínculos geram
+   direitos diferentes e não se convertem automaticamente.
+3. Confirmar convite a um encontro real, com dados mínimos;
+   informar mudança ou cancelamento por canal autorizado.
+4. Convidar, nunca atribuir automaticamente, uma tarefa
+   existente, com prazo razoável, apoio e possibilidade de
+   recusar, pausar ou devolver; registrar retorno compreensível.
+5. Oferecer uma microlição pública curta relacionada à tarefa,
+   acessível sem filiação; registrar progresso privado só
+   após consentimento e quando a Escola estiver liberada.
+6. Encerrar com decisão documentada, devolutiva e memória
+   publicável somente após revisão. Testar transferência da
+   facilitação sem perda de contexto e saída de um integrante.
+
+**Portões antes de abrir o piloto digital:**
+
+- Verificar acesso no servidor e RLS para visitante, seguidor,
+  colaborador pontual, integrante, facilitador, substituto,
+  ex-integrante e conta suspensa; testar bloqueio por objeto.
+- Verificar que contato, filiação política, reunião restrita,
+  presença e estudo privado não aparecem em respostas públicas,
+  índices, notificações, compartilhamentos ou logs.
+- Exigir estados de falha/vazio distintos, leitor de tela,
+  baixa conectividade e recuperação sem perda silenciosa.
+- Identificar responsáveis humanos por acolhimento, curadoria
+  e segurança. Sem equipe ou coletivo real, manter especificação
+  e ensaio controlado, nunca fabricar uma organização ativa.
+- Confirmar operação de Escola, restauração, autorização e
+  demais gates próprios antes de gravar progresso permanente.
+
+**Próxima entrega elegível:** especificar e testar, sobre rotas
+existentes, uma **Mesa read-only e privada** usando apenas
+objetos cuja autorização já é comprovável. Não criar
+`comun_nuclei`, calendário persistente, nova role ou
+sistema de mensagens antes de provar a lacuna e obter
+revisão técnica. O passivo de PRs de SOC-D10.L permanece P0;
+este registro não autoriza merge funcional, migration,
+flags, produção, indexação ou envio de convites.
+
 ### Reconciliação do identificador duplicado SOC-D09
 
 O título histórico `SOC-D09 — descoberta pública
