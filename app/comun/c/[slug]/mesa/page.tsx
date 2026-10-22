@@ -21,9 +21,7 @@ export default async function CommunityMesaPilot({
   const { slug } = await params;
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) notFound();
 
-  const { user } = await requireCommunitySession(
-    "/comun/c/" + slug + "/mesa",
-  );
+  const { user } = await requireCommunitySession("/comun/c/" + slug + "/mesa");
   const mesa = await getMesaPilotSnapshot(slug, user.id);
   if (mesa.kind === "forbidden") notFound();
 
@@ -64,7 +62,10 @@ export default async function CommunityMesaPilot({
             Esse papel não comprova ingresso em um núcleo permanente.
             Nada aqui registra presença, deliberação ou aceite de tarefas.
           </p>
-          <nav aria-label="Navegação da Mesa" className="mt-5 flex flex-wrap gap-4">
+          <nav
+            aria-label="Navegação da Mesa"
+            className="mt-5 flex flex-wrap gap-4"
+          >
             <Link href={"/comun/c/" + slug} className={linkClass}>
               Comunidade pública
             </Link>
@@ -101,7 +102,10 @@ export default async function CommunityMesaPilot({
               ) : mesa.tasks.length ? (
                 <ul className="mt-3 space-y-5">
                   {mesa.tasks.map((task) => (
-                    <li key={task.id} className="border-t border-comun-paper/25 pt-3">
+                    <li
+                      key={task.id}
+                      className="border-t border-comun-paper/25 pt-3"
+                    >
                       <strong className="block">{task.title}</strong>
                       <p className="mt-1 text-sm">{task.description}</p>
                       <p className="mt-1 text-xs text-comun-paper/70">
@@ -137,7 +141,11 @@ export default async function CommunityMesaPilot({
                 automaticamente.
               </p>
               {isLearningEnabled() ? (
-                <Link prefetch={false} href="/comun/escola" className={linkClass}>
+                <Link
+                  prefetch={false}
+                  href="/comun/escola"
+                  className={linkClass}
+                >
                   Abrir Escola
                 </Link>
               ) : (
