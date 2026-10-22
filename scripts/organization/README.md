@@ -101,4 +101,3 @@ banco remoto, fixture, comportamento organizativo ou testes de RLS.
 Digests de referência:
 `https://github.com/supabase/auth/pkgs/container/gotrue/versions` e
 `https://github.com/supabase/cli/pkgs/container/postgrest`.
-

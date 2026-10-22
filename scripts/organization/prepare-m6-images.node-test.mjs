@@ -76,7 +76,10 @@ test("rejects an image alias with a mismatched ID", () => {
 test("only accepts official fixed versions and full SHA-256 manifests", () => {
   assert.equal(M6_SUPABASE_IMAGES.length, 2);
   for (const image of M6_SUPABASE_IMAGES) {
-    assert.match(image.pinned, /^ghcr\.io\/supabase\/[^@]+@sha256:[a-f0-9]{64}$/);
+    assert.match(
+      image.pinned,
+      /^ghcr\.io\/supabase\/[^@]+@sha256:[a-f0-9]{64}$/,
+    );
     assert.match(image.alias, /^public\.ecr\.aws\/supabase\//);
   }
 });

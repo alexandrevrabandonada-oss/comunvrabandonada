@@ -3797,4 +3797,3 @@ O commit `[comun-preview]` somente solicita nova prova exata: exigir
 Preview READY e COST-02 no SHA, além do ensaio Auth M6, limpeza e
 RLS; não transportar os 28 PASS do candidato anterior `6befd313`.
 Sem merge, migration, flag, convite ou Production.
-
