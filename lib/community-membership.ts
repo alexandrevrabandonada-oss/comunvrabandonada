@@ -187,7 +187,12 @@ export async function updateCommunityMembership(input: {
       collaborationChoices,
     ),
     update_preferences: selected(input.updates ?? [], updateChoices),
-    joined_at: state === "member" ? (prior?.joined_at ?? now) : null,
+    joined_at:
+      state === "member"
+        ? (prior?.joined_at ?? now)
+        : state === "paused" && ["member", "paused"].includes(prior?.state)
+          ? (prior?.joined_at ?? null)
+          : null,
     paused_at: state === "paused" ? now : null,
     left_at: state === "left" ? now : null,
     updated_at: now,

@@ -3509,3 +3509,93 @@ contrato de qualidade ainda fixava a versão antiga do cache. O checkpoint segui
 alinha o status técnico, auditor, ensaio remoto e teste de promoção a v4, preservando
 as comparações exatas, asserts de no-leak, timeouts e gates. O FAIL anterior fica
 preservado; não houve rerun ou dispatch nem alteração de ambiente para obter verde.
+
+### SOC-D10.M6 — Ciclo autenticado, responsabilidades e continuidade (22/10/2026)
+
+**Escopo e reconciliação.** Continuação da mesma PR draft #572, sobre
+`83683fa1022a6814b53b83b2c695e6a85eaecd66`, com main remoto
+`242f19cd1c2fe948c28eedcc67d424ec47b5e180`. Não há novo roadmap, núcleo ou
+cadastro organizativo. A automação permanece PAUSED; esta é uma sessão sob demanda.
+Os estados de Preview/CI do M5 são históricos, não certificação do M6. Os dois
+testes POSIX antes não comprovados no Windows passaram em Linux: suite de três
+testes, zero falhas. O workflow Civic Intelligence herdado concluiu SUCCESS;
+Quality ainda estava em execução na preparação deste checkpoint, sem rerun.
+
+**Incremento implementado.** A devolução canônica deixa de depender de a ação
+continuar aberta/pública. O server action preserva o gate de liberação, exige
+sessão verificada e perfil ativo e passa a identidade da sessão, nunca do formulário,
+ao helper server-only `lib/collective-action-task-release.ts`. A consulta verifica
+atribuição própria ativa, tarefa e slug da ação. O UPDATE repete o escopo do titular
+e confirma a linha realmente alterada; corrida, ausência, erro ou repetição não
+produzem confirmação falsa. Não apaga histórico, transfere tarefa ou reabre vínculo.
+
+Minha Participação no App V2 passa a oferecer **Devolver tarefa** junto da
+atribuição e acesso à ação/orientações; deixa de ocultar responsabilidades depois
+dos primeiros seis cartões. A experiência anterior mantém seu controle canônico.
+O texto explica devolução após pausa/saída/encerramento, histórico e ausência de
+transferência automática. Um registro vinculado à conta não é apresentado como
+prova universal de aceite: o schema ainda não distingue a proveniência de toda
+atribuição antiga. O ensaio comprova especificamente o aceite voluntário de A.
+
+O fluxo de vínculo esclarece que a pausa interrompe acesso à Mesa. A data de
+aprovação é preservada durante pausa de membro, permitindo retomada voluntária;
+seguidores não recebem aprovação por esse caminho. Um formulário antigo de retomar,
+enviado depois da saída, retorna somente acompanhamento, inclusive diante de uma
+data antiga. Retomada não modifica papéis nem desfaz revogação. Saída mantém a
+auditoria existente e encerra a aprovação corrente; reingresso depende de revisão.
+
+**Relação entre as quatro estruturas.** `comun_community_memberships` controla o
+estado do vínculo; `comun_community_role_assignments` mantém o papel/escopo e sua
+revogação; `comun_collective_action_participations` representa participação na ação;
+`comun_collective_action_task_assignments` guarda active/released por pessoa/tarefa.
+Pausa/saída comunitária não libera atribuição nem revoga automaticamente o registro
+histórico de papel. A Mesa exige membro e papel vigente em cada leitura. A tarefa
+continua própria, retornável por Minha Participação enquanto as ações estiverem
+liberadas; participação na ação não pode ser encerrada mantendo tarefa ativa,
+conforme gatilho canônico. Substituição exige novo aceite, nunca atribuição automática.
+
+**Prova funcional e limites.** `scripts/organization/rehearse-organizational-cycle.mjs`
+cria rede Docker interna própria, PostgreSQL, GoTrue, PostgREST e runner, sem portas
+publicadas, URLs externas ou credenciais do projeto. A/B recebem JWT de Auth real;
+não se simula autenticação. A fixture mínima importa as políticas canônicas de
+ações/tarefas e os gatilhos de capacidade/saída, sem aplicar migration a ambiente
+COMUN. A administração de vínculo/papel é controlada no lab; não equivale à execução
+do formulário e da fila editorial. O modo HTTP usa artefato Linux do candidato e
+cookies SSR reais, sem ativar flags. A Mesa continua respeitando liberação de ações
+e Escola; projeção de linhas reais no contrato de domínio não significa liberação
+da funcionalidade no ambiente. Não há ensaio humano concluído.
+
+A matriz cobre Auth A/B, seguidor, colaborador pontual, membro sem papel,
+facilitação vigente/futura/revogada, outra comunidade, pausa, saída, retomada antiga,
+atribuição alheia, aceite/devolução, bloqueio de retirada com tarefa ativa e ausência
+de transferência. Contratos server-side complementam visitante, suspensão de perfil,
+indisponibilidade, campos inesperados, gates fechados e atualização sem efeito.
+O modo HTTP verifica os limites reais de sessão e `private, no-store`; não prova
+histórico de navegador, Service Worker/offline ou cache já exibido a uma pessoa.
+Os testes PWA e no-leak permanecem próprios, sem excluir rotas ou baixar asserts.
+
+**Pendência de autorização no banco.** A política UPDATE de atribuições existente
+valida titularidade, mas não restringe a transição a released nem repete as condições
+de ingresso da política INSERT. O harness testa reativação direta após encerramento
+e registra `KNOWN_GAP`/PARTIAL quando admitida, sem chamar isso de segurança PASS.
+A leitura remota de metadados confirmou esse contrato; não foram consultados dados
+de participantes. Uma alteração de política/gatilho depende de revisão específica
+e autorização para migration; nenhuma foi criada ou aplicada nesta passada.
+
+**Evidências e fechamento.** Relatórios sanitizados ficam em
+`orch-v2/m6-20261022`, incluindo tentativas falhas de preparação, fonte/hashes,
+owner, resultados, intenção/readback do push e certificação do candidato. O primeiro
+ensaio de domínio completou doze verificações reais e removeu as contas. A limpeza
+final também verifica ausência dos containers, volume anônimo e rede próprios.
+O build Windows falhou ao ser usado como artefato Linux; isso motivou build nativo,
+sem remendar o runtime. SHA final, totais finais, CI, COST-02 e Preview devem ser lidos
+no checkpoint executivo atualizado da mesma PR, sem transportar verdes anteriores.
+
+**Lacunas persistentes e SOC-D10.M7.** Prioridade: revisar e autorizar a menor
+barreira de transição de atribuições no banco, com o contraexemplo autenticado do
+M6 como teste negativo; depois fechar o percurso de aceite/devolução pela interface
+em ambiente descartável com release já certificada, incluindo navegação anterior e
+offline após saída. Ingresso em núcleo, mandato, suplência aceita, deliberação e
+transferência de contexto privado continuam sujeitos a contrato próprio. Não
+inferir filiação de papel, curso, acompanhamento ou colaboração. PR permanece
+draft, sem merge, Production, nova flag, convite ou publicação real.

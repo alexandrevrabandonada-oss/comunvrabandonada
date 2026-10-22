@@ -42,7 +42,7 @@ export function CommunityParticipationOnboarding({
     : state === "member"
       ? "membro"
       : state === "paused"
-        ? "atualizações pausadas"
+        ? "participação pausada"
         : state === "following"
           ? "acompanhando"
           : "ainda não acompanha";
@@ -163,6 +163,11 @@ export function CommunityParticipationOnboarding({
           </Link>
           {state && state !== "left" ? (
             <form action={changeCommunityMembership}>
+              <p className="mb-3 text-sm text-comun-paper/75">
+                Pausar ou sair interrompe seu acesso à Mesa. As tarefas já
+                assumidas permanecem em Minha participação, onde você pode
+                devolvê-las. O histórico permanece e ninguém assume por você.
+              </p>
               <input type="hidden" name="slug" value={slug} />
               {state === "paused" ? (
                 <button
@@ -170,7 +175,7 @@ export function CommunityParticipationOnboarding({
                   value="resume"
                   className="font-black underline"
                 >
-                  Retomar atualizações
+                  Retomar participação
                 </button>
               ) : (
                 <button
@@ -178,7 +183,7 @@ export function CommunityParticipationOnboarding({
                   value="pause"
                   className="font-black underline"
                 >
-                  Pausar atualizações
+                  Pausar participação
                 </button>
               )}
               <button
