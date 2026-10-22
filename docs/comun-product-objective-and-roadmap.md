@@ -3626,3 +3626,30 @@ FAIL na etapa Formatação focal e whitespace, especificamente `lib/comun-pwa.ts
 O erro foi reproduzido com Prettier 3.9.6; a correção altera somente trivia, com
 sequência de tokens TypeScript idêntica comprovada. O run original permanece
 preservado; o novo checkpoint segue o CI normal do próprio SHA, sem rerun.
+
+### SOC-D10.M6 — Tratamento focal do provisionamento Chromium (22/10/2026)
+
+**Falhas do HEAD `e43a91a4` classificadas por logs exatos:** cinco jobs de
+browser/performance/PWA/admin/acessibilidade falharam antes dos ensaios por
+`install-deps` em runner Linux após timeout e contenção de `apt-get`;
+a classificação falhou por depender de Performance. Diferentemente,
+`SOC-D10.M6 / authenticated continuity and RLS` executou o ensaio e
+terminou `PARTIAL` pelo contraexemplo de reativação via UPDATE após
+encerramento. Não converter essas sete falhas em PASS retroativo.
+
+**Mitigação candidata, somente CI:** o instalador passa a abrir de fato
+o Chromium local e navegar para `about:blank` antes de invocar `apt-get`.
+Se o navegador existente já funcionar, a instalação de dependências não
+é necessária; caso contrário, o caminho de instalação permanece
+obrigatório e um segundo smoke é exigido para concluir com sucesso.
+Não usar cache hit como prova, não pular suíte de navegador ou reduzir
+exigências. O contrato puro do smoke tem quatro testes sintéticos,
+aprovados em Node Linux local; comportamento em runner só será
+certificado pelos workflows do SHA final.
+
+**Segurança:** a lacuna RLS de reativação permanece explicitamente
+`KNOWN_GAP`. Nenhuma migration, policy, flag, mudança de Production,
+convite ou merge foi autorizada ou executada nesta mitigação.
+Um gate Auth M6 que falhe por essa razão deve continuar FAIL até
+haver correção aprovada, ensaio autenticado real e limpeza.
+
