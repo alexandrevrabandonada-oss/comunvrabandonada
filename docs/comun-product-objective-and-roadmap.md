@@ -3599,3 +3599,12 @@ offline após saída. Ingresso em núcleo, mandato, suplência aceita, delibera�
 transferência de contexto privado continuam sujeitos a contrato próprio. Não
 inferir filiação de papel, curso, acompanhamento ou colaboração. PR permanece
 draft, sem merge, Production, nova flag, convite ou publicação real.
+
+**Certificação M6 em Linux.** O build nativo compilou e completou a matriz de rotas,
+mas a exportação da imagem falhou por I/O do Docker Desktop com falta de espaço em
+C:. O contexto e o arquivo criados pela sessão foram movidos para E:, preservados;
+nenhum recurso compartilhado foi apagado ou reiniciado. A certificação HTTP do SHA
+final passa ao job isolado de M6 dentro do workflow Core Journeys existente, somente
+em PR, com checkout do HEAD exato, contexto `git archive`, build Linux e nenhuma
+credencial do projeto. O gate exige PASS e rejeita PARTIAL/KNOWN_GAP, preservando o
+contraexemplo e a prova de limpeza; CI verde de outros jobs não o substitui.

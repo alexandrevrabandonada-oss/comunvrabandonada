@@ -281,6 +281,8 @@ try {
     "-e",
     `COMUN_M6_JWT=${secret}`,
     "-e",
+    `COMUN_M6_SOURCE_HASHES=${JSON.stringify(sourceHashes)}`,
+    "-e",
     `COMUN_M6_AUTH_HOST=${owner}-auth`,
     "-e",
     `COMUN_M6_REST_HOST=${owner}-rest`,

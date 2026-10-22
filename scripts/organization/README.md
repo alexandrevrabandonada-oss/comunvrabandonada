@@ -16,6 +16,13 @@ Imagens locais necessárias: `postgres:17`,
 `public.ecr.aws/supabase/postgrest:v16.2`, `node:22.19.0-bookworm-slim`.
 O relatório registra os IDs das imagens e os hashes dos fontes usados.
 
+O job `SOC-D10.M6 / authenticated continuity and RLS`, no workflow existente de
+Core Journeys, executa o modo HTTP somente em pull requests e com escopo de arquivos.
+Constrói a imagem a partir de `git archive` do HEAD exato, sem secrets do projeto.
+O gate exige resultado `PASS`: `PARTIAL` por lacuna RLS falha a certificação e
+preserva o JSON sanitizado. Não há dispatch, cron, aplicação de migration do produto
+ou operação em Production. O Dockerfile deste diretório recebe `COMUN_SOURCE_SHA`.
+
 `disposable-cycle-fixture.sql` é uma **fixture mínima**, não uma migration do
 produto. As políticas de ações/tarefas e os dois gatilhos de capacidade/saída são
 carregados dos contratos SQL canônicos existentes. A fixture de vínculos e perfis

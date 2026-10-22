@@ -2,7 +2,8 @@
 import assert from "node:assert/strict";
 import http from "node:http";
 import { spawn } from "node:child_process";
-import { createHmac, randomUUID } from "node:crypto";
+import { createHmac, createHash, randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { resolveCommunitySelfServiceState } from "../../lib/community-administration.ts";
@@ -20,6 +21,17 @@ const owner = process.env.COMUN_M6_OWNER;
 const password = process.env.COMUN_M6_PASSWORD;
 const secret = process.env.COMUN_M6_JWT;
 assert(password && secret);
+for (const [name, expected] of Object.entries(
+  JSON.parse(process.env.COMUN_M6_SOURCE_HASHES ?? "{}"),
+)) {
+  assert.equal(
+    createHash("sha256")
+      .update(await readFile(new URL("../../" + name, import.meta.url)))
+      .digest("hex"),
+    expected,
+    `Runner source mismatch: ${name}`,
+  );
+}
 const results = [];
 let gateway;
 let nextServer;
