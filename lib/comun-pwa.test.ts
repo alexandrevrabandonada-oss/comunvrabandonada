@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { runInNewContext } from "node:vm";
 import {
   isSafeComunRoute,
   readComunOptionalStorage,
@@ -7,6 +9,36 @@ import {
 } from "./comun-pwa";
 
 describe("PWA public offline boundary", () => {
+  it("never remembers or caches private community descendants, including encoded paths", () => {
+    const worker = readFileSync(
+      new URL("../public/sw.js", import.meta.url),
+      "utf8",
+    );
+    for (const [path, allowed] of [
+      ["/comun/c/cidade", true],
+      ["/comun/c/cidade/agenda", true],
+      ["/comun/c/cidade/mesa", false],
+      ["/comun/c/cidade/mesa/", false],
+      ["/comun/c/cidade/participar", false],
+      ["/comun/c/cidade/%6desa", false],
+      ["/comun/c/cidade/mesa/../mesa", false],
+      ["/comun/c/cidade/reservado", false],
+    ] as const) {
+      expect(isSafeComunRoute(path), path).toBe(allowed);
+      const result = runInNewContext(
+        worker + "\nisPublicPage(new URL(path, 'https://comun.invalid'))",
+        {
+          URL,
+          path,
+          self: {
+            location: { origin: "https://comun.invalid" },
+            addEventListener() {},
+          },
+        },
+      );
+      expect(result, path).toBe(allowed);
+    }
+  });
   it("accepts only allowlisted public paths without query or fragment", () => {
     expect(isSafeComunRoute("/comun/pautas/calcadas-em-circulacao")).toBe(true);
     expect(isSafeComunRoute("/comun/seguranca")).toBe(true);

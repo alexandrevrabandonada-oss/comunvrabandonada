@@ -81,6 +81,11 @@ export function isSafeComunRoute(path: string) {
   }
   if (url.origin !== "https://comun.invalid" || url.search || url.hash)
     return false;
+  if (
+    url.pathname.startsWith("/comun/c/") &&
+    !/^\/comun\/c\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\/agenda)?\/?$/.test(url.pathname)
+  )
+    return false;
   return COMUN_PUBLIC_OFFLINE_PREFIXES.some(
     (prefix) =>
       url.pathname === prefix.replace(/\/$/, "") ||
@@ -96,14 +101,14 @@ export function parseSafeDrafts(raw: string | null): SafeDraft[] {
     return parsed.filter((item): item is SafeDraft =>
       Boolean(
         item &&
-        typeof item === "object" &&
-        (item as SafeDraft).schemaVersion === 2 &&
-        (item as SafeDraft).kind === "sidewalk" &&
-        typeof (item as SafeDraft).id === "string" &&
-        typeof (item as SafeDraft).step === "number" &&
-        typeof (item as SafeDraft).category === "string" &&
-        typeof (item as SafeDraft).manualMap === "boolean" &&
-        typeof (item as SafeDraft).updatedAt === "string",
+          typeof item === "object" &&
+          (item as SafeDraft).schemaVersion === 2 &&
+          (item as SafeDraft).kind === "sidewalk" &&
+          typeof (item as SafeDraft).id === "string" &&
+          typeof (item as SafeDraft).step === "number" &&
+          typeof (item as SafeDraft).category === "string" &&
+          typeof (item as SafeDraft).manualMap === "boolean" &&
+          typeof (item as SafeDraft).updatedAt === "string",
       ),
     );
   } catch {

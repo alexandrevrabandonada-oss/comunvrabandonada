@@ -3494,3 +3494,12 @@ e limpeza comprovada. Antes de persistir ingresso em núcleo ou transferência,
 submeter o contrato mínimo acima à revisão; implementar apenas o que o schema e a
 autorização específicos permitirem. O critério é continuidade sem exposição e sem
 obrigatoriedade, preservando convivência e colaboração pontual como fins legítimos.
+
+**Defesa adicional de privacidade M5:** a revisão encontrou a Mesa e o vínculo
+abrangidos pelo prefixo público `/comun/c/` na retomada offline. A regra passa a
+aceitar apenas a raiz pública da comunidade e a agenda pública conhecida; Mesa,
+participação, descendentes desconhecidos e caminhos codificados são recusados tanto
+na rota segura do armazenamento opcional quanto no service worker. A versão do
+cache muda para invalidar caches anteriores na ativação normal, sem deploy em
+Production. Teste executa o classificador real do worker e o helper com a mesma
+matriz positiva/negativa; não remove rotas de inventários ou enfraquece gates.
