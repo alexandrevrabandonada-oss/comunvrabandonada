@@ -12,6 +12,27 @@ export function canReadMesaPilot(input: {
   );
 }
 
+export function currentMesaRoles(
+  rows: readonly {
+    role: string;
+    scope: string;
+    starts_at: string;
+    revoked_at: string | null;
+  }[],
+  now = Date.now(),
+) {
+  return rows
+    .filter(
+      (row) =>
+        row.scope === "community" &&
+        row.revoked_at === null &&
+        Number.isFinite(Date.parse(row.starts_at)) &&
+        Date.parse(row.starts_at) <= now &&
+        ["coordinator", "facilitator"].includes(row.role),
+    )
+    .map((row) => row.role);
+}
+
 export type MesaOwnTask = {
   id: string;
   title: string;
@@ -20,6 +41,43 @@ export type MesaOwnTask = {
   actionTitle: string;
   actionSlug: string;
 };
+
+export type MesaActivity = {
+  slug: string;
+  title: string;
+  status: string;
+  startsAt: string | null;
+};
+
+export function publicMesaActivities(
+  rows: readonly {
+    community_id: string | null;
+    slug: string;
+    title: string;
+    status: string;
+    visibility: string;
+    published_at: string | null;
+    starts_at: string | null;
+  }[],
+  communityId: string,
+): MesaActivity[] {
+  return rows.flatMap((row) =>
+    row.community_id === communityId &&
+    row.visibility === "public" &&
+    row.published_at &&
+    /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(row.slug) &&
+    ["open", "active", "awaiting_result", "completed"].includes(row.status)
+      ? [
+          {
+            slug: row.slug,
+            title: row.title,
+            status: row.status,
+            startsAt: row.starts_at,
+          },
+        ]
+      : [],
+  );
+}
 
 type RawAssignment = {
   id: string;
@@ -36,6 +94,7 @@ type RawAssignment = {
       title: string;
       visibility: string;
       status: string;
+      published_at: string | null;
     } | null;
   } | null;
 };
@@ -56,18 +115,22 @@ export function ownPublicMesaTasks(
       !action ||
       action.community_id !== communityId ||
       action.visibility !== "public" ||
+      !action.published_at ||
+      !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(action.slug) ||
       !["open", "active", "awaiting_result"].includes(action.status) ||
       !["open", "in_progress"].includes(task.state)
     ) {
       return [];
     }
-    return [{
-      id: row.id,
-      title: task.title,
-      description: task.description,
-      dueAt: task.due_at,
-      actionTitle: action.title,
-      actionSlug: action.slug,
-    }];
+    return [
+      {
+        id: row.id,
+        title: task.title,
+        description: task.description,
+        dueAt: task.due_at,
+        actionTitle: action.title,
+        actionSlug: action.slug,
+      },
+    ];
   });
 }

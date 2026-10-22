@@ -3402,3 +3402,95 @@ esta distinção documental.
 ### SOC-D09 — reconciliação documental com SOC-D10 (21/10/2026)
 
 O candidato funcional `d280e1c7` completou seus gates, inclusive Quality `39532309066` SUCCESS. Main avançou somente o roadmap em `9b92dab8`; esta conciliação preserva integralmente o norte SOC-D10 e o registro de descoberta. O código de produto, testes e workflows permanecem idênticos ao candidato funcional. O novo SHA documental exige seus próprios CI/COST-02/Preview antes de merge. Dados sintéticos são provas de laboratório, não presença social, publicação editorial ou aceite humano. A próxima auditoria deve seguir as etapas SOC-D10 vigentes; a preparação anterior de convivência não constitui autorização para pular essa ordem.
+
+### SOC-D10.M5 — Integração organizativa e ensaio de ciclo completo
+
+**Checkpoint candidato no mesmo PR #572 (21/10/2026).** Base de trabalho
+`a196f794440cefa164c827e207e1e409b8441c58`, main observada `242f19cd`.
+Não constitui merge, liberação em Production, ensaio humano ou ingresso em núcleo.
+
+**Contrato organizativo.** Comunidade é convivência e pertencimento; colaboração
+pontual é escolha em atividade específica; grupo de trabalho tem objetivo e ciclo.
+Nenhum deles equivale a núcleo permanente. Núcleo exige ingresso explícito,
+propósito e regras próprios, direitos revisáveis e liberdade de saída. A Mesa é
+uma projeção privada das ferramentas existentes, sem segundo login, feed ou
+filiação inferida. Papel comunitário autoriza esta leitura limitada, não prova
+vínculo organizativo. Seguir, reagir, estudar ou concluir uma atividade não concede
+papel. Reações não são votos; resultados públicos não são deliberação interna.
+
+**Implementado no candidato.** A leitura server-side revalida sessão, identidade
+solicitada e perfil ativo antes da consulta organizativa. Exige comunidade ativa,
+vínculo `member` e coordenação/facilitação vigente no escopo comunitário; papel
+revogado ou futuro é rejeitado também na defesa em profundidade. O propósito vem
+da descrição real da comunidade. Atividades e resultados usam apenas ações
+públicas publicadas da mesma comunidade, em lista limitada a vinte registros;
+retornam somente título, slug, estado e data. Não há local reservado, participantes,
+contatos ou notas no DTO. Atribuições são filtradas no servidor por pessoa,
+comunidade e publicação e novamente pelo contrato puro. Não se denomina o registro
+como aceite voluntário: convite, interesse, atribuição e aceite são distintos.
+
+A Mesa liga a ação canônica, suas opções existentes de participação/devolução,
+a comunidade, Minha Participação e vínculo/pausa/saída. Atividades publicadas não
+são RSVP, controle de presença ou calendário persistente. Ações concluídas têm
+atalho para resultado/memória na origem; não se inventam atas. Microlições reais
+`reuniao-termina-em-acao` e `facilite-de-verdade` são sugestões voluntárias, somente
+quando o gate já existente da Escola permite; não se consulta progresso pessoal nem
+se altera gate, flag ou direito. A entrada pública explica as escolhas sem revelar
+quem tem acesso à Mesa. A Mesa não adiciona navegação global ou link de filiação
+pública. Estados de gate fechado, vazio, acesso negado e indisponibilidade permanecem
+separados. Não há mutation nova, convite, notificação ou escrita de dados.
+
+**Auditoria de viabilidade e limites comprovados.**
+
+| Estrutura                       | Existente no código                                             | Limite observado no M5                                                       |
+| ------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Vínculo comunitário e papéis    | memberships; role_assignments com scope, starts_at e revoked_at | não representam ingresso em núcleo; review_at não é expiração automática     |
+| Grupo de trabalho               | objetivo, ciclo, integrantes e tarefas vinculadas a pauta       | não é núcleo, nem mandato ou sucessão                                        |
+| Ação, participação e atribuição | status de interesse/participação; atribuição active/released    | não há campo separado de aceite/proveniência do aceite no DTO; não o inferir |
+| Encontro                        | starts_at da ação publicada; ICS editorial                      | não prova RSVP, presença, alteração ou cancelamento                          |
+| Resultado/memória               | ação concluída e objetos públicos canônicos                     | decisão interna e documento sensível não são liberados pela Mesa             |
+| Formação                        | catálogo, microlições e progresso privado existentes            | gates próprios da Escola preservados; nenhum papel concedido por conclusão   |
+| Pausa/saída                     | estado comunitário e participação canônica existentes           | retirar acesso à Mesa não transfere automaticamente atribuições              |
+
+As migrations existentes foram lidas, sem criar/aplicar migrations. Memberships,
+papéis e grupos usam RLS e revogação de acesso direto de anon/authenticated no
+contrato versionado; a aplicação usa service role, portanto essas políticas não
+substituem as validações server-side. Leitura de código e testes mockados não
+certificam o schema/RLS instalado. Nenhum estado de liberação do ambiente foi
+inferido do código ou de um Preview anterior.
+
+**Ensaio controlado e segurança.** Testes de função server-side e renderização
+sintética cobrem visitante, identidade divergente, seguidor, membro sem papel,
+coordenação/facilitação, revogação, início futuro, pausa, saída, suspensão, outra
+comunidade, atribuições de outra pessoa, falhas de banco, gates fechados e campos
+privados inesperados. O percurso é opcional e pode terminar em comunidade,
+atividade ou Minha Participação. As fixtures são sintéticas, não um coletivo real.
+O exercício de renderização não comprova sessão Auth, RLS, aceite/devolução real,
+voto ou continuidade humana. O ensaio autenticado descartável de ponta a ponta
+permanece pendente se não houver ambiente independente com gates já certificados;
+não se ativa Escola ou ação para fabricar uma prova. Evidências locais e checks do
+SHA final devem ser registrados separadamente no checkpoint executivo do PR.
+
+**Lacuna mínima sujeita a revisão humana, sem schema novo.** Ingresso em núcleo
+precisa distinguir solicitação, aprovação e consentimento vigente da pessoa,
+com escopo do coletivo, pausa/revogação e publicidade privada por padrão.
+Responsabilidade precisa distinguir oferta, aceite verificável, devolução e
+transferência aceita pelo substituto, com contexto autorizado. Não reutilizar papel
+comunitário, frequência ou curso como equivalente. Não criar cadastro político.
+Até esse contrato ser revisado, nenhuma mutation organizativa nova é admitida.
+
+**Riscos e pendências.** Somente dados públicos publicados e atribuições próprias
+são projetados; a lista limitada não é inventário completo de toda a história.
+Mudanças concorrentes de vínculo/papel exigem nova validação na próxima leitura;
+a Mesa não oferece operação mutante. Ensaio com pessoas reais, baixa conectividade,
+tecnologia assistiva e operação de cuidado/substituição requerem validação própria.
+CI/Preview/COST-02 são técnicos, não aceitação humana ou autorização de lançamento.
+PR continua draft; Production permanece fora do escopo.
+
+**Próximo incremento específico — SOC-D10.M6.** Executar em ambiente autenticado
+independente o ciclo oferecer/aceitar/devolver uma responsabilidade pelos mecanismos
+canônicos, pausar/sair e verificar revogação na Mesa, com duas identidades sintéticas
+e limpeza comprovada. Antes de persistir ingresso em núcleo ou transferência,
+submeter o contrato mínimo acima à revisão; implementar apenas o que o schema e a
+autorização específicos permitirem. O critério é continuidade sem exposição e sem
+obrigatoriedade, preservando convivência e colaboração pontual como fins legítimos.

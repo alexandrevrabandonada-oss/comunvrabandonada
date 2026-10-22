@@ -1,10 +1,14 @@
 import "server-only";
+import { getCommunitySession } from "@/lib/community-auth";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { getCollectiveActionsRelease } from "@/lib/collective-actions-release";
 import {
   canReadMesaPilot,
   ownPublicMesaTasks,
   type MesaOwnTask,
+  publicMesaActivities,
+  type MesaActivity,
+  currentMesaRoles,
 } from "@/lib/community-mesa-contract";
 
 export type MesaPilotSnapshot =
@@ -13,6 +17,9 @@ export type MesaPilotSnapshot =
   | {
       kind: "ready";
       communityName: string;
+      purpose: string;
+      activitiesState: "ready" | "unavailable" | "not_released";
+      activities: MesaActivity[];
       role: "coordinator" | "facilitator";
       tasksState: "ready" | "unavailable" | "not_released";
       tasks: MesaOwnTask[];
@@ -27,13 +34,19 @@ export async function getMesaPilotSnapshot(
   slug: string,
   userId: string,
 ): Promise<MesaPilotSnapshot> {
-  const db = createServiceSupabaseClient();
-  if (!db) return { kind: "unavailable" };
-
   try {
+    const session = await getCommunitySession();
+    if (
+      !session ||
+      session.user.id !== userId ||
+      session.profile?.status !== "active"
+    )
+      return { kind: "forbidden" };
+    const db = createServiceSupabaseClient();
+    if (!db) return { kind: "unavailable" };
     const { data: community, error: communityError } = await db
       .from("comun_communities")
-      .select("id,name")
+      .select("id,name,short_description")
       .eq("slug", slug)
       .eq("is_active", true)
       .maybeSingle();
@@ -52,7 +65,7 @@ export async function getMesaPilotSnapshot(
 
     const { data: assignments, error: roleError } = await db
       .from("comun_community_role_assignments")
-      .select("role")
+      .select("role,scope,starts_at,revoked_at")
       .eq("membership_id", membership.id)
       .eq("scope", "community")
       .is("revoked_at", null)
@@ -60,53 +73,86 @@ export async function getMesaPilotSnapshot(
       .in("role", ["coordinator", "facilitator"]);
     if (roleError) return { kind: "unavailable" };
 
-    const roles = (assignments ?? []).map((row) => row.role);
+    const roles = currentMesaRoles(assignments ?? []);
     if (!canReadMesaPilot({ membershipState: membership.state, roles }))
       return { kind: "forbidden" };
 
     const role: "coordinator" | "facilitator" = roles.includes("coordinator")
       ? "coordinator"
       : "facilitator";
+    const context = {
+      communityName: community.name,
+      purpose: community.short_description ?? "",
+      role,
+    };
     const release = await getCollectiveActionsRelease();
     if (!release.enabled) {
       return {
         kind: "ready",
-        communityName: community.name,
-        role,
+        ...context,
+        activitiesState: "not_released",
+        activities: [],
         tasksState: "not_released",
         tasks: [],
       };
     }
 
+    // Public, published objects only; never meeting places, participants or notes.
+    const { data: activityRows, error: activityError } = await db
+      .from("comun_collective_actions")
+      .select(
+        "community_id,slug,title,status,visibility,published_at,starts_at",
+      )
+      .eq("community_id", community.id)
+      .eq("visibility", "public")
+      .not("published_at", "is", null)
+      .in("status", ["open", "active", "awaiting_result", "completed"])
+      .order("starts_at", { ascending: false })
+      .limit(20);
+    const activities = activityError
+      ? []
+      : publicMesaActivities(activityRows ?? [], community.id);
+    const activityContext = {
+      activities,
+      activitiesState: activityError
+        ? ("unavailable" as const)
+        : ("ready" as const),
+    };
+
     // Filtra no banco pela identidade e novamente no contrato puro pela comunidade.
     const { data: ownAssignments, error: taskError } = await db
       .from("comun_collective_action_task_assignments")
       .select(
-        "id,member_user_id,status,task:comun_collective_action_tasks!inner(title,description,due_at,state,action:comun_collective_actions!inner(community_id,slug,title,visibility,status))",
+        "id,member_user_id,status,task:comun_collective_action_tasks!inner(title,description,due_at,state,action:comun_collective_actions!inner(community_id,slug,title,visibility,status,published_at))",
       )
       .eq("member_user_id", userId)
       .eq("status", "active")
+      .eq("task.action.community_id", community.id)
+      .eq("task.action.visibility", "public")
+      .not("task.action.published_at", "is", null)
       .order("created_at", { ascending: false })
       .limit(50);
     if (taskError) {
       return {
         kind: "ready",
-        communityName: community.name,
-        role,
+        ...context,
+        ...activityContext,
         tasksState: "unavailable",
         tasks: [],
       };
     }
     // O tipo raw de PostgREST não exprime a relação aninhada com precisão.
     const tasks = ownPublicMesaTasks(
-      (ownAssignments ?? []) as unknown as Parameters<typeof ownPublicMesaTasks>[0],
+      (ownAssignments ?? []) as unknown as Parameters<
+        typeof ownPublicMesaTasks
+      >[0],
       userId,
       community.id,
     ).slice(0, 10);
     return {
       kind: "ready",
-      communityName: community.name,
-      role,
+      ...context,
+      ...activityContext,
       tasksState: "ready",
       tasks,
     };

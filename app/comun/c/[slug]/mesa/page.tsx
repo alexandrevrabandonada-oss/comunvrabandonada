@@ -3,7 +3,12 @@ import { notFound } from "next/navigation";
 import { ComunShell, Section } from "@/components/comun-shell";
 import { requireCommunitySession } from "@/lib/community-auth";
 import { getMesaPilotSnapshot } from "@/lib/community-mesa";
-import { isLearningEnabled } from "@/lib/learning/core";
+import {
+  isLearningEnabled,
+  getMission,
+  missionHref,
+} from "@/lib/learning/core";
+import { withComunAppV2 } from "@/lib/comun-shell-contract";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -47,9 +52,12 @@ export default async function CommunityMesaPilot({
   return (
     <ComunShell>
       <Section>
-        <div data-comun-mesa-private="true">
+        <div
+          data-comun-mesa-private="true"
+          className="min-w-0 break-words rounded-2xl bg-comun-black p-5 text-comun-paper sm:p-8"
+        >
           <p className="text-xs font-black uppercase text-comun-yellow">
-            SOC-D10.M3 · Ensaio privado · Somente leitura
+            Mesa privada · Somente leitura
           </p>
           <h1
             id="mesa-title"
@@ -58,11 +66,16 @@ export default async function CommunityMesaPilot({
             Mesa organizativa
           </h1>
           <p className="mt-2 max-w-2xl font-bold">{mesa.communityName}</p>
+          <h2 className="mt-6 text-xl font-black">O que construímos juntos</h2>
+          <p className="mt-2 max-w-3xl">
+            {mesa.purpose ||
+              "Esta comunidade ainda não registrou uma descrição pública de seu propósito."}
+          </p>
           <p className="mt-3 max-w-3xl text-comun-paper/80">
             Esta é uma projeção limitada de compromissos existentes para quem
-            possui papel comunitário ativo de coordenação ou facilitação.
-            Esse papel não comprova ingresso em um núcleo permanente.
-            Nada aqui registra presença, deliberação ou aceite de tarefas.
+            possui papel comunitário ativo de coordenação ou facilitação. Esse
+            papel não comprova ingresso em um núcleo permanente. Nada aqui
+            registra presença, deliberação ou aceite de tarefas.
           </p>
           <nav
             aria-label="Navegação da Mesa"
@@ -70,6 +83,13 @@ export default async function CommunityMesaPilot({
           >
             <Link href={"/comun/c/" + slug} className={linkClass}>
               Comunidade pública
+            </Link>
+            <Link
+              href={withComunAppV2("/comun/minha-participacao")}
+              prefetch={false}
+              className={linkClass}
+            >
+              Minha participação
             </Link>
             <Link
               href={"/comun/c/" + slug + "/participar"}
@@ -81,18 +101,62 @@ export default async function CommunityMesaPilot({
           <div className="mt-8 grid gap-5 md:grid-cols-2">
             <section className={cardClass} aria-labelledby="mesa-encontro">
               <h2 id="mesa-encontro" className="text-xl font-black">
-                Próximo encontro
+                Atividades e encontros
               </h2>
               <p className="mt-3 text-sm">
-                Nenhum encontro privado verificado nesta Mesa. O convite
-                comunitário em formato ICS não confirma presença, mudança ou
-                cancelamento.
+                Datas publicadas nas ações desta comunidade. Abrir uma atividade
+                ou exportar ICS não confirma presença. Confira atualizações na
+                ação.
               </p>
+              {mesa.activitiesState !== "ready" ? (
+                <p role="status" className="mt-3 text-sm">
+                  {mesa.activitiesState === "not_released"
+                    ? "As atividades ainda não estão liberadas neste ambiente."
+                    : "Não foi possível carregar as atividades. Tente novamente mais tarde."}
+                </p>
+              ) : mesa.activities.filter(
+                  (activity) => activity.status !== "completed",
+                ).length ? (
+                <ul className="mt-3 space-y-3">
+                  {mesa.activities
+                    .filter((activity) => activity.status !== "completed")
+                    .map((activity) => (
+                      <li key={activity.slug}>
+                        <Link
+                          prefetch={false}
+                          className={linkClass}
+                          href={withComunAppV2("/comun/acoes/" + activity.slug)}
+                        >
+                          {activity.title}
+                        </Link>
+                        <p className="text-sm">
+                          {activity.startsAt
+                            ? "Data registrada: " +
+                              new Date(activity.startsAt).toLocaleDateString(
+                                "pt-BR",
+                                { timeZone: "America/Sao_Paulo" },
+                              )
+                            : "Data ainda não registrada"}
+                        </p>
+                      </li>
+                    ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm">
+                  Nenhuma atividade pública em andamento foi encontrada nesta
+                  comunidade.
+                </p>
+              )}
             </section>
             <section className={cardClass} aria-labelledby="mesa-tarefas">
               <h2 id="mesa-tarefas" className="text-xl font-black">
                 Atribuições registradas para mim
               </h2>
+              <p className="mt-2 text-sm">
+                Convite e interesse não são atribuição. O registro abaixo também
+                não comprova aceite voluntário; confira sua situação e as opções
+                de devolução na ação.
+              </p>
               {mesa.tasksState === "not_released" ? (
                 <p role="status" className="mt-3 text-sm">
                   As ações coletivas ainda não estão liberadas neste ambiente.
@@ -120,7 +184,7 @@ export default async function CommunityMesaPilot({
                       <Link
                         prefetch={false}
                         className={linkClass}
-                        href={"/comun/acoes/" + task.actionSlug}
+                        href={withComunAppV2("/comun/acoes/" + task.actionSlug)}
                       >
                         Ver ação e opções de participação
                       </Link>
@@ -129,8 +193,8 @@ export default async function CommunityMesaPilot({
                 </ul>
               ) : (
                 <p className="mt-3 text-sm">
-                  Não há atribuições públicas ativas registradas para você
-                  nesta comunidade. Uma atribuição não equivale a aceite.
+                  Não há atribuições públicas ativas registradas para você nesta
+                  comunidade. Uma atribuição não equivale a aceite.
                 </p>
               )}
             </section>
@@ -143,13 +207,33 @@ export default async function CommunityMesaPilot({
                 automaticamente.
               </p>
               {isLearningEnabled() ? (
-                <Link
-                  prefetch={false}
-                  href="/comun/escola"
-                  className={linkClass}
-                >
-                  Abrir Escola
-                </Link>
+                <div>
+                  <ul className="mt-3 space-y-2">
+                    {["reuniao-termina-em-acao", "facilite-de-verdade"].map(
+                      (id) => {
+                        const mission = getMission(id);
+                        return mission ? (
+                          <li key={id}>
+                            <Link
+                              prefetch={false}
+                              href={withComunAppV2(missionHref(id))}
+                              className={linkClass}
+                            >
+                              {mission.title}
+                            </Link>
+                          </li>
+                        ) : null;
+                      },
+                    )}
+                  </ul>
+                  <Link
+                    prefetch={false}
+                    href={withComunAppV2("/comun/escola")}
+                    className={linkClass}
+                  >
+                    Abrir Escola
+                  </Link>
+                </div>
               ) : (
                 <p role="status" className="mt-2 text-sm">
                   A Escola ainda não está liberada neste ambiente.
@@ -162,9 +246,26 @@ export default async function CommunityMesaPilot({
               </h2>
               <p className="mt-3 text-sm">
                 Nenhuma ata ou decisão interna foi certificada para esta
-                experiência. Resultados públicos continuam na comunidade,
-                sem transformar reações em votos.
+                experiência. Resultados públicos continuam na comunidade, sem
+                transformar reações em votos.
               </p>
+              {mesa.activitiesState === "ready" ? (
+                <ul className="mt-3 space-y-2">
+                  {mesa.activities
+                    .filter((activity) => activity.status === "completed")
+                    .map((activity) => (
+                      <li key={activity.slug}>
+                        <Link
+                          prefetch={false}
+                          className={linkClass}
+                          href={withComunAppV2("/comun/acoes/" + activity.slug)}
+                        >
+                          Resultado e memória: {activity.title}
+                        </Link>
+                      </li>
+                    ))}
+                </ul>
+              ) : null}
               <Link
                 prefetch={false}
                 href={"/comun/c/" + slug}
@@ -180,6 +281,13 @@ export default async function CommunityMesaPilot({
               <p className="mt-3 text-sm">
                 Pausar ou deixar a comunidade é voluntário. Esta Mesa não
                 monitora faltas nem exige justificativas pessoais.
+              </p>
+              <p className="mt-3 text-sm">
+                Antes de pausar, você pode rever suas atribuições nas ações
+                acima. Devolver uma atribuição não escolhe automaticamente outra
+                pessoa. A substituição e a transferência de contexto precisam
+                ser combinadas pelos canais autorizados; esta Mesa não registra
+                sucessão nem compartilha dados privados.
               </p>
               <Link
                 href={"/comun/c/" + slug + "/participar"}
