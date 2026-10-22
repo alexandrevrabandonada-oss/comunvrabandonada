@@ -3719,3 +3719,25 @@ prova pertencimento persistente a núcleo, mandato, suplência ou deliberação.
 M6 segue atual até concluir suas provas; M7 deve priorizar devolução/continuidade
 inteligível e contrato mínimo de responsabilidade com consentimento, sem transferir
 atribuições automaticamente nem inferir filiação.
+
+**Readback do SHA `f0645437` — CI e Preview, 22/10/2026.** O deployment exato
+permaneceu READY e o endpoint `quality-status` serviu o SHA completo. COST-02,
+Security de migrations, `pr-contract` e Experience Coherence terminaram SUCCESS.
+O job Auth M6 falhou antes dos testes: o pull de GoTrue no registry público ECR
+respondeu `Data limit exceeded`; não houve rerun ou dispatch. Um readback da tela
+pública `/comun/acoes` confirmou HTTP 200, operação de ações ainda fechada e texto
+que informa que nenhuma participação/tarefa é registrada; as pautas seguem
+acessíveis. No snapshot do PR houve 42 SUCCESS, 20 FAILURE, 74 SKIPPED e um
+`pr-lane` ainda em andamento. Parte dos preflights falhou ao classificar a
+migration M6 como ownership desconhecida; SKIPPED não é certificação.
+
+**Desbloqueio focal de ownership, 22/10/2026.** O manifest registra a migration
+`20261022160000_comun_collective_task_release_boundary.sql` sob owner explícito
+`collective-task-release-boundary`. Os preflights legados que não são donos dela,
+inclusive lanes sem migration, a classificam como não aplicável e não selecionam
+essa migration como candidata; suas verificações read-only de escopo próprio
+continuam valendo. A regra mantém bloqueio para arquivos desconhecidos e
+combinações com a migration própria de outra lane. Os 27 contratos do classificador
+passaram em Linux com Node 22.19.0. Esta correção não comprova o gate M6, não aplica
+a migration e não altera autorização remota; o novo SHA ainda precisa de readback
+CI/Preview próprio. M6 continua sendo a estação atual.

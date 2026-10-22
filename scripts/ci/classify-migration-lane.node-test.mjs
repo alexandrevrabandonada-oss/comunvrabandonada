@@ -8,6 +8,8 @@ import { load as parse } from "js-yaml";
 import { classifyMigrationLane } from "./classify-migration-lane.mjs";
 
 const learning = "supabase/migrations/20261006134804_comun_learning_r0.sql";
+const taskReleaseBoundary =
+  "supabase/migrations/20261022160000_comun_collective_task_release_boundary.sql";
 
 test("Escola R0 has explicit ownership and is N/A to every historical gate", () => {
   assert.deepEqual(classifyMigrationLane("learning-r0", [learning]), {
@@ -308,6 +310,54 @@ test("collective entity consent is known and non-applicable to historical lanes"
       "not_applicable",
     );
   }
+});
+
+test("M6 task release boundary has explicit ownership outside legacy preflights", () => {
+  const historicalLanes = [
+    "p6c-b1",
+    "p6c-b2",
+    "p6c-c",
+    "48-2-a",
+    "48-3-a1",
+    "48-3-b0",
+    "48-3-b1",
+    "48-3-c1",
+    "48-3-d1",
+    "48-3-e2",
+    "48-3-e3",
+    "48-4-a0",
+    "48-4-a1",
+    "48-4-a2",
+    "48-4-a3",
+    "48-4-a4",
+    "48-4-a5",
+    "48-4-a6",
+    "48-4-a7",
+    "48-5-a0",
+    "p1g",
+    "culture-b2-a1",
+    "culture-b2-a2",
+  ];
+  for (const lane of historicalLanes) {
+    const result = classifyMigrationLane(lane, [taskReleaseBoundary]);
+    assert.equal(result.mode, "not_applicable", lane);
+    assert.equal(
+      result.files[0].owner,
+      "collective-task-release-boundary",
+      lane,
+    );
+  }
+  assert.equal(
+    classifyMigrationLane("48-3-a1", [taskReleaseBoundary, pauta]).mode,
+    "blocked",
+  );
+  assert.equal(
+    classifyMigrationLane("48-2-a", [
+      taskReleaseBoundary,
+      "supabase/migrations/20990101000000_future.sql",
+    ]).mode,
+    "blocked",
+  );
 });
 
 test("lane-owned migration remains a candidate and does not become N/A", () => {

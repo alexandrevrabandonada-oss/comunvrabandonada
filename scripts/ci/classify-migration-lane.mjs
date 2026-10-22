@@ -6,6 +6,8 @@ import process from "node:process";
 // listed here is unknown and must block the historical gate until its owner is
 // recorded. It is not safe to infer ownership from a future filename.
 export const MIGRATION_LANE_MANIFEST = Object.freeze({
+  "20261022160000_comun_collective_task_release_boundary.sql":
+    "collective-task-release-boundary",
   "20261006134804_comun_learning_r0.sql": "learning-r0",
   "20260814160000_comun_pauta_low_friction_creation.sql": "48-3-e3",
   "20260810155310_comun_public_education_sensitive_routing.sql": "p6c-b1",
@@ -253,9 +255,10 @@ const NON_APPLICABLE_LANES = Object.freeze({
   ),
 });
 
-// This foundation is additive and belongs to a new, explicitly isolated
-// domain. Historical migration gates must classify it as N/A, never unknown.
+// These migrations have explicit owners. Historical gates must classify them
+// as unrelated, never unknown; each owning lane retains its own exact checks.
 for (const lanes of Object.values(NON_APPLICABLE_LANES)) {
+  lanes.add("collective-task-release-boundary");
   lanes.add("collective-entity-consent");
   lanes.add("collective-entity-auth-runtime");
   lanes.add("collective-entity-private-candidate");
@@ -275,11 +278,17 @@ for (const [lane, owners] of Object.entries(NON_APPLICABLE_LANES)) {
 // is unrelated; other known migrations retain the existing fail-closed gate.
 const ZERO_MIGRATION_LANES = new Set(["48-3-b1", "48-3-c1", "48-3-d1", "p1g"]);
 
+const LEGACY_NON_APPLICABLE_OWNERS = new Set([
+  "learning-r0",
+  "collective-task-release-boundary",
+]);
+
 const SCOPED_CANDIDATE_MIGRATIONS = Object.freeze({
   "48-3-e3": "20260814160000_comun_pauta_low_friction_creation.sql",
   "48-4-a1": "20260815184529_comun_solidarity_offers.sql",
   "48-4-a3": "20260816011500_comun_solidarity_economic_content_writes.sql",
-  "48-4-a6": "20260817012247_comun_solidarity_organization_profile_self_management.sql",
+  "48-4-a6":
+    "20260817012247_comun_solidarity_organization_profile_self_management.sql",
 });
 
 function migrationBasename(file) {
@@ -287,8 +296,10 @@ function migrationBasename(file) {
 }
 
 export function classifyMigrationLane(lane, files) {
-  const nonApplicableOwners = (ZERO_MIGRATION_LANES.has(lane) || SCOPED_CANDIDATE_MIGRATIONS[lane])
-    ? new Set(["learning-r0"]) : NON_APPLICABLE_LANES[lane];
+  const nonApplicableOwners =
+    ZERO_MIGRATION_LANES.has(lane) || SCOPED_CANDIDATE_MIGRATIONS[lane]
+      ? LEGACY_NON_APPLICABLE_OWNERS
+      : NON_APPLICABLE_LANES[lane];
   if (!nonApplicableOwners) throw new Error(`unknown lane: ${lane}`);
   const normalized = files.map(migrationBasename).filter(Boolean);
   if (normalized.length === 0) return { mode: "none", lane, files: [] };
@@ -308,8 +319,11 @@ export function classifyMigrationLane(lane, files) {
   }
 
   const owners = new Set(classifications.map((entry) => entry.owner));
-  if ((owners.size === 1 && owners.has(lane)) ||
-      (normalized.length === 1 && normalized[0] === SCOPED_CANDIDATE_MIGRATIONS[lane])) {
+  if (
+    (owners.size === 1 && owners.has(lane)) ||
+    (normalized.length === 1 &&
+      normalized[0] === SCOPED_CANDIDATE_MIGRATIONS[lane])
+  ) {
     return { mode: "candidate", lane, files: classifications };
   }
   if ([...owners].every((owner) => nonApplicableOwners.has(owner))) {
