@@ -174,7 +174,12 @@ if (await probeChromiumReadiness(chromium)) {
   console.log("COMUN_BROWSER_PROVISIONING_EXISTING_BROWSER_VERIFIED=true");
   summary("COMUN_BROWSER_PROVISIONING_EXISTING_BROWSER_VERIFIED=true");
 } else {
-  if (!(await runWithLimitedRetry(["install-deps", "chromium"], "system-dependencies"))) {
+  if (
+    !(await runWithLimitedRetry(
+      ["install-deps", "chromium"],
+      "system-dependencies",
+    ))
+  ) {
     process.exit(1);
   }
 
