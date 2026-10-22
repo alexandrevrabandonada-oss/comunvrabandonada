@@ -3503,3 +3503,9 @@ na rota segura do armazenamento opcional quanto no service worker. A versão do
 cache muda para invalidar caches anteriores na ativação normal, sem deploy em
 Production. Teste executa o classificador real do worker e o helper com a mesma
 matriz positiva/negativa; não remove rotas de inventários ou enfraquece gates.
+
+**Correção de certificação M5:** o CI próprio de `dc9a8d3d` demonstrou que o
+contrato de qualidade ainda fixava a versão antiga do cache. O checkpoint seguinte
+alinha o status técnico, auditor, ensaio remoto e teste de promoção a v4, preservando
+as comparações exatas, asserts de no-leak, timeouts e gates. O FAIL anterior fica
+preservado; não houve rerun ou dispatch nem alteração de ambiente para obter verde.
