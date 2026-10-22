@@ -47,7 +47,7 @@ export default async function CommunityMesaPilot({
   return (
     <ComunShell>
       <Section>
-        <main data-comun-mesa-private="true" aria-labelledby="mesa-title">
+        <div data-comun-mesa-private="true">
           <p className="text-xs font-black uppercase text-comun-yellow">
             SOC-D10.M3 · Ensaio privado · Somente leitura
           </p>
@@ -179,7 +179,7 @@ export default async function CommunityMesaPilot({
               </Link>
             </section>
           </div>
-        </main>
+        </div>
       </Section>
     </ComunShell>
   );
