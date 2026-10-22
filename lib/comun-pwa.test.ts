@@ -9,6 +9,53 @@ import {
 } from "./comun-pwa";
 
 describe("PWA public offline boundary", () => {
+  it("activation removes obsolete v3 caches while preserving the v4 shell and unrelated caches", async () => {
+    const listeners = new Map<
+      string,
+      (event: { waitUntil(promise: Promise<unknown>): void }) => void
+    >();
+    const deleted: string[] = [];
+    runInNewContext(
+      readFileSync(new URL("../public/sw.js", import.meta.url), "utf8"),
+      {
+        self: {
+          addEventListener(
+            name: string,
+            callback: (event: {
+              waitUntil(promise: Promise<unknown>): void;
+            }) => void,
+          ) {
+            listeners.set(name, callback);
+          },
+          clients: { claim: async () => undefined },
+        },
+        caches: {
+          keys: async () => [
+            "comun-pwa-v3-public",
+            "comun-pwa-v3-shell",
+            "comun-pwa-v4-public",
+            "comun-pwa-v4-shell",
+            "other-app",
+          ],
+          delete: async (key: string) => {
+            deleted.push(key);
+            return true;
+          },
+        },
+      },
+    );
+    let completion: Promise<unknown> = Promise.resolve();
+    listeners.get("activate")!({
+      waitUntil(promise) {
+        completion = promise;
+      },
+    });
+    await completion;
+    expect(deleted.sort()).toEqual([
+      "comun-pwa-v3-public",
+      "comun-pwa-v3-shell",
+    ]);
+  });
   it("never remembers or caches private community descendants, including encoded paths", () => {
     const worker = readFileSync(
       new URL("../public/sw.js", import.meta.url),
