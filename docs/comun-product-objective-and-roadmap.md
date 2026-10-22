@@ -3302,6 +3302,51 @@ revisão técnica. O passivo de PRs de SOC-D10.L permanece P0;
 este registro não autoriza merge funcional, migration,
 flags, produção, indexação ou envio de convites.
 
+### SOC-D10.M4 — Certificação de acesso e rito humano
+
+**21/10/2026 · extensão da Mesa M3, no mesmo PR #572.**
+O ensaio read-only permanece restrito a pessoas com vínculo comunitário
+`member` e papel comunitário vigente de coordenação ou facilitação.
+Não equivale a filiação a núcleo, nem autoriza convocação real.
+
+**Achado de schema:** `comun_community_work_group_members` guarda
+`membership_id`, `responsibility`, `joined_at` e `left_at`,
+vinculado a grupos de trabalho com ciclo delimitado. Não registra
+consentimento específico para núcleo permanente, mandato,
+suplência ou transferência de responsabilidades. Reutilizar como
+evidência apenas do vínculo do grupo, nunca inferir militância.
+
+**Contrato verificado em código candidato:**
+`lib/community-mesa.test.ts` ensaia indisponibilidade do serviço,
+vínculo pausado, acesso recusado antes da leitura de atribuições,
+filtros server-side por identidade, escopo, papel não revogado,
+início do papel, gate de ações coletivas, recorte por comunidade e
+ocultação de campos privados. São testes com banco simulado,
+**não** sessão humana ou prova RLS no banco real.
+A rota privada declara `robots.index=false` e `robots.follow=false`.
+Nenhuma indexação, flag pública ou convite foi ativado.
+
+**Protocolo 49-M1 que ainda não foi executado:** a equipe humana
+deve autorizar coletivo e facilitador/substituto; obter escolha
+separada de acompanhar, colaborar uma vez ou integrar núcleo;
+combinar uma reunião existente com cancelamento explícito;
+oferecer uma tarefa que a pessoa possa aceitar ou recusar;
+apresentar fonte de estudo opcional; registrar devolutiva
+revisada; testar saída e substituição sem exposição de identidade.
+O roteiro requer termos claros, contato humano e dados sintéticos
+nos ensaios técnicos. Não criar participantes ou resultados
+fictícios para preencher a interface.
+
+**Gates M4:** o SHA exato deve passar Prettier, TypeScript,
+build, teste de fronteira, coerência, no-leak e COST-02 com
+Preview READY. Depois, ensaio autenticado descartável da rota
+para visitante, seguidor, membro, papel revogado, facilitador,
+ex-integrante e falha de banco. Só então considerar revisão
+do PR; não fazer merge nem publicação por este documento.
+Se a revisão provar que a configuração de grupos atual
+não suporta direitos de núcleo, propor contrato mínimo de
+consentimento e pertencimento, sem criar schema agora.
+
 ### SOC-D10.M3 — Mesa privada em modo leitura (candidato no #572)
 
 **21/10/2026 · implementação candidata; sem merge nem Production.**
