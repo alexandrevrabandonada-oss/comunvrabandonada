@@ -18,10 +18,8 @@ function fixture({ failPinned = [], failEcr = [], mismatch = [] } = {}) {
     }
     if (args[0] === "image") {
       const isAlias = M6_SUPABASE_IMAGES.some((x) => x.alias === args[4]);
-      return {
-        ok: true,
-        stdout: (isAlias && mismatch.includes(args[4]) ? OTHER_SHA : SHA) + "\n",
-      };
+      const value = isAlias && mismatch.includes(args[4]) ? OTHER_SHA : SHA;
+      return { ok: true, stdout: value + "\n" };
     }
     return { ok: args[0] === "tag", stdout: "" };
   };
@@ -50,7 +48,7 @@ test("prefers pinned official images and verifies local alias IDs", () => {
   }
 });
 
-test("retains an accurately labeled ECR fallback for an unavailable GHCR", () => {
+test("labels the ECR fallback when GHCR is unavailable", () => {
   const image = M6_SUPABASE_IMAGES[1];
   const f = fixture({ failPinned: [image.pinned] });
   const result = prepareM6Images(f);
