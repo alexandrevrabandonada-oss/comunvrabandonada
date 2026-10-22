@@ -101,14 +101,14 @@ export function parseSafeDrafts(raw: string | null): SafeDraft[] {
     return parsed.filter((item): item is SafeDraft =>
       Boolean(
         item &&
-          typeof item === "object" &&
-          (item as SafeDraft).schemaVersion === 2 &&
-          (item as SafeDraft).kind === "sidewalk" &&
-          typeof (item as SafeDraft).id === "string" &&
-          typeof (item as SafeDraft).step === "number" &&
-          typeof (item as SafeDraft).category === "string" &&
-          typeof (item as SafeDraft).manualMap === "boolean" &&
-          typeof (item as SafeDraft).updatedAt === "string",
+        typeof item === "object" &&
+        (item as SafeDraft).schemaVersion === 2 &&
+        (item as SafeDraft).kind === "sidewalk" &&
+        typeof (item as SafeDraft).id === "string" &&
+        typeof (item as SafeDraft).step === "number" &&
+        typeof (item as SafeDraft).category === "string" &&
+        typeof (item as SafeDraft).manualMap === "boolean" &&
+        typeof (item as SafeDraft).updatedAt === "string",
       ),
     );
   } catch {

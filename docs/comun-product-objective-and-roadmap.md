@@ -3608,3 +3608,9 @@ final passa ao job isolado de M6 dentro do workflow Core Journeys existente, som
 em PR, com checkout do HEAD exato, contexto `git archive`, build Linux e nenhuma
 credencial do projeto. O gate exige PASS e rejeita PARTIAL/KNOWN_GAP, preservando o
 contraexemplo e a prova de limpeza; CI verde de outros jobs não o substitui.
+
+**Readback final do Quality M5.** O run `39712009454`, no SHA `83683fa1`, terminou
+FAIL na etapa Formatação focal e whitespace, especificamente `lib/comun-pwa.ts`.
+O erro foi reproduzido com Prettier 3.9.6; a correção altera somente trivia, com
+sequência de tokens TypeScript idêntica comprovada. O run original permanece
+preservado; o novo checkpoint segue o CI normal do próprio SHA, sem rerun.
