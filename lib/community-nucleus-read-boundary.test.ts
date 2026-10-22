@@ -9,6 +9,7 @@ import {
 
 const base = {
   sessionVerified: true,
+  profileState: "active",
   now: "2026-10-22T18:00:00Z",
   requestId: "request-a",
   actorUserId: "user-a",
@@ -22,6 +23,17 @@ const base = {
 };
 
 describe("SOC-D10.M7.B — private read boundary (design only)", () => {
+  it("denies suspended profiles and unknown resources at runtime", () => {
+    expect(
+      canReadNucleusPrivateRecord({ ...base, profileState: "suspended" }),
+    ).toBe(false);
+    expect(
+      canReadNucleusPrivateRecord({
+        ...base,
+        resource: "unexpected" as NucleusPrivateReadResource,
+      }),
+    ).toBe(false);
+  });
   it("lets a signed-in individual read only their own minimal receipts", () => {
     for (const resource of [
       "own_consent_receipt",
@@ -142,6 +154,7 @@ describe("SOC-D10.M7.B — private read boundary (design only)", () => {
       { ...reviewer, nucleusId: "nucleus-b" },
       { ...reviewer, communityId: "community-b" },
       { ...reviewer, evidenceVerifiedAt: "invalid" },
+      { ...reviewer, evidenceVerifiedAt: "2026-02-30T18:00:00Z" },
     ]) {
       expect(
         canReadNucleusPrivateRecord({ ...asReviewer, reviewer: invalid }),

@@ -3884,8 +3884,11 @@ da decisão. Mandato e suplência incluem comunidade, impedindo reutilizar prova
 em escopo incompatível. A leitura de revisor é específica do pedido/titular,
 com início/fim/revogação e evidência do mesmo instante da operação, sem cache
 de autoridade. Recurso não reconhecido é negado. São contratos de design,
-não sessões verificadas ou autorização por si mesmos. Suíte focal: 26 PASS;
-regressão unitária local: 1.724 PASS.
+não sessões verificadas ou autorização por si mesmos. Suíte focal: 29 PASS;
+regressão unitária local: 1.727 PASS. Perfil ativo é requisito explícito nos
+contratos de acesso/leitura; datas inválidas e mandatos/suplências fora dos limites
+da candidata são recusados. Os limites SQL usam durações em horas, evitando
+divergência com os intervalos UTC do contrato TypeScript em mudanças de fuso.
 
 **M7.C — incremento executável.** A candidata
 `docs/proposals/m7c/nucleus-candidate.sql` e sua análise

@@ -71,6 +71,7 @@ export type NucleusAccessDecision =
       reason:
         | "wrong_identity_or_scope"
         | "community_not_active"
+        | "profile_not_active"
         | "consent_missing_or_withdrawn"
         | "request_not_open"
         | "independent_approval_missing"
@@ -106,6 +107,7 @@ function sameContext(
 export function evaluateNucleusAccess(input: {
   context: NucleusContext;
   authenticatedUserId: string;
+  profileState: string | null;
   rulesVersion: string;
   purposeSha256: string;
   communityMembershipState: string | null;
@@ -137,6 +139,8 @@ export function evaluateNucleusAccess(input: {
   )
     return { allowed: false, reason: "wrong_identity_or_scope" };
 
+  if (input.profileState !== "active")
+    return { allowed: false, reason: "profile_not_active" };
   if (input.communityMembershipState !== "member")
     return { allowed: false, reason: "community_not_active" };
 
@@ -264,10 +268,12 @@ export function hasAcceptedNucleusMandate(input: {
     starts &&
     ends &&
     offered <= accepted &&
+    offered <= starts &&
     accepted <= now &&
     starts <= now &&
     now < ends &&
-    starts < ends,
+    starts < ends &&
+    ends - starts <= 90 * 24 * 60 * 60 * 1000,
   );
 }
 
@@ -310,6 +316,7 @@ export function evaluateSuccessionAcceptance(input: {
     !expires ||
     offered > now ||
     now >= expires ||
+    expires - offered > 30 * 24 * 60 * 60 * 1000 ||
     offer.nucleusId !== input.nucleusId ||
     offer.communityId !== input.communityId ||
     offer.candidateUserId !== input.authenticatedUserId ||

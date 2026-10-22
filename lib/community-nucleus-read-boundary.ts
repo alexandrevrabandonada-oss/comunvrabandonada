@@ -29,6 +29,7 @@ export type VerifiedNucleusReviewer = {
 
 export function canReadNucleusPrivateRecord(input: {
   sessionVerified: boolean;
+  profileState: string | null;
   now: string;
   requestId: string | null;
   actorUserId: string;
@@ -52,7 +53,8 @@ export function canReadNucleusPrivateRecord(input: {
     reviewer,
   } = input;
   if (
-    !sessionVerified ||
+    sessionVerified !== true ||
+    input.profileState !== "active" ||
     !actorUserId ||
     !subjectUserId ||
     !nucleusId ||
@@ -67,10 +69,18 @@ export function canReadNucleusPrivateRecord(input: {
   if (resource === "private_memory") return false;
 
   if (resource === "review_request_summary") {
-    const now = Date.parse(input.now);
-    const verified = Date.parse(reviewer?.evidenceVerifiedAt ?? "");
-    const starts = Date.parse(reviewer?.startsAt ?? "");
-    const ends = Date.parse(reviewer?.endsAt ?? "");
+    const parse = (value: string) => {
+      const ms = Date.parse(value);
+      return /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z$/.test(value) &&
+        Number.isFinite(ms) &&
+        new Date(ms).toISOString().slice(0, 19) === value.slice(0, 19)
+        ? ms
+        : NaN;
+    };
+    const now = parse(input.now);
+    const verified = parse(reviewer?.evidenceVerifiedAt ?? "");
+    const starts = parse(reviewer?.startsAt ?? "");
+    const ends = parse(reviewer?.endsAt ?? "");
     return Boolean(
       Number.isFinite(now) &&
       Number.isFinite(verified) &&

@@ -70,6 +70,7 @@ const enrollment: NucleusEnrollment = {
 const activeInput: Parameters<typeof evaluateNucleusAccess>[0] = {
   context,
   authenticatedUserId: context.userId,
+  profileState: "active",
   rulesVersion: consent.rulesVersion,
   purposeSha256: consent.purposeSha256,
   communityMembershipState: "member",
@@ -350,6 +351,27 @@ describe("SOC-D10.M7 — mandato aceito e sucessão sem transferência", () => {
 });
 
 describe("M7 consent and scope regressions", () => {
+  it("does not authorize an inactive or suspended profile", () => {
+    for (const profileState of ["suspended", "deleted", null])
+      expect(access({ profileState })).toEqual({
+        allowed: false,
+        reason: "profile_not_active",
+      });
+  });
+  it("keeps mandate and succession bounds consistent with the SQL proposal", () => {
+    expect(withMandate({ startsAt: "2026-10-22T18:00:00Z" })).toBe(false);
+    expect(withMandate({ endsAt: "2027-10-22T18:00:00Z" })).toBe(false);
+    expect(
+      evaluateSuccessionAcceptance({
+        offer: { ...offer, expiresAt: "2027-10-22T18:00:00Z" },
+        authenticatedUserId: "user-b",
+        nucleusId: context.nucleusId,
+        communityId: context.communityId,
+        activeNucleusAccess: candidateDecision,
+        now,
+      }),
+    ).toBe("forbidden");
+  });
   it("hashes the exact UTF-8 notice, LF joined without trailing LF", () => {
     expect(
       createHash("sha256")
