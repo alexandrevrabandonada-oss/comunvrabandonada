@@ -1,4 +1,4 @@
-/** Real Next dev/SSR + Chromium against owned full-reset services. No remote inputs. */
+/** Built Next/SSR + Chromium against owned full-reset services. No remote inputs. */
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -40,6 +40,7 @@ export async function rehearseNextBan({
     auth: { autoRefreshToken: false },
   });
   let server, browser, identity, actionId;
+  const diagnostic = (laboratory.nextDiagnostics = {});
   const cookieHeader = () =>
     [...cookies].map(([name, value]) => `${name}=${value}`).join("; ");
   const paths = [
@@ -99,26 +100,37 @@ export async function rehearseNextBan({
       "insert into public.comun_community_role_assignments(id,membership_id,role,scope) values($1,$2,'coordinator','community')",
       [role, membership],
     );
+    const runtimeEnv = {
+      ...process.env,
+      NODE_ENV: "production",
+      NEXT_TELEMETRY_DISABLED: "1",
+      NEXT_PUBLIC_SUPABASE_URL: base,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: local.ANON_KEY,
+      SUPABASE_SERVICE_ROLE_KEY: local.SERVICE_ROLE_KEY,
+    };
+    diagnostic.stage = "owned-production-build";
+    const build = spawn(
+      process.execPath,
+      ["node_modules/next/dist/bin/next", "build"],
+      { env: runtimeEnv, stdio: ["ignore", "ignore", "ignore"] },
+    );
+    diagnostic.buildExit = await new Promise((resolve, reject) => {
+      build.once("error", reject);
+      build.once("exit", resolve);
+    });
+    assert.equal(diagnostic.buildExit, 0, "Owned production build must pass");
     server = spawn(
       process.execPath,
       [
         "node_modules/next/dist/bin/next",
-        "dev",
-        "--webpack",
+        "start",
         "--hostname",
         "127.0.0.1",
         "--port",
         "3127",
       ],
       {
-        env: {
-          ...process.env,
-          NODE_ENV: "development",
-          NEXT_TELEMETRY_DISABLED: "1",
-          NEXT_PUBLIC_SUPABASE_URL: base,
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: local.ANON_KEY,
-          SUPABASE_SERVICE_ROLE_KEY: local.SERVICE_ROLE_KEY,
-        },
+        env: runtimeEnv,
         stdio: ["ignore", "ignore", "ignore"], // Never collect private HTML/tokens or development error payloads.
       },
     );
@@ -146,23 +158,30 @@ export async function rehearseNextBan({
       "Next full reset: live cookies authorize Mesa, own area and real server action",
       async () => {
         const mesa = await request(paths[0]);
+        diagnostic.stage = "authorized-mesa";
+        diagnostic.mesaStatus = mesa.status;
+        diagnostic.mesaCacheControl = mesa.headers.get("cache-control");
         assert.equal(mesa.status, 200);
         assert.match(mesa.headers.get("cache-control"), /private/);
         assert.match(mesa.headers.get("cache-control"), /no-store/);
         assert((await mesa.text()).includes('data-comun-mesa-private="true"'));
         const area = await request(paths[1]);
+        diagnostic.stage = "authorized-own-area";
+        diagnostic.areaStatus = area.status;
         assert.equal(area.status, 200);
         assert((await area.text()).includes(sentinel));
         await request(paths[2]); // Compile canonical action even when synthetic slug has no editorial experience.
         const manifest = JSON.parse(
           await fs.readFile(
-            ".next/dev/server/server-reference-manifest.json",
+            ".next/server/server-reference-manifest.json",
             "utf8",
           ),
         );
         actionId = Object.entries(manifest.node).find(
           ([, value]) => value.exportedName === "changeCommunityMembership",
         )?.[0];
+        diagnostic.stage = "canonical-action-manifest";
+        diagnostic.actionFound = Boolean(actionId);
         assert(actionId, "Canonical server action must be compiled");
         const body = new FormData();
         body.set("slug", slug);
@@ -174,6 +193,8 @@ export async function rehearseNextBan({
           body: await encodeReply([body]),
         });
         await submit.text();
+        diagnostic.stage = "authorized-action-readback";
+        diagnostic.actionStatus = submit.status;
         assert(submit.status < 400, "Authorized canonical action failed");
         assert.deepEqual(
           (
@@ -189,6 +210,7 @@ export async function rehearseNextBan({
           channel: "chromium",
           ignoreDefaultArgs: ["--disable-back-forward-cache"],
         });
+        diagnostic.stage = "authorized-browser";
         contexts = await Promise.all(
           [0, 1].map(async () => {
             const context = await browser.newContext({
@@ -353,7 +375,7 @@ export async function rehearseNextBan({
       },
     );
     await check(
-      "Next full reset: old refresh token and logout cannot restore banned SSR access",
+      "Next full reset: refresh denied; revoked session stays denied even after synthetic unban",
       async () => {
         const refresh = await fetch(
           base + "/auth/v1/token?grant_type=refresh_token",
@@ -396,6 +418,14 @@ export async function rehearseNextBan({
           "OWNED_ADMIN_FIXTURE_CONFIRMED_ABSENT";
         await noPrivate(await request(paths[0]));
         await noPrivate(await request(paths[1]));
+        const unbanned = await service.auth.admin.updateUserById(identity.id, {
+          ban_duration: "none",
+        });
+        assert(!unbanned.error);
+        // Isolate session revocation from the ban itself: active profile/role and
+        // unbanned account must still not resurrect the explicitly deleted session.
+        await noPrivate(await request(paths[0]));
+        await noPrivate(await request(paths[1]));
       },
     );
   } finally {
@@ -417,6 +447,24 @@ export async function rehearseNextBan({
             await admin.query(
               "select count(*)::int as n from public.comun_communities where id=$1",
               [id],
+            )
+          ).rows[0].n,
+          0,
+        );
+        assert.equal(
+          (
+            await admin.query(
+              "select count(*)::int as n from public.comun_community_memberships where id=$1",
+              [membership],
+            )
+          ).rows[0].n,
+          0,
+        );
+        assert.equal(
+          (
+            await admin.query(
+              "select count(*)::int as n from public.comun_community_role_assignments where id=$1",
+              [role],
             )
           ).rows[0].n,
           0,

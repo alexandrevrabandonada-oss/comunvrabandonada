@@ -1,9 +1,13 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
+import { fetchPrivateSupabase } from "./private-fetch";
 
 export function hasSupabaseConfig() {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  );
 }
 
 export function createPublicSupabaseClient() {
@@ -29,6 +33,7 @@ export function createServiceSupabaseClient() {
 
   return createClient(url, serviceKey, {
     auth: { persistSession: false },
+    global: { fetch: fetchPrivateSupabase },
   });
 }
 
@@ -43,6 +48,7 @@ export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
 
   return createServerClient(url, anonKey, {
+    global: { fetch: fetchPrivateSupabase },
     cookies: {
       getAll() {
         return cookieStore.getAll();

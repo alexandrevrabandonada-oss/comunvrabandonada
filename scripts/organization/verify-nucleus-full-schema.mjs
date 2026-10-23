@@ -63,7 +63,16 @@ async function main() {
     "lib/community-auth.ts",
     "lib/community-mesa.ts",
     "lib/supabase/server.ts",
+    "lib/supabase/private-fetch.ts",
     "lib/supabase/middleware.ts",
+    "app/comun/c/[slug]/mesa/page.tsx",
+    "app/comun/c/[slug]/participar/page.tsx",
+    "app/comun/c/[slug]/participar/actions.ts",
+    "app/comun/minha-participacao/page.tsx",
+    "components/community-participation-onboarding.tsx",
+    "lib/community-membership.ts",
+    "proxy.ts",
+    "public/sw.js",
     "scripts/organization/nucleus-disposable-domain.mjs",
     "lib/community-nucleus-contract.ts",
   ]) {
@@ -154,7 +163,7 @@ async function main() {
       report.authCycle = await rehearseFullSchemaAuth({ admin: client, local });
       assert.equal(report.authCycle.result, "PASS");
       report.proofKind =
-        "FULL_RESET_SCHEMA_DDL_AND_REAL_AUTH_POSTGREST_RLS_M7_NOT_PRODUCT_OR_HUMAN_ACCEPTANCE";
+        "FULL_RESET_SCHEMA_REAL_AUTH_BUILT_NEXT_HTTP_POSTGREST_RLS_NOT_CDN_OR_HUMAN_ACCEPTANCE";
     }
     report.result = "PASS";
     report.stage = "complete";

@@ -796,6 +796,78 @@ export async function rehearseNucleusCandidate({
         "M7_FULL_RESET_BAN_PREISSUED_JWT_RLS_NEGATIVE",
       );
     }
+    if (fullReset)
+      await check(
+        "M7 logout: unbanned account with revoked session cannot reuse JWT for private receipts",
+        async () => {
+          const session = (await b.client.auth.getSession()).data.session;
+          assert(session?.access_token && session.refresh_token);
+          assert((await rows(b, "consents", "id")).length > 0);
+          const logout = await service.auth.admin.signOut(
+            session.access_token,
+            "global",
+          );
+          assert(!logout.error, "Unbanned real logout must succeed");
+          assert.equal(
+            (
+              await sql(
+                "select count(*)::int as n from auth.sessions where user_id=$1",
+                [b.id],
+              )
+            ).rows[0].n,
+            0,
+          );
+          const headers = {
+            apikey: laboratory.anonKey,
+            Authorization: "Bearer " + session.access_token,
+          };
+          const user = await fetch(laboratory.gatewayUrl + "/auth/v1/user", {
+            headers,
+          });
+          assert(user.status >= 400);
+          const refresh = await fetch(
+            laboratory.gatewayUrl + "/auth/v1/token?grant_type=refresh_token",
+            {
+              method: "POST",
+              headers: {
+                apikey: laboratory.anonKey,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ refresh_token: session.refresh_token }),
+            },
+          );
+          assert(refresh.status >= 400);
+          const read = await fetch(
+            laboratory.gatewayUrl + "/rest/v1/consents?select=id",
+            { headers: { ...headers, "Accept-Profile": "comun_org_private" } },
+          );
+          assert.equal(read.status, 200);
+          assert.deepEqual(await read.json(), []);
+          const power = await fetch(
+            laboratory.gatewayUrl + "/rest/v1/rpc/mandate_active",
+            {
+              method: "POST",
+              headers: {
+                ...headers,
+                "Content-Profile": "comun_org_private",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ mandate: ma }),
+            },
+          );
+          assert.equal(power.status, 200);
+          assert.equal(await power.json(), false);
+          assert.equal(
+            (
+              await sql(
+                "select status from public.comun_member_profiles where user_id=$1",
+                [b.id],
+              )
+            ).rows[0].status,
+            "active",
+          );
+        },
+      );
     await check(
       "M7 database metadata: every candidate table FORCE RLS; no generic service-role or client writes",
       async () => {

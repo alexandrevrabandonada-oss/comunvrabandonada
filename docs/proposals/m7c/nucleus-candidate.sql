@@ -119,12 +119,14 @@ create index nucleus_own_audit on comun_org_private.audit_events(user_id,nucleus
 create function comun_org_private.actor_active() returns boolean
 language sql stable security definer set search_path='' as $$
  select exists(select 1 from auth.users au where au.id=auth.uid() and au.deleted_at is null and (au.banned_until is null or au.banned_until<=now()))
+ -- PostgREST verifies the JWT, not whether its GoTrue session was revoked.
+ and exists(select 1 from auth.sessions s where s.user_id=auth.uid()
+   and s.id=nullif(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'session_id','')::uuid)
  and exists(select 1 from public.comun_member_profiles p where p.user_id=auth.uid() and p.status='active');
 $$;
 create function comun_org_private.current_member(c uuid, u uuid) returns boolean
 language sql stable security definer set search_path='' as $$
- select u=auth.uid() and exists(select 1 from auth.users au where au.id=auth.uid() and au.deleted_at is null and (au.banned_until is null or au.banned_until<=now()))
- and exists(select 1 from public.comun_member_profiles p where p.user_id=u and p.status='active')
+ select u=auth.uid() and comun_org_private.actor_active()
  and exists(select 1 from public.comun_community_memberships m where m.community_id=c and m.member_user_id=u and m.state='member');
 $$;
 create function comun_org_private.can_review(r uuid) returns boolean

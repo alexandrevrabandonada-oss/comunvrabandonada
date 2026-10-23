@@ -4190,3 +4190,40 @@ As verificações testam novas respostas e os mecanismos de cache sob controle d
 aplicação. Não há liberação de núcleo, migration nova/remota, conta real banida,
 merge, Production, convite ou notificação a pessoas reais. Decisões humanas de
 finalidade, retenção/exclusão e autoridade permanecem como gates próprios.
+
+**Segurança de sessão e primeira execução Next.** O ensaio `40002876682`, SHA
+`8dd81f0072464102fde844f819b770b6e501f887`, falhou no primeiro cenário positivo
+Next antes de chegar ao banimento. Artefato recuperado com 117 migrations, schema
+removido, contas/perfis/comunidades/gateway/container limpos e processo Next
+encerrado; tarefas não chegaram a criar fixtures. Esse FAIL não prova a corrida
+nem permite aprovação de SSR. O harness registra agora etapa, status/cache de
+respostas e localização de assertion, sem HTML, cookies ou tokens.
+
+O código de `node_modules/next/dist/server/lib/dedupe-fetch.js` demonstra que a
+memoização GET ignora `cache`; um sinal explícito opta por consultas independentes.
+O transporte `lib/supabase/private-fetch.ts` aplica `no-store` e sinal próprio a
+cada chamada privada, preservando cancelamento do chamador/Request e sem criar
+ou alterar timeouts. Aplica-se aos clientes SSR e service role, conservando o
+cliente público. Três testes locais verificam o contrato; prova em renderização
+real continua condicionada ao ensaio integral.
+
+A proposta SQL, somente fora das migrations, passa a exigir `session_id` do JWT
+associado à pessoa em `auth.sessions`. Banimento e perfil ativo, isolados, não
+provam que uma sessão ainda exista após logout. `current_member` reutiliza a
+barreira `actor_active` existente, sem novos grants ou funções. O ensaio acrescenta
+logout real de B não banido, ausência da sessão, refresh recusado e leitura/RPC
+negados com JWT antigo. Para Next, após revogar a sessão de D, remove-se o banimento
+somente dessa identidade sintética e repete-se a negação, isolando invalidação de
+sessão de banimento. Meta ampliada a 31 casos. Nada disso autoriza aplicação remota
+ou liberação do backend. O fingerprint inclui rotas, ação, contrato de vínculo,
+proxy e service worker efetivamente exercitados, além dos transportes privados.
+
+**Ajuste demonstrado do runtime do ensaio.** A execução local Next 16.3.8 em modo
+dev, sem sessão e com destino Supabase loopback isolado, confirmou cabeçalho
+`no-cache, must-revalidate`; a fonte `base-server.js` define esse comportamento
+de desenvolvimento. O ensaio exigia `private/no-store`. As assertions não foram
+removidas: o harness passa a construir o Next com a configuração dos serviços
+locais e iniciar `next start`, usando o manifest de ações do build. Mantém-se
+também o build geral já existente no workflow. Isso certifica, quando executado,
+o servidor compilado descartável; não CDN, ambiente remoto ou Production.
+O diagnóstico dev foi encerrado e sua alteração gerada de tipos foi restaurada.

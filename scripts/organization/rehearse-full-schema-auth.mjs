@@ -38,7 +38,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
   const context = { mode: "FULL_RESET_CI", admin };
   const proof = {
     proofKind:
-      "FULL_RESET_REAL_AUTH_POSTGREST_RLS_M7_NOT_NEXT_UI_OR_HUMAN_ACCEPTANCE",
+      "FULL_RESET_REAL_AUTH_BUILT_NEXT_POSTGREST_RLS_NOT_CDN_OR_HUMAN_ACCEPTANCE",
     result: "FAIL",
     stage: "inspect-owned-services",
     results,
@@ -49,7 +49,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
       communitiesAbsent: false,
       gatewayClosed: false,
       auxiliaryAbsent: false,
-      taskFixturesAbsent: false,
+      taskFixturesAbsent: true,
     },
   };
   const docker = (args) =>
@@ -60,6 +60,13 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
     }).trim();
   const inspect = (name) => JSON.parse(docker(["inspect", name]))[0];
   const original = inspect("supabase_rest_COMUM_VR_ABANDONADA");
+  const authService = inspect("supabase_auth_COMUM_VR_ABANDONADA");
+  assert.equal(
+    authService.Config.Labels["com.supabase.cli.project"],
+    "COMUM_VR_ABANDONADA",
+  );
+  proof.authImageId = authService.Image;
+  proof.authImage = authService.Config.Image;
   proof.postgrestImageId = original.Image;
   assert.equal(
     original.Config.Labels["com.supabase.cli.project"],
@@ -228,11 +235,12 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
         check(
           name,
           run,
-          "FULL_RESET_NEXT_DEV_SSR_CHROMIUM_NOT_CDN_OR_HUMAN_ACCEPTANCE",
+          "FULL_RESET_BUILT_NEXT_SSR_CHROMIUM_NOT_CDN_OR_HUMAN_ACCEPTANCE",
         ),
     });
     assert.equal(results.length, 8);
     proof.stage = "canonical-task-http-rls-cycle";
+    proof.cleanup.taskFixturesAbsent = false;
     await rehearseFullSchemaTasks({
       admin,
       accounts,
@@ -252,11 +260,15 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
       laboratory: context,
       check,
     });
-    assert.equal(results.length, 30);
+    assert.equal(results.length, 31);
     proof.result = "PASS";
     proof.stage = "complete";
   } catch (error) {
     proof.failureKind = error.code || error.name;
+    proof.failureLocation = error.stack?.match(
+      /scripts\/organization\/[a-z0-9-]+\.mjs:\d+:\d+/,
+    )?.[0];
+    proof.nextDiagnostics = context.nextDiagnostics;
     proof.failureCatalog = {
       schema: error.schema,
       table: error.table,
