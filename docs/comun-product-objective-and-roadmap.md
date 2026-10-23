@@ -4227,3 +4227,17 @@ locais e iniciar `next start`, usando o manifest de ações do build. Mantém-se
 também o build geral já existente no workflow. Isso certifica, quando executado,
 o servidor compilado descartável; não CDN, ambiente remoto ou Production.
 O diagnóstico dev foi encerrado e sua alteração gerada de tipos foi restaurada.
+
+**FAIL próprio d4ba151d e correção específica da prova positiva.** O artefato
+Coherence `40006150493` confirmou build 0, Mesa HTTP 200 com
+`private, no-cache, no-store, max-age=0, must-revalidate`, área própria HTTP 200,
+e falha na linha 172 do helper ao exigir o display_name na App V2. A superfície
+canônica intencionalmente não renderiza esse campo; ele aparece na variante
+legada. O cenário agora exige marcador privado da App V2 na rota canônica e
+conserva a sentinela na variante legada explícita; ambas entram nos testes de
+negação HTML/RSC/concorrência. Nenhuma assertion de privacidade foi dispensada.
+Todas as sete confirmações de limpeza do FAIL foram true; banimento, refresh e
+cenários posteriores ainda NOT_RUN. O artefato preserva GoTrue v2.195.0 e os IDs
+das imagens. A Caixa de entrada não tem FK para apagar dados junto com a conta:
+o laboratório limpa e confere também suas linhas pelo ID sintético próprio,
+inclusive mensagens internas criadas pela ação positiva. Sem mensagens reais.

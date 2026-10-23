@@ -47,6 +47,7 @@ export async function rehearseNextBan({
     `/comun/c/${slug}/mesa`,
     "/comun/minha-participacao",
     `/comun/c/${slug}/participar`,
+    "/comun/minha-participacao?experiencia=legacy",
   ];
   const request = (path, extra = {}) =>
     fetch(origin + path, {
@@ -59,6 +60,10 @@ export async function rehearseNextBan({
     assert(
       !body.includes(sentinel),
       "Private sentinel in denied network response",
+    );
+    assert(
+      !body.includes('data-comun-app-v2-page="my-area"') &&
+        !body.includes('data-comun-app-v2-page=\\"my-area\\"'),
     );
     assert(
       !body.includes('data-comun-mesa-private=\\"true\\"') &&
@@ -165,7 +170,16 @@ export async function rehearseNextBan({
         assert.match(mesa.headers.get("cache-control"), /private/);
         assert.match(mesa.headers.get("cache-control"), /no-store/);
         assert((await mesa.text()).includes('data-comun-mesa-private="true"'));
-        const area = await request(paths[1]);
+        const canonicalArea = await request(paths[1]);
+        assert.equal(canonicalArea.status, 200);
+        assert(
+          (await canonicalArea.text()).includes(
+            'data-comun-app-v2-page="my-area"',
+          ),
+        );
+        // App V2 deliberately omits the display name; retain the sentry assertion
+        // on the existing legacy surface where that private field is rendered.
+        const area = await request(paths[3]);
         diagnostic.stage = "authorized-own-area";
         diagnostic.areaStatus = area.status;
         assert.equal(area.status, 200);
@@ -438,6 +452,11 @@ export async function rehearseNextBan({
       server.kill("SIGTERM");
       await stopped;
     }
+    if (identity)
+      await admin.query(
+        "delete from public.comun_member_inbox where member_user_id=$1",
+        [identity.id],
+      );
     await admin.query("delete from public.comun_communities where id=$1", [id]);
     await check(
       "Next full reset: own community, role, membership and Next process cleaned",
@@ -451,6 +470,16 @@ export async function rehearseNextBan({
           ).rows[0].n,
           0,
         );
+        if (identity)
+          assert.equal(
+            (
+              await admin.query(
+                "select count(*)::int as n from public.comun_member_inbox where member_user_id=$1",
+                [identity.id],
+              )
+            ).rows[0].n,
+            0,
+          );
         assert.equal(
           (
             await admin.query(
