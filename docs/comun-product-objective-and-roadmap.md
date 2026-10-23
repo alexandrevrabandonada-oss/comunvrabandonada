@@ -4146,4 +4146,3 @@ A prova GoTrue+PostgREST não é prova da rota Next.js/SSR real ou da
 server action privilegiada; o teste de cookies, sessão de navegador,
 cache e fronteira server-side permanece separado. Qualquer leitura
 privada permitida após o banimento impede declarar o gate aprovado.
-
