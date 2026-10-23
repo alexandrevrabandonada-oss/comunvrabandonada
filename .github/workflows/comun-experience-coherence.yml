@@ -91,11 +91,11 @@ jobs:
             cat "$reset_output"
             exit "$reset_status"
           fi
-      - name: Candidate DDL against the complete canonical reset
+      - name: Candidate DDL and real Auth against the complete canonical reset
         if: github.event_name == 'pull_request'
         env:
           EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
-        run: node scripts/organization/verify-nucleus-full-schema.mjs --run-disposable-ci --output .ci-artifacts/experience-coherence/nucleus-full-schema.json
+        run: node --experimental-strip-types scripts/organization/verify-nucleus-full-schema.mjs --run-disposable-ci --with-auth-cycle --output .ci-artifacts/experience-coherence/nucleus-full-schema.json
       - uses: ./.github/actions/setup-playwright-browser
       - run: npm run test:e2e:experience-coherence
         env:

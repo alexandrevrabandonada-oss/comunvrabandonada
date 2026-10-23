@@ -129,6 +129,31 @@ Preparação ou testes dos guardas não equivalem a PASS desse ensaio: seu JSON 
 SHA próprio e a limpeza são necessários. O script recusa execução no PC e em
 runner compartilhado/self-hosted.
 
+### Auth A/B/C sobre o schema integral
+
+Com `--with-auth-cycle`, o verificador chama `rehearse-full-schema-auth.mjs`
+antes de remover a candidata. O Auth do Supabase do runner cria três contas
+sintéticas confirmadas administrativamente, faz login por senha e verifica as
+sessões por `getUser`. Não são convites, verificação humana de email ou aceite UX.
+Um PostgREST auxiliar usa a mesma imagem imutável, conexão autenticadora e
+verificação JWT do PostgREST local. Somente esse container adicional expõe a
+candidata; sua porta é ligada a loopback. A configuração da API existente não muda.
+
+Um gateway loopback encaminha Auth para o serviço real e as operações de dados
+para a API auxiliar. A mesma matriz de 13 casos M7 percorre HTTP, JWT, funções SQL
+e RLS reais sobre todas as migrations. Comunidades, perfis e vínculos são fixtures
+explícitas do laboratório; concessão administrativa a revisores não demonstra
+legitimidade política ou autosserviço no produto. Ofertas, aceites, revogações,
+concorrência, saída e recibos continuam separados. O perfil integral usa `paused`,
+um estado legal do schema; isso não prova banimento/suspensão da conta no Auth.
+
+O resultado registra cada cenário e exige ausência do schema, comunidades,
+perfis, contas e container próprios, além do gateway encerrado. Cada etapa de
+limpeza é tentada mesmo se outra falhar. O ciclo mínimo e esta prova integral têm
+escopos separados; a segunda não inclui UI/Next organizativo, tarefas canônicas
+M6 no schema integral, moderação ou tratamento humano de ingresso. Só o artefato
+real do SHA pode certificar o novo modo; código preparado não é PASS.
+
 ## Estratégia de migração e reversão para revisão
 
 1. Revisar finalidade, retenção dos recibos, exclusão de conta, pessoas legítimas

@@ -57,6 +57,9 @@ async function main() {
     ...files.map((name) => "supabase/migrations/" + name),
     candidate,
     script,
+    "scripts/organization/rehearse-full-schema-auth.mjs",
+    "scripts/organization/nucleus-disposable-domain.mjs",
+    "lib/community-nucleus-contract.ts",
   ]) {
     const bytes = await fs.readFile(file);
     assert(bytes.equals(execFileSync("git", ["show", `${head}:${file}`])));
@@ -75,11 +78,16 @@ async function main() {
   assert.equal(label, "COMUM_VR_ABANDONADA");
   const status = readSupabaseLocalEnv();
   assert(status.ok, "Disposable local status unavailable");
-  const raw = status.output
-    .split(/\r?\n/)
-    .find((line) => line.startsWith("DB_URL="));
-  assert(raw);
-  const url = raw.slice(7).replace(/^"|"$/g, "");
+  const local = Object.fromEntries(
+    status.output
+      .split(/\r?\n/)
+      .filter((line) => line.includes("="))
+      .map((line) => {
+        const i = line.indexOf("=");
+        return [line.slice(0, i), line.slice(i + 1).replace(/^"|"$/g, "")];
+      }),
+  );
+  const url = local.DB_URL;
   assertLocalDatabase(url);
   const report = {
     headSha: head,
@@ -133,6 +141,15 @@ async function main() {
         )
       ).rows[0].valid,
     );
+    if (process.argv.includes("--with-auth-cycle")) {
+      report.stage = "full-schema-auth-cycle";
+      const { rehearseFullSchemaAuth } =
+        await import("./rehearse-full-schema-auth.mjs");
+      report.authCycle = await rehearseFullSchemaAuth({ admin: client, local });
+      assert.equal(report.authCycle.result, "PASS");
+      report.proofKind =
+        "FULL_RESET_SCHEMA_DDL_AND_REAL_AUTH_POSTGREST_RLS_M7_NOT_PRODUCT_OR_HUMAN_ACCEPTANCE";
+    }
     report.result = "PASS";
     report.stage = "complete";
   } catch (error) {

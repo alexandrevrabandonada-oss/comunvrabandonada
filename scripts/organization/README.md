@@ -126,3 +126,10 @@ integral igual aos arquivos do HEAD e confere seus bytes. Aplica e remove soment
 o schema candidato no banco descartável do job, preservando prova própria e
 limpeza. Não é migration do produto nem teste Auth no schema integral; esses
 resultados não substituem o laboratório M6/M7 nem os portões de autorização.
+
+`--with-auth-cycle` acrescenta o Auth real do runner e um PostgREST auxiliar
+limitado a loopback, reaproveitando a matriz M7 no schema integral. O JSON separa
+resultado estrutural, cenários Auth/HTTP/RLS e cada verificação de limpeza. O
+PostgREST existente não é reconfigurado, e o script continua recusando execução
+no PC ou em banco externo. O novo resultado não certifica a UI organizativa nem
+o fluxo de tarefas M6 sobre o schema integral.

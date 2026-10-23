@@ -16,9 +16,17 @@ export async function rehearseNucleusCandidate({
   check,
   owner,
   password,
+  laboratory,
 }) {
-  assert(process.env.COMUN_M7C === "1" && owner.startsWith("comun-m6-"));
-  assert.equal(process.env.COMUN_M7C_DB_HOST, owner + "-pg");
+  const fullReset = laboratory?.mode === "FULL_RESET_CI";
+  if (fullReset) {
+    assert.equal(process.env.GITHUB_ACTIONS, "true");
+    assert.equal(process.env.RUNNER_ENVIRONMENT, "github-hosted");
+    assert(owner.startsWith("comun-m7d-"));
+  } else {
+    assert(process.env.COMUN_M7C === "1" && owner.startsWith("comun-m6-"));
+    assert.equal(process.env.COMUN_M7C_DB_HOST, owner + "-pg");
+  }
   assert.equal(
     accounts.length,
     3,
@@ -30,15 +38,17 @@ export async function rehearseNucleusCandidate({
       (await account.client.auth.getUser()).data.user?.id,
       account.id,
     );
-  const admin = new pg.Client({
-    host: owner + "-pg",
-    port: 5432,
-    user: "postgres",
-    password,
-    database: "postgres",
-    ssl: false,
-  });
-  await admin.connect();
+  const admin = fullReset
+    ? laboratory.admin
+    : new pg.Client({
+        host: owner + "-pg",
+        port: 5432,
+        user: "postgres",
+        password,
+        database: "postgres",
+        ssl: false,
+      });
+  if (!fullReset) await admin.connect();
   const sql = (q, args = []) => admin.query(q, args);
   const callArgs = (name, args) =>
     name === "request_entry"
@@ -100,11 +110,23 @@ export async function rehearseNucleusCandidate({
     otherCommunity = randomUUID(),
     x = randomUUID(),
     y = randomUUID();
+  if (fullReset) laboratory.fixtureCommunities = [community, otherCommunity];
   try {
-    await sql(
-      "insert into public.comun_communities(id,slug,name) values($1,'m7-lab-x','Synthetic X'),($2,'m7-lab-y','Synthetic Y')",
-      [community, otherCommunity],
-    );
+    if (fullReset) {
+      for (const [id, label] of [
+        [community, "X"],
+        [otherCommunity, "Y"],
+      ])
+        await sql(
+          "insert into public.comun_communities(id,slug,name,short_description,full_description,main_cta) values($1,$2,$3,'Synthetic disposable community','Synthetic disposable full-schema rehearsal only','Participar voluntariamente')",
+          [id, `m7-lab-${id}`, `Synthetic ${label}`],
+        );
+    } else {
+      await sql(
+        "insert into public.comun_communities(id,slug,name) values($1,'m7-lab-x','Synthetic X'),($2,'m7-lab-y','Synthetic Y')",
+        [community, otherCommunity],
+      );
+    }
     for (const person of accounts)
       for (const scope of [community, otherCommunity])
         await sql(
@@ -227,7 +249,7 @@ export async function rehearseNucleusCandidate({
           affirmative: true,
         });
         const anon = await fetch(
-          `http://127.0.0.1:54329/rest/v1/consents?select=id`,
+          `${laboratory?.gatewayUrl ?? "http://127.0.0.1:54329"}/rest/v1/consents?select=id`,
           { headers: { "Accept-Profile": "comun_org_private" } },
         );
         assert(anon.status >= 400);
@@ -415,7 +437,7 @@ export async function rehearseNucleusCandidate({
       },
     );
     await check(
-      "M7 revoked reviewer and suspended profile lose reads/powers with existing sessions",
+      `M7 revoked reviewer and ${fullReset ? "paused" : "suspended"} profile lose reads/powers with existing sessions`,
       async () => {
         await sql(
           "update comun_org_private.reviewer_authorizations set revoked_at=now() where id=$1",
@@ -423,8 +445,8 @@ export async function rehearseNucleusCandidate({
         );
         assert.deepEqual(await rows(c, "requests", "id", { id: qb }), []);
         await sql(
-          "update public.comun_member_profiles set status='suspended' where user_id=$1",
-          [a.id],
+          "update public.comun_member_profiles set status=$2 where user_id=$1",
+          [a.id, fullReset ? "paused" : "suspended"],
         );
         assert.deepEqual(await rows(a, "consents", "id"), []);
         assert.equal(await rpc(a, "mandate_active", { mandate: ma }), false);
@@ -715,6 +737,20 @@ export async function rehearseNucleusCandidate({
       "M7 candidate schema and private receipts removed from the owned laboratory",
       async () => assert(remaining.rows[0].absent),
     );
-    await admin.end();
+    if (fullReset) {
+      await sql(
+        "delete from public.comun_communities where id=any($1::uuid[])",
+        [[community, otherCommunity]],
+      );
+      assert.equal(
+        (
+          await sql(
+            "select count(*)::int as n from public.comun_communities where id=any($1::uuid[])",
+            [[community, otherCommunity]],
+          )
+        ).rows[0].n,
+        0,
+      );
+    } else await admin.end();
   }
 }

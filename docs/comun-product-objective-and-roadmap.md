@@ -4049,3 +4049,37 @@ O replay limpo do CI substitui a tentativa de deduzir o histórico desse snapsho
 Continuam os portões de finalidade/retenção/exclusão, autoridade/recurso e
 autorização específica do backend antes de pedido/recibo na UI e ensaio humano.
 PR #572 permanece draft, sem merge, Production, flags ou migration remota.
+
+### SOC-D10.M7.D — Matriz M7 autenticada no reset integral
+
+Reconciliação sobre `b079240a8e9a591ed6e06a24962a65c71977625c`: a candidata
+estrutural passou sobre 117 migrations, com fingerprint próprio e limpeza; Auth
+mínimo passou em 41 grupos e os checks centrais concluíram SUCCESS. Isso ainda
+não provava operações Auth sobre o schema integral.
+
+O novo `rehearse-full-schema-auth.mjs`, chamado por `--with-auth-cycle` no mesmo
+workflow Coherence, usa contas sintéticas A/B/C no Auth real do runner, login e
+`getUser`, e um PostgREST auxiliar com a imagem imutável e configuração JWT do
+serviço local. A API auxiliar expõe a candidata apenas a loopback; não modifica
+o PostgREST existente, flags, banco compartilhado ou API do produto. O verificador
+confere também os bytes do novo runner, matriz reutilizada e contrato contra o
+HEAD da PR antes de admitir o ensaio.
+
+As 13 verificações M7 são reutilizadas, com comunidades/perfis/vínculos criados
+explicitamente como fixtures e revisores autorizados administrativamente apenas
+no laboratório. O schema integral exige campos comunitários omitidos na fixture
+mínima e aceita perfil `paused`, não `suspended`; o modo integral usa os campos e
+estados reais sem modificar constraints. Perfil pausado não equivale a conta
+banida no Auth. O ramo mínimo permanece independente e passou em 39 grupos de
+domínio após a refatoração, com limpeza própria e fonte modificada, em
+`E:/COMUN-M6-LAB-20261022/evidence/m7d-full-auth-refactor-minimal/authenticated-cycle.json`.
+Isso não é certificação Auth do novo SHA ou do modo integral.
+
+O JSON integral exige todos os casos PASS e limpeza de schema, comunidades,
+perfis, contas, gateway e container próprios. Falhas não impedem tentar as demais
+etapas de limpeza. Resultado real, commit e Preview serão registrados no topo
+da mesma PR; não concluir pelo código ou pelo PASS estrutural anterior. Continuam
+pendentes UI organizativa autenticada, tarefas canônicas M6 no schema integral,
+banimento de conta, revisão humana de finalidade/retenção/exclusão/autoridade e
+autorização específica do backend/migration. Sem inscrição ou vínculo real,
+transferência automática, merge, Production, convite ou notificação real.
