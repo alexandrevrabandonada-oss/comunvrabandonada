@@ -144,8 +144,10 @@ para a API auxiliar. A mesma matriz de 13 casos M7 percorre HTTP, JWT, funções
 e RLS reais sobre todas as migrations. Comunidades, perfis e vínculos são fixtures
 explícitas do laboratório; concessão administrativa a revisores não demonstra
 legitimidade política ou autosserviço no produto. Ofertas, aceites, revogações,
-concorrência, saída e recibos continuam separados. O perfil integral usa `paused`,
-um estado legal do schema; isso não prova banimento/suspensão da conta no Auth.
+concorrência, saída e recibos continuam separados. O perfil integral usa
+`suspended`, definido pela migration `20260715155802`; o `paused` da criação
+inicial foi substituído por essa migration. A pausa comunitária/organizativa
+continua sendo outro estado. Suspensão do perfil não prova banimento no Auth.
 
 O resultado registra cada cenário e exige ausência do schema, comunidades,
 perfis, contas e container próprios, além do gateway encerrado. Cada etapa de

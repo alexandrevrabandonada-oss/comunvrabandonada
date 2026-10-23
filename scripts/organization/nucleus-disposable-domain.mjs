@@ -437,7 +437,7 @@ export async function rehearseNucleusCandidate({
       },
     );
     await check(
-      `M7 revoked reviewer and ${fullReset ? "paused" : "suspended"} profile lose reads/powers with existing sessions`,
+      "M7 revoked reviewer and suspended profile lose reads/powers with existing sessions",
       async () => {
         await sql(
           "update comun_org_private.reviewer_authorizations set revoked_at=now() where id=$1",
@@ -445,8 +445,8 @@ export async function rehearseNucleusCandidate({
         );
         assert.deepEqual(await rows(c, "requests", "id", { id: qb }), []);
         await sql(
-          "update public.comun_member_profiles set status=$2 where user_id=$1",
-          [a.id, fullReset ? "paused" : "suspended"],
+          "update public.comun_member_profiles set status='suspended' where user_id=$1",
+          [a.id],
         );
         assert.deepEqual(await rows(a, "consents", "id"), []);
         assert.equal(await rpc(a, "mandate_active", { mandate: ma }), false);

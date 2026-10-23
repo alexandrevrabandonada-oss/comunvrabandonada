@@ -192,7 +192,12 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
       laboratory: context,
       check: async (name, run) => {
         proof.currentCase = name;
-        await run();
+        try {
+          await run();
+        } catch (error) {
+          proof.failedCase ??= name;
+          throw error;
+        }
         results.push({
           name,
           result: "PASS",

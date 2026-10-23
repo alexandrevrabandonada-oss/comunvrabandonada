@@ -4083,3 +4083,15 @@ pendentes UI organizativa autenticada, tarefas canônicas M6 no schema integral,
 banimento de conta, revisão humana de finalidade/retenção/exclusão/autoridade e
 autorização específica do backend/migration. Sem inscrição ou vínculo real,
 transferência automática, merge, Production, convite ou notificação real.
+
+**Correção factual do ensaio integral.** O run `39949144785`, HEAD `54302473`,
+executou sete cenários e falhou ao usar perfil `paused` (SQLSTATE 23514,
+`comun_member_profiles_status_check`); todas as verificações de limpeza passaram.
+A afirmação anterior desta entrada sobre o estado integral estava incorreta:
+`20260715155802_comun_community_auth_profiles.sql` substitui a constraint inicial
+por `active/suspended/deactivation_requested/deactivated/archived`. A fixture usa
+agora `suspended`, sem alterar a constraint ou a proteção. Snapshot local e
+migration inicial não substituem o replay canônico. O FAIL permanece em
+`E:/COMUN-M6-LAB-20261022/evidence/m7d-full-auth-54302473/nucleus-full-schema.json`;
+não certifica os cenários que ainda não tinham executado. O runner também passa
+a preservar o primeiro cenário que falhou, mesmo quando a limpeza executa depois.
