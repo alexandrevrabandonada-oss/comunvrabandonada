@@ -3,8 +3,12 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
+import { createRequire } from "node:module";
 import { chromium } from "@playwright/test";
 import { createServerClient } from "@supabase/ssr";
+const { encodeReply } = createRequire(import.meta.url)(
+  "next/dist/compiled/react-server-dom-webpack/client.node",
+);
 
 export async function rehearseNextBan({
   admin,
@@ -161,14 +165,13 @@ export async function rehearseNextBan({
         )?.[0];
         assert(actionId, "Canonical server action must be compiled");
         const body = new FormData();
-        body.set("0", '["$K1"]');
-        body.set("1_slug", slug);
-        body.set("1_intent", "save");
-        body.set("1_collaboration", "art");
+        body.set("slug", slug);
+        body.set("intent", "save");
+        body.set("collaboration", "art");
         const submit = await request(paths[2], {
           method: "POST",
           headers: { "Next-Action": actionId, Origin: origin },
-          body,
+          body: await encodeReply([body]),
         });
         await submit.text();
         assert(submit.status < 400, "Authorized canonical action failed");
@@ -289,15 +292,12 @@ export async function rehearseNextBan({
         const form = new FormData();
         form.set("slug", slug);
         form.set("intent", "leave");
-        // React encodes a single FormData argument as a multipart action field.
-        const body = new FormData();
-        body.set("0", '["$K1"]');
-        for (const [name, value] of form) body.set("1_" + name, value);
+        // Use the installed React encoder, never infer Flight's multipart wire format.
         await noPrivate(
           await request(paths[2], {
             method: "POST",
             headers: { "Next-Action": actionId, Origin: origin },
-            body,
+            body: await encodeReply([form]),
           }),
         );
         assert.equal(
