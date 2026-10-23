@@ -8,6 +8,17 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { rehearseNucleusCandidate } from "./nucleus-disposable-domain.mjs";
 
+export function removeOwnedAuxiliary(docker, owner) {
+  assert.match(owner, /^comun-m7d-[a-f0-9-]{36}$/);
+  const list = () =>
+    docker(["ps", "-a", "--filter", `name=^/${owner}$`, "--format", "{{.ID}}"]);
+  if (!list()) return true;
+  const actual = JSON.parse(docker(["inspect", owner]))[0];
+  assert.equal(actual.Config.Labels["comun.owner"], owner);
+  docker(["rm", "-f", "-v", owner]);
+  return list() === "";
+}
+
 export async function rehearseFullSchemaAuth({ admin, local }) {
   assert.equal(process.env.GITHUB_ACTIONS, "true");
   assert.equal(process.env.RUNNER_ENVIRONMENT, "github-hosted");
@@ -73,9 +84,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
   uri.hostname = "supabase_db_COMUM_VR_ABANDONADA";
   uri.port = "5432";
   assert(restEnv.PGRST_JWT_SECRET && local.ANON_KEY && local.SERVICE_ROLE_KEY);
-  let created = false,
-    gateway,
-    service;
+  let gateway, service;
   try {
     proof.stage = "auxiliary-postgrest";
     docker([
@@ -99,7 +108,6 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
       "PGRST_JWT_SECRET=" + restEnv.PGRST_JWT_SECRET,
       original.Image,
     ]);
-    created = true;
     const binding = inspect(owner).NetworkSettings.Ports["3000/tcp"][0];
     assert.equal(binding.HostIp, "127.0.0.1");
     const rest = `http://127.0.0.1:${binding.HostPort}`;
@@ -271,17 +279,11 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
       if (gateway) await new Promise((resolve) => gateway.close(resolve));
       return true;
     });
-    await clean("auxiliaryAbsent", async () => {
-      if (!created) return true;
-      assert.equal(inspect(owner).Config.Labels["comun.owner"], owner);
-      docker(["rm", "-f", "-v", owner]);
-      try {
-        inspect(owner);
-        return false;
-      } catch {
-        return true;
-      }
-    });
+    // docker run may create a stopped container before returning an error.
+    // Always reconcile its actual presence, even when startup did not succeed.
+    await clean("auxiliaryAbsent", async () =>
+      removeOwnedAuxiliary(docker, owner),
+    );
     if (!Object.values(proof.cleanup).every(Boolean)) proof.result = "FAIL";
   }
   return proof;
