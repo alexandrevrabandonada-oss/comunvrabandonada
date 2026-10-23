@@ -694,6 +694,80 @@ export async function rehearseNucleusCandidate({
         await denied(a, "respond_mandate", { mandate: raced, accept: true });
       },
     );
+    if (fullReset) {
+      await check(
+        "M7 ban in GoTrue: existing JWT cannot read private receipts or retain nucleus powers",
+        async () => {
+          const session = (await a.client.auth.getSession()).data.session;
+          assert(session?.access_token);
+          const token = session.access_token;
+          const claims = JSON.parse(
+            Buffer.from(token.split(".")[1], "base64url").toString("utf8"),
+          );
+          assert.equal(claims.sub, a.id);
+          assert(claims.exp * 1000 > Date.now());
+          assert((await rows(a, "consents", "id")).length > 0);
+          const banned = await service.auth.admin.updateUserById(a.id, {
+            ban_duration: "1h",
+          });
+          assert(!banned.error && banned.data.user?.banned_until);
+          // Do not mark the product profile suspended or refresh this JWT.
+          const base = laboratory.gatewayUrl;
+          const headers = {
+            apikey: laboratory.anonKey,
+            Authorization: "Bearer " + token,
+          };
+          const user = await fetch(base + "/auth/v1/user", { headers });
+          assert(user.status >= 400, "Old JWT must fail the live Auth check");
+          const login = await fetch(
+            base + "/auth/v1/token?grant_type=password",
+            {
+              method: "POST",
+              headers: {
+                apikey: laboratory.anonKey,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                email: "a-" + owner + "@example.invalid",
+                password,
+              }),
+            },
+          );
+          assert(login.status >= 400, "New login must fail during ban");
+          const read = await fetch(base + "/rest/v1/consents?select=id", {
+            headers: {
+              ...headers,
+              "Accept-Profile": "comun_org_private",
+            },
+          });
+          assert.equal(read.status, 200, "Test must reach PostgREST");
+          assert.deepEqual(
+            await read.json(),
+            [],
+            "Old JWT still reads private data after Auth ban",
+          );
+          const power = await fetch(
+            base + "/rest/v1/rpc/mandate_active",
+            {
+              method: "POST",
+              headers: {
+                ...headers,
+                "Content-Profile": "comun_org_private",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ mandate: ma }),
+            },
+          );
+          assert.equal(power.status, 200);
+          assert.equal(
+            await power.json(),
+            false,
+            "Old JWT still exercises private organizational power",
+          );
+        },
+        "M7_FULL_RESET_BAN_PREISSUED_JWT_RLS_NEGATIVE",
+      );
+    }
     await check(
       "M7 database metadata: every candidate table FORCE RLS; no generic service-role or client writes",
       async () => {

@@ -118,11 +118,13 @@ create index nucleus_own_audit on comun_org_private.audit_events(user_id,nucleus
 -- Never accept a claimed user ID or JWT user_metadata as identity.
 create function comun_org_private.actor_active() returns boolean
 language sql stable security definer set search_path='' as $$
- select exists(select 1 from public.comun_member_profiles p where p.user_id=auth.uid() and p.status='active');
+ select exists(select 1 from auth.users au where au.id=auth.uid() and au.deleted_at is null and (au.banned_until is null or au.banned_until<=now()))
+ and exists(select 1 from public.comun_member_profiles p where p.user_id=auth.uid() and p.status='active');
 $$;
 create function comun_org_private.current_member(c uuid, u uuid) returns boolean
 language sql stable security definer set search_path='' as $$
- select u=auth.uid() and exists(select 1 from public.comun_member_profiles p where p.user_id=u and p.status='active')
+ select u=auth.uid() and exists(select 1 from auth.users au where au.id=auth.uid() and au.deleted_at is null and (au.banned_until is null or au.banned_until<=now()))
+ and exists(select 1 from public.comun_member_profiles p where p.user_id=u and p.status='active')
  and exists(select 1 from public.comun_community_memberships m where m.community_id=c and m.member_user_id=u and m.state='member');
 $$;
 create function comun_org_private.can_review(r uuid) returns boolean
@@ -143,6 +145,7 @@ language sql stable security definer set search_path='' as $$
  where x.id=e and x.state='active' and r.decision='approved'
  and r.revoked_at is null and c.withdrawn_at is null and n.state='active'
  and c.rules_version=n.rules_version and c.purpose_sha256=encode(sha256(convert_to(n.purpose,'UTF8')),'hex')
+ and exists(select 1 from auth.users subject where subject.id=x.user_id and subject.deleted_at is null and (subject.banned_until is null or subject.banned_until<=now()))
  and exists(select 1 from public.comun_member_profiles p join public.comun_community_memberships m on m.member_user_id=p.user_id where p.user_id=x.user_id and p.status='active' and m.community_id=x.community_id and m.state='member'));
 $$;
 create function comun_org_private.enrollment_active(e uuid) returns boolean
@@ -166,6 +169,7 @@ begin
  and r.decided_at<=new.activated_at and new.activated_at<=now()
  and a.starts_at<=r.decided_at and r.decided_at<a.ends_at
  and (a.revoked_at is null or a.revoked_at>r.decided_at)
+ and exists(select 1 from auth.users subject where subject.id=new.user_id and subject.deleted_at is null and (subject.banned_until is null or subject.banned_until<=now()))
  and exists(select 1 from public.comun_member_profiles p join public.comun_community_memberships m on m.member_user_id=p.user_id where p.user_id=new.user_id and p.status='active' and m.community_id=new.community_id and m.state='member')
  ) then raise exception 'NUCLEUS_ENROLLMENT_CHAIN_INVALID'; end if;
  return new;
@@ -228,7 +232,7 @@ begin
  if not comun_org_private.can_review(q.id) or q.user_id=auth.uid() or decision not in ('approved','rejected') then raise exception 'NUCLEUS_REVIEW_FORBIDDEN'; end if;
  perform 1 from comun_org_private.consents c where c.id=q.consent_id and c.withdrawn_at is null for update;
  if not found then raise exception 'NUCLEUS_CONSENT_WITHDRAWN'; end if;
- if not exists(select 1 from public.comun_member_profiles p join public.comun_community_memberships m on m.member_user_id=p.user_id where p.user_id=q.user_id and p.status='active' and m.community_id=q.community_id and m.state='member') then raise exception 'NUCLEUS_SUBJECT_INACTIVE'; end if;
+ if not exists(select 1 from auth.users subject where subject.id=q.user_id and subject.deleted_at is null and (subject.banned_until is null or subject.banned_until<=now())) or not exists(select 1 from public.comun_member_profiles p join public.comun_community_memberships m on m.member_user_id=p.user_id where p.user_id=q.user_id and p.status='active' and m.community_id=q.community_id and m.state='member') then raise exception 'NUCLEUS_SUBJECT_INACTIVE'; end if;
  select id into strict a from comun_org_private.reviewer_authorizations where request_id=q.id and reviewer_user_id=auth.uid() and revoked_at is null and starts_at<=now() and now()<ends_at order by starts_at desc limit 1 for update;
  insert into comun_org_private.reviews(request_id,authorization_id,nucleus_id,community_id,user_id,reviewer_user_id,decision) values(q.id,a,q.nucleus_id,q.community_id,q.user_id,auth.uid(),decision) returning id into r;
  if decision='approved' then insert into comun_org_private.enrollments(request_id,review_id,nucleus_id,community_id,user_id) values(q.id,r,q.nucleus_id,q.community_id,q.user_id) returning id into e; end if;

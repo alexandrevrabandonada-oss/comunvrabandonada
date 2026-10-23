@@ -156,6 +156,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
     await new Promise((resolve) => gateway.listen(0, "127.0.0.1", resolve));
     const url = `http://127.0.0.1:${gateway.address().port}`;
     context.gatewayUrl = url;
+    context.anonKey = local.ANON_KEY;
     service = createClient(url, local.SERVICE_ROLE_KEY, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
@@ -219,7 +220,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
       laboratory: context,
       check,
     });
-    assert.equal(results.length, 21);
+    assert.equal(results.length, 22);
     proof.result = "PASS";
     proof.stage = "complete";
   } catch (error) {

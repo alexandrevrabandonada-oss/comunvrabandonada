@@ -4122,3 +4122,28 @@ seu resultado exige o artefato do CI do próprio SHA. Permanecem separados o
 ensaio HTTP/RLS, o ciclo mínimo com Next/Chromium e a experiência organizativa
 futura. Backend organizativo liberado, banimento Auth, revisão humana de
 finalidade/retenção/exclusão e legitimidade de revisão continuam pendentes.
+
+### SOC-D10.M7.D — Banimento no Auth com JWT emitido — cenário negativo (23/10/2026)
+
+**Incremento candidato (não confundir com certificação):** o laboratório
+integral sobre 117 migrations recebe um caso de banimento de A no GoTrue
+*após* emissão de JWT. Exige novo login e `/auth/v1/user` negados,
+consulta direta PostgREST de recibos próprios vazia com o token antigo,
+e `mandate_active=false`, sem suspender artificialmente o perfil local
+e sem renovar o token para fabricar a prova. A conta banida e o schema
+temporário continuam sujeitos à limpeza já existente.
+
+O SQL **apenas candidato**, em `docs/proposals/m7c/nucleus-candidate.sql`,
+passa a consultar `auth.users.banned_until` e `deleted_at` nas
+barreiras `actor_active`, `current_member`, `subject_enrollment_current`,
+`validate_enrollment_chain` e `review_entry`, além de verificar
+perfil e vínculo comunitário. As funções protegidas não confiam em
+claims antigos para esse estado. Nenhuma migration operacional foi
+criada ou aplicada; é necessário comprovar a política com Auth/RLS real.
+
+**Limite de escopo:** banimento do Auth não revoga retroativamente JWT.
+A prova GoTrue+PostgREST não é prova da rota Next.js/SSR real ou da
+server action privilegiada; o teste de cookies, sessão de navegador,
+cache e fronteira server-side permanece separado. Qualquer leitura
+privada permitida após o banimento impede declarar o gate aprovado.
+
