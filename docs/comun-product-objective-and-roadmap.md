@@ -3941,3 +3941,45 @@ mobile/acessibilidade, URLs antigas, revogação e cache sem habilitar matrícul
 por esta proposta. Qualquer migration aplicável ou persistência compartilhada
 continua bloqueada até autorização própria. Automação permanece PAUSED;
 desenvolvimento sob demanda, mesma ferrovia e PR draft.
+
+### SOC-D10.M7.D — Pré-requisitos técnicos e concorrência (23/10/2026 UTC)
+
+Continuação sobre `86d7cae9a8594255bb00d3a7a3fa1277d455133d`, mesma PR draft
+#572 e main `242f19cd1c2fe948c28eedcc67d424ec47b5e180`. A etapa de integração
+autenticada ainda não está concluída nem liberada. Finalidade, legitimidade dos
+revisores, recurso, retenção/exclusão e autorização específica do backend/migration
+continuam sendo portões próprios.
+
+**Fechamento factual M7.C.** O artefato `comun-m6-authenticated-39870987155`
+certificou aquele SHA, árvore limpa e 39 grupos PASS, com Auth/PostgreSQL/RLS/
+PostgREST/Next SSR/Chromium sintético e limpeza. Core Journeys, Security/Resilience,
+COST-02 e Quality concluíram com sucesso próprios. Coherence
+`39870987365` terminou FAIL: 307 PASS e uma falha móvel JS em
+`help-connectivity.spec.ts`, na ativação por teclado de `#conexao`. Não é PASS.
+Reprodução local com o teste intacto: 28 PASS em sete viewports, com/sem JS,
+mais dois PASS focais. Isso não corrige nem apaga o FAIL original. O workflow
+passa a preservar trace e contexto somente dessa superfície pública em falhas;
+não há aumento de timeout, retry, exclusão ou enfraquecimento de asserções.
+
+**Incremento executável.** `nucleus-disposable-domain.mjs` acrescenta chamadas
+PostgREST concorrentes: duas revisões independentes devem produzir uma única
+decisão/matrícula/auditoria; dois aceites devem produzir uma única transição;
+saída concorrente com aceite não pode restaurar poderes nem permitir reaceite.
+O ensaio candidato local passou em 38 grupos de domínio, incluindo 12 M7,
+com contas/schema/containers/volume/rede removidos. Evidência:
+`E:/COMUN-M6-LAB-20261022/evidence/m7d-concurrency-exit/authenticated-cycle.json`.
+Esse resultado usa fonte modificada e hashes próprios; não certifica novo SHA
+publicado, Next/Chromium ou aceite humano. O job do HEAD próprio continua exigido.
+
+**Compatibilidade e limites.** Inspeção SQL explicitamente READ ONLY no stack
+local confirmou nomes/tipos dos seis campos externos de comunidade, perfil e
+vínculo usados pela candidata. Não aplicou DDL, alterou dados ou comprovou o
+schema integral. O ensaio não cobre todas as intercalações, carga ou revogação
+administrativa concorrente. Não foi criada rota de inscrição, backend liberado,
+migration aplicável, nova filiação, flag ou transferência de responsabilidade.
+
+**Próximo movimento M7.D.** Investigar a falha de foco com trace próprio caso
+reapareça, provar compatibilidade da candidata com schema integral em clone
+descartável e revogação concorrente. Depois das decisões específicas de
+finalidade/retenção/autoridade, integrar pedido/recibo por sessão verificada e
+ensaiar UI móvel e saída. PR segue draft; sem merge ou alteração de Production.

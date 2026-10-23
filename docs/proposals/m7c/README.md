@@ -86,6 +86,20 @@ separada da Mesa M6 no navegador. O laboratório remove o schema candidato, apag
 as contas e verifica ausência de containers, volume e rede próprios; não usa prune.
 O resultado/fonte SHA e os limites constam no JSON, inclusive nas falhas.
 
+### Concorrência como pré-requisito M7.D
+
+O mesmo harness agora envia chamadas HTTP autenticadas concorrentes por duas
+revisoras válidas ao mesmo pedido. Exige uma única decisão, matrícula e auditoria
+de aprovação; a transação perdedora não pode deixar efeitos parciais. Dois aceites
+do mesmo mandato também devem gerar uma única transição e auditoria. Por fim,
+saída e aceite de outra oferta disputam a execução: ambas as ordens são legítimas,
+mas após o commit da saída nenhum dos mandatos concede poderes, nem aceita novo
+aceite. Um recibo histórico `active` não equivale a poder vigente.
+
+Isso testa concorrência real de operações no laboratório mínimo; não demonstra
+stress, todas as intercalações possíveis, revogação administrativa concorrente ou
+compatibilidade com o schema integral. Não concede o portão de backend M7.D.
+
 ## Estratégia de migração e reversão para revisão
 
 1. Revisar finalidade, retenção dos recibos, exclusão de conta, pessoas legítimas

@@ -482,6 +482,102 @@ export async function rehearseNucleusCandidate({
       },
     );
     await check(
+      "M7 concurrent reviews/acceptances are atomic and departure never restores powers",
+      async () => {
+        const nucleus = randomUUID();
+        await sql(
+          "insert into comun_org_private.nuclei(id,community_id,purpose,rules_version,state) values($1,$2,'Independent synthetic purpose','lab-v1','active')",
+          [nucleus, community],
+        );
+        const q = await rpc(a, "request_entry", {
+          nucleus,
+          version: NUCLEUS_CONSENT_VERSION,
+          digest: NUCLEUS_CONSENT_NOTICE_SHA256,
+          affirmative: true,
+        });
+        await allowReview(q, b);
+        await allowReview(q, c);
+        // Separate authenticated HTTP requests, not calls serialized by the
+        // administrative pg connection. Both reviewers are independently valid.
+        const decisions = await Promise.all(
+          [b, c].map((who) =>
+            who.client.schema("comun_org_private").rpc("review_entry", {
+              request: q,
+              decision: "approved",
+            }),
+          ),
+        );
+        assert.equal(decisions.filter((r) => !r.error).length, 1);
+        assert.equal(decisions.filter((r) => r.error).length, 1);
+        const enrollment = decisions.find((r) => !r.error).data;
+        const counts = await sql(
+          `select (select count(*)::int from comun_org_private.reviews where request_id=$1) as reviews,
+          (select count(*)::int from comun_org_private.enrollments where request_id=$1) as enrollments,
+          (select count(*)::int from comun_org_private.audit_events where nucleus_id=$2 and event='approved') as approvals`,
+          [q, nucleus],
+        );
+        assert.deepEqual(counts.rows[0], {
+          reviews: 1,
+          enrollments: 1,
+          approvals: 1,
+        });
+        const m = await rpc(b, "offer_mandate", {
+          enrollment,
+          responsibility: "Synthetic concurrency responsibility",
+          ends: new Date(Date.now() + 86_400_000).toISOString(),
+        });
+        const acceptances = await Promise.all(
+          [true, true].map((accept) =>
+            a.client.schema("comun_org_private").rpc("respond_mandate", {
+              mandate: m,
+              accept,
+            }),
+          ),
+        );
+        assert.equal(acceptances.filter((r) => !r.error).length, 1);
+        assert.equal(acceptances.filter((r) => r.error).length, 1);
+        assert.equal(await rpc(a, "mandate_active", { mandate: m }), true);
+        assert.equal(
+          (
+            await sql(
+              "select count(*)::int as n from comun_org_private.audit_events where nucleus_id=$1 and event='mandate_active'",
+              [nucleus],
+            )
+          ).rows[0].n,
+          1,
+        );
+        const raced = await rpc(b, "offer_mandate", {
+          enrollment,
+          responsibility: "Synthetic exit race",
+          ends: new Date(Date.now() + 86_400_000).toISOString(),
+        });
+        const [exit, acceptance] = await Promise.all([
+          a.client.schema("comun_org_private").rpc("leave_entry", {
+            enrollment,
+            next_state: "left",
+          }),
+          a.client.schema("comun_org_private").rpc("respond_mandate", {
+            mandate: raced,
+            accept: true,
+          }),
+        ]);
+        assert(
+          !exit.error,
+          "Voluntary exit must commit even during acceptance",
+        );
+        // Either serialization order is legitimate. The post-commit access
+        // invariant is identical; a historical acceptance is never active power.
+        const receipt = (
+          await rows(a, "mandates", "id,state", { id: raced })
+        )[0];
+        assert.equal(receipt.state, acceptance.error ? "offered" : "active");
+        assert.equal(await rpc(a, "mandate_active", { mandate: raced }), false);
+        assert.equal(await rpc(a, "mandate_active", { mandate: m }), false);
+        await denied(a, "respond_mandate", { mandate: m, accept: true });
+        await denied(a, "respond_mandate", { mandate: raced, accept: true });
+      },
+    );
+    await check(
       "M7 database metadata: every candidate table FORCE RLS; no generic service-role or client writes",
       async () => {
         const r = await sql(
