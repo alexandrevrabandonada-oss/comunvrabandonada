@@ -9,6 +9,9 @@ on:
       - "lib/experience-coherence.ts"
       - "docs/comun-experience-*.md"
       - "scripts/experience/**"
+      - "scripts/organization/verify-nucleus-full-schema*"
+      - "docs/proposals/m7c/**"
+      - "supabase/migrations/**"
       - "tests/experience-coherence/**"
       - "playwright.experience-coherence.config.ts"
       - "package.json"
@@ -24,6 +27,9 @@ on:
       - "lib/experience-coherence.ts"
       - "docs/comun-experience-*.md"
       - "scripts/experience/**"
+      - "scripts/organization/verify-nucleus-full-schema*"
+      - "docs/proposals/m7c/**"
+      - "supabase/migrations/**"
       - "tests/experience-coherence/**"
       - "playwright.experience-coherence.config.ts"
       - "package.json"
@@ -47,6 +53,8 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: 22.18.0
@@ -64,7 +72,7 @@ jobs:
       - name: Check formatted files introduced by this lane
         run: npx prettier --check components/comun-experience-pilot.tsx lib/experience-coherence.ts docs/comun-experience-coherence.md docs/comun-experience-routes.md scripts/experience playwright.experience-coherence.config.ts tests/experience-coherence .github/workflows/comun-experience-coherence.yml
       - name: Verify local reset toolchain contract
-        run: node --test scripts/ci/coherence-local-start.node-test.mjs
+        run: node --test scripts/ci/coherence-local-start.node-test.mjs scripts/organization/verify-nucleus-full-schema.node-test.mjs
       - name: Start disposable local Supabase stack
         shell: bash
         run: |
@@ -83,6 +91,11 @@ jobs:
             cat "$reset_output"
             exit "$reset_status"
           fi
+      - name: Candidate DDL against the complete canonical reset
+        if: github.event_name == 'pull_request'
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/organization/verify-nucleus-full-schema.mjs --run-disposable-ci --output .ci-artifacts/experience-coherence/nucleus-full-schema.json
       - uses: ./.github/actions/setup-playwright-browser
       - run: npm run test:e2e:experience-coherence
         env:
@@ -99,7 +112,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: comun-experience-coherence-${{ github.run_id }}
-          path: .ci-artifacts/experience-coherence/coherence.json
+          path: .ci-artifacts/experience-coherence/*.json
           if-no-files-found: warn
           retention-days: 14
       - name: Preserve public connection-help failure diagnostics

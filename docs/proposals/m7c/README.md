@@ -109,6 +109,26 @@ Isso testa operações reais no laboratório mínimo; não demonstra stress, tod
 intercalações possíveis, revogação de toda espécie de vínculo ou compatibilidade
 com o schema integral. Não concede o portão de backend M7.D.
 
+### Prova estrutural após reset canônico
+
+`verify-nucleus-full-schema.mjs --run-disposable-ci --output <json>` só admite o
+runner GitHub hospedado, seu próprio workspace e o container Supabase local
+identificado. Não aceita URL externa, porta/banco alternativos ou parâmetros de
+conexão adicionais. O workflow Coherence executa-o depois do reset existente;
+exige igualdade entre todas as versões registradas e todos os arquivos canônicos,
+incluindo os nomes históricos de 12 dígitos. Confere bytes das migrations, da
+candidata e do próprio verificador contra o HEAD da PR, preservando também o SHA
+de integração do checkout. Não reaplica migrations, altera seu histórico ou
+reutiliza o snapshot divergente do PC.
+
+Somente nesse banco descartável e após confirmar ausência do schema candidato,
+aplica a proposta, exige dez tabelas com FORCE RLS e constraints validadas, remove
+o schema e comprova ausência. O artefato distingue compatibilidade DDL de prova
+Auth/RLS e de experiência humana; o ciclo A/B/C mínimo continua independente.
+Preparação ou testes dos guardas não equivalem a PASS desse ensaio: seu JSON do
+SHA próprio e a limpeza são necessários. O script recusa execução no PC e em
+runner compartilhado/self-hosted.
+
 ## Estratégia de migração e reversão para revisão
 
 1. Revisar finalidade, retenção dos recibos, exclusão de conta, pessoas legítimas

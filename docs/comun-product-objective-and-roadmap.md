@@ -4019,3 +4019,33 @@ compatibilidade integral, sem tocar bancos compartilhados. Depois permanecem
 as decisões específicas de finalidade, retenção/exclusão, autoridade/recurso e
 autorização do backend/migration antes da integração de UI. Esta passada não
 cria rota de inscrição, flags, filiação real, merge ou alteração de Production.
+
+### SOC-D10.M7.D — Ajuda por teclado e replay canônico para DDL (22/10/2026)
+
+No HEAD `1bd4e9b6`, Auth/Core Journeys, Security/Resilience, Coherence e COST-02
+passaram próprios. Quality `39883292439` falhou no mesmo teste de ajuda com JS,
+agora em 430px: 307 PASS/1 FAIL ao ativar `#conexao` por teclado. A causa completa
+da intermitência ainda não foi comprovada. `app/comun/ajuda/page.tsx` passa a usar
+âncora HTML nativa para fragmentos da própria página, preservando Next Link entre
+rotas e o teste original intacto. Ensaio local: 42 PASS em sete viewports com/sem
+JS; isso não apaga o FAIL histórico nem substitui o CI do commit publicado.
+
+O novo verificador `scripts/organization/verify-nucleus-full-schema.mjs` utiliza
+o reset canônico do workflow Coherence, em runner hospedado isolado. Recusa
+execução no PC, runner self-hosted ou endpoint externo. Confere todas as versões
+registradas contra os 117 arquivos (incluindo versões históricas de 12 dígitos),
+os bytes do HEAD da PR e o container local identificado. Só então aplica a
+candidata fora de migrations, verifica dez tabelas/FORCE RLS/constraints e remove
+o schema, produzindo evidência sanitizada com SHA de HEAD, checkout de integração,
+fingerprint e limpeza. Não modifica migrations, pré-flights, histórico ou schemas
+remotos. Dois contratos locais dos guardas passaram; DDL integral só receberá
+PASS depois do artefato real do job. Auth no schema integral permanece distinto
+do ciclo mínimo já certificado.
+
+O snapshot local divergente não foi alterado. Os ensaios de clone anteriores
+falharam durante bootstrap/restauração e, após restauração bem-sucedida, no gate
+de identidade do hardening; nenhum foi contado como compatibilidade da candidata.
+O replay limpo do CI substitui a tentativa de deduzir o histórico desse snapshot.
+Continuam os portões de finalidade/retenção/exclusão, autoridade/recurso e
+autorização específica do backend antes de pedido/recibo na UI e ensaio humano.
+PR #572 permanece draft, sem merge, Production, flags ou migration remota.

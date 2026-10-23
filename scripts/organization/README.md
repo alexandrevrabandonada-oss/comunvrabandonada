@@ -116,3 +116,13 @@ não equivalem a backend Next ou interface M7 disponível. O schema é removido,
 as contas são apagadas e a limpeza do owner é verificada. O job M6 de PR exige
 esse modo junto de Next HTTP/Chromium da Mesa. Nenhuma credencial ou flag remota
 é utilizada. Modelo, riscos, privilégios e portões em `docs/proposals/m7c/README.md`.
+
+## Compatibilidade estrutural com histórico completo
+
+O workflow Coherence usa o reset canônico já existente para executar
+`verify-nucleus-full-schema.mjs --run-disposable-ci --output <json>`. O verificador
+recusa execução local, runner self-hosted e conexões externas. Exige o histórico
+integral igual aos arquivos do HEAD e confere seus bytes. Aplica e remove somente
+o schema candidato no banco descartável do job, preservando prova própria e
+limpeza. Não é migration do produto nem teste Auth no schema integral; esses
+resultados não substituem o laboratório M6/M7 nem os portões de autorização.
