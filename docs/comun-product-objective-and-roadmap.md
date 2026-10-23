@@ -4241,3 +4241,9 @@ cenários posteriores ainda NOT_RUN. O artefato preserva GoTrue v2.195.0 e os ID
 das imagens. A Caixa de entrada não tem FK para apagar dados junto com a conta:
 o laboratório limpa e confere também suas linhas pelo ID sintético próprio,
 inclusive mensagens internas criadas pela ação positiva. Sem mensagens reais.
+
+**Classificação de infraestrutura.** Probes de banimento/logout exigem HTTP
+400/401/403; 5xx, timeout e quota não contam como rejeição de credencial validada.
+As respostas privadas Next também não podem usar um erro 5xx como aprovação do
+bloqueio. Status dos probes diretos ficam no JSON sanitizado, sem tokens. O
+cenário controlado de indisponibilidade continua separado da prova de banimento.

@@ -277,6 +277,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
     };
   } finally {
     proof.authOutcomes = context.authOutcomes;
+    proof.authBanProbes = context.authBanProbes;
     const clean = async (key, run) => {
       try {
         proof.cleanup[key] = await run();

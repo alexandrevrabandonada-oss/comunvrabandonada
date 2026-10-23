@@ -718,7 +718,11 @@ export async function rehearseNucleusCandidate({
             Authorization: "Bearer " + token,
           };
           const user = await fetch(base + "/auth/v1/user", { headers });
-          assert(user.status >= 400, "Old JWT must fail the live Auth check");
+          laboratory.authBanProbes = { userStatus: user.status };
+          assert(
+            [400, 401, 403].includes(user.status),
+            "Old JWT must fail the live Auth check",
+          );
           const login = await fetch(
             base + "/auth/v1/token?grant_type=password",
             {
@@ -733,7 +737,11 @@ export async function rehearseNucleusCandidate({
               }),
             },
           );
-          assert(login.status >= 400, "New login must fail during ban");
+          laboratory.authBanProbes.loginStatus = login.status;
+          assert(
+            [400, 401, 403].includes(login.status),
+            "New login must fail during ban",
+          );
           const refresh = await fetch(
             base + "/auth/v1/token?grant_type=refresh_token",
             {
@@ -745,8 +753,9 @@ export async function rehearseNucleusCandidate({
               body: JSON.stringify({ refresh_token: session.refresh_token }),
             },
           );
+          laboratory.authBanProbes.refreshStatus = refresh.status;
           assert(
-            refresh.status >= 400,
+            [400, 401, 403].includes(refresh.status),
             "Pre-ban refresh token must not renew banned authority",
           );
           const read = await fetch(base + "/rest/v1/consents?select=id", {
@@ -824,7 +833,7 @@ export async function rehearseNucleusCandidate({
           const user = await fetch(laboratory.gatewayUrl + "/auth/v1/user", {
             headers,
           });
-          assert(user.status >= 400);
+          assert([400, 401, 403].includes(user.status));
           const refresh = await fetch(
             laboratory.gatewayUrl + "/auth/v1/token?grant_type=refresh_token",
             {
@@ -836,7 +845,7 @@ export async function rehearseNucleusCandidate({
               body: JSON.stringify({ refresh_token: session.refresh_token }),
             },
           );
-          assert(refresh.status >= 400);
+          assert([400, 401, 403].includes(refresh.status));
           const read = await fetch(
             laboratory.gatewayUrl + "/rest/v1/consents?select=id",
             { headers: { ...headers, "Accept-Profile": "comun_org_private" } },

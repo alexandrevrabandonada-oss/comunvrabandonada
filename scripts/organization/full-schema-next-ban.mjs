@@ -56,6 +56,10 @@ export async function rehearseNextBan({
       headers: { Cookie: cookieHeader(), ...extra.headers },
     });
   const noPrivate = async (response) => {
+    assert(
+      response.status < 500,
+      "Infrastructure failure is not a certified access denial",
+    );
     const body = await response.text();
     assert(
       !body.includes(sentinel),
@@ -70,7 +74,8 @@ export async function rehearseNextBan({
         !body.includes('data-comun-mesa-private="true"'),
     );
     assert(
-      response.status >= 300 ||
+      (response.status >= 300 && response.status < 400) ||
+        [401, 403, 404].includes(response.status) ||
         response.headers.get("x-nextjs-redirect") ||
         response.headers.get("x-action-redirect") ||
         body.includes("NEXT_REDIRECT"),
@@ -403,7 +408,7 @@ export async function rehearseNextBan({
           },
         );
         assert(
-          refresh.status >= 400,
+          [400, 401, 403].includes(refresh.status),
           "Banned refresh token unexpectedly accepted",
         );
         const logout = await service.auth.admin.signOut(
