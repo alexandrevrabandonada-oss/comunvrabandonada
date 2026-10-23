@@ -3983,3 +3983,39 @@ reapareça, provar compatibilidade da candidata com schema integral em clone
 descartável e revogação concorrente. Depois das decisões específicas de
 finalidade/retenção/autoridade, integrar pedido/recibo por sessão verificada e
 ensaiar UI móvel e saída. PR segue draft; sem merge ou alteração de Production.
+
+### SOC-D10.M7.D — Revogação durante revisão bloqueada (22/10/2026, Brasília)
+
+Reconciliação própria do HEAD `ebd0f0f589dcaaff6e40dcab0c6f973381fefff5`:
+Core Journeys `39878276633`, Coherence `39878276896`, Quality `39878276769`,
+Security/Resilience `39878276925` e COST-02 do workflow `39878276668` concluíram
+SUCCESS. Isso fecha os checks então pendentes; não apaga a falha intermitente
+histórica da ajuda nem prova sua causa ou aceite humano.
+
+**Incremento executável:** o harness segura a linha da autoridade em transação
+administrativa exclusivamente descartável, inicia a revisão via PostgREST e
+observa a espera real pelo lock. Comita a revogação antes de liberar o pedido;
+exige erro, zero decisões/matrículas/auditorias de aprovação e perda da leitura
+pela revisora revogada. Outra revisora com autorização nova consegue deliberar;
+a matrícula sintética resultante é encerrada antes da limpeza.
+
+As primeiras tentativas falharam por instrumentação: o snapshot de
+`pg_stat_activity` era reutilizado dentro da transação, e a asserção em `finally`
+ocultava o erro original. A renovação explícita do snapshot e o tratamento do
+resultado após a limpeza corrigem o teste. O SQL candidato original passou;
+a alteração SQL especulativa foi revertida, sem publicação. Prova local de
+domínio: 39 grupos PASS, 13 M7, fonte modificada e hashes próprios, não SHA final
+certificado nem navegador, em
+`E:/COMUN-M6-LAB-20261022/evidence/m7d-revocation-refreshed-observer/authenticated-cycle.json`.
+As duas evidências FAIL anteriores permanecem preservadas; recursos próprios
+foram removidos também nas falhas. Gate CI passa a exigir os 13 grupos M7 e
+continua exigindo HEAD exato, árvore limpa, Next/Chromium e limpeza.
+
+**Bloqueio comprovado de schema integral:** a inspeção READ ONLY encontrou
+110 migrations registradas no stack local, até `20260901000000`, contra 117
+arquivos no checkout. O stack não foi alterado e não é clone certificado deste
+HEAD. Próximo incremento: construir clone descartável atualizado para provar
+compatibilidade integral, sem tocar bancos compartilhados. Depois permanecem
+as decisões específicas de finalidade, retenção/exclusão, autoridade/recurso e
+autorização do backend/migration antes da integração de UI. Esta passada não
+cria rota de inscrição, flags, filiação real, merge ou alteração de Production.

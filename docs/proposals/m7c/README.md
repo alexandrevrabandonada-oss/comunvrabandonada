@@ -96,9 +96,18 @@ saída e aceite de outra oferta disputam a execução: ambas as ordens são leg�
 mas após o commit da saída nenhum dos mandatos concede poderes, nem aceita novo
 aceite. Um recibo histórico `active` não equivale a poder vigente.
 
-Isso testa concorrência real de operações no laboratório mínimo; não demonstra
-stress, todas as intercalações possíveis, revogação administrativa concorrente ou
-compatibilidade com o schema integral. Não concede o portão de backend M7.D.
+O caso de revogação administrativa segura um lock da autoridade, inicia uma
+revisão HTTP com a sessão já emitida e comprova no PostgreSQL que ela está
+aguardando. Revoga a autoridade e faz commit antes de liberar a revisão. Exige
+negação sem decisão/matrícula/auditoria parcial, perda de leitura do pedido pela
+revisora revogada e recuperação por outra revisora explicitamente autorizada.
+O observador renova o snapshot de estatísticas dentro da transação; falhar em
+comprovar a espera é FAIL de instrumentação, não prova de falha de autorização.
+O SQL original passou esse caso e não foi alterado para essa prova.
+
+Isso testa operações reais no laboratório mínimo; não demonstra stress, todas as
+intercalações possíveis, revogação de toda espécie de vínculo ou compatibilidade
+com o schema integral. Não concede o portão de backend M7.D.
 
 ## Estratégia de migração e reversão para revisão
 

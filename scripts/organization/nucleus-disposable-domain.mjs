@@ -482,6 +482,101 @@ export async function rehearseNucleusCandidate({
       },
     );
     await check(
+      "M7 reviewer revoked while review waits cannot commit a decision or enrollment",
+      async () => {
+        const nucleus = randomUUID();
+        await sql(
+          "insert into comun_org_private.nuclei(id,community_id,purpose,rules_version,state) values($1,$2,'Independent synthetic purpose','lab-v1','active')",
+          [nucleus, community],
+        );
+        const q = await rpc(a, "request_entry", {
+          nucleus,
+          version: NUCLEUS_CONSENT_VERSION,
+          digest: NUCLEUS_CONSENT_NOTICE_SHA256,
+          affirmative: true,
+        });
+        const authority = await allowReview(q, b);
+        let pending, response;
+        await sql("begin");
+        try {
+          await sql(
+            "select id from comun_org_private.reviewer_authorizations where id=$1 for update",
+            [authority],
+          );
+          pending = Promise.resolve(
+            b.client.schema("comun_org_private").rpc("review_entry", {
+              request: q,
+              decision: "approved",
+            }),
+          );
+          // Prove an actual overlap at PostgreSQL's lock boundary rather than
+          // assuming Promise.all caused the intended interleaving.
+          const deadline = Date.now() + 5000;
+          let blocked = false;
+          while (Date.now() < deadline) {
+            // pg_stat_activity caches a snapshot inside this administrative
+            // transaction. Refresh it or a waiter starting after the first
+            // sample would remain invisible until the observation times out.
+            await sql("select pg_stat_clear_snapshot()");
+            const r = await sql(
+              `select exists(select 1 from pg_stat_activity where datname=current_database()
+              and pid<>pg_backend_pid() and wait_event_type='Lock'
+              and query like '%review_entry%') as blocked`,
+            );
+            if (r.rows[0].blocked) {
+              blocked = true;
+              break;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 25));
+          }
+          assert(
+            blocked,
+            "Authenticated review must reach the held database lock",
+          );
+          await sql(
+            "update comun_org_private.reviewer_authorizations set revoked_at=now() where id=$1",
+            [authority],
+          );
+          await sql("commit");
+        } catch (error) {
+          await sql("rollback");
+          throw error;
+        } finally {
+          // Drain the HTTP operation even if overlap observation failed; never
+          // drop its schema with an unobserved request still in flight.
+          if (pending) {
+            response = await pending;
+          }
+        }
+        assert(response.error, "Revoked reviewer must not commit approval");
+        const counts = await sql(
+          `select (select count(*)::int from comun_org_private.reviews where request_id=$1) as reviews,
+          (select count(*)::int from comun_org_private.enrollments where request_id=$1) as enrollments,
+          (select count(*)::int from comun_org_private.audit_events where nucleus_id=$2 and event='approved') as approvals`,
+          [q, nucleus],
+        );
+        assert.deepEqual(counts.rows[0], {
+          reviews: 0,
+          enrollments: 0,
+          approvals: 0,
+        });
+        assert.deepEqual(await rows(b, "requests", "id", { id: q }), []);
+        await denied(b, "review_entry", { request: q, decision: "approved" });
+        // Revocation does not consume or auto-reject the person's request.
+        // A separately authorized independent reviewer can still decide it.
+        await allowReview(q, c);
+        const enrollment = await rpc(c, "review_entry", {
+          request: q,
+          decision: "approved",
+        });
+        assert.equal(
+          await rpc(a, "enrollment_active", { e: enrollment }),
+          true,
+        );
+        await rpc(a, "leave_entry", { enrollment, next_state: "left" });
+      },
+    );
+    await check(
       "M7 concurrent reviews/acceptances are atomic and departure never restores powers",
       async () => {
         const nucleus = randomUUID();
