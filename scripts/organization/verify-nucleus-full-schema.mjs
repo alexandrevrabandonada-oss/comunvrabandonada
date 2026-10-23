@@ -58,6 +58,7 @@ async function main() {
     candidate,
     script,
     "scripts/organization/rehearse-full-schema-auth.mjs",
+    "scripts/organization/full-schema-task-cycle.mjs",
     "scripts/organization/nucleus-disposable-domain.mjs",
     "lib/community-nucleus-contract.ts",
   ]) {

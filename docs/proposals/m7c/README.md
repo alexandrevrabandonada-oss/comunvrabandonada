@@ -188,3 +188,14 @@ pessoa automaticamente". Saída: "Pausar ou sair encerra os poderes; meus recibo
 mínimos permanecem privados". Cada superfície deve manter contexto de comunidade,
 Mesa, ações e formação voluntária. Não há ranking, recrutamento obrigatório,
 notificação real ou divulgação automática de vínculo neste incremento.
+
+## Extensão: responsabilidades canônicas no schema integral
+
+`full-schema-task-cycle.mjs` acrescenta oito casos ao ciclo Auth integral,
+antes dos 13 casos M7. Verifica aceite próprio, isolamento A/B, retirada bloqueada
+até devolução, identidade imutável, pausa/saída, ação interna arquivada e histórico
+sem reativação. As operações usam clientes autenticados reais e RLS do schema
+canônico; não demonstram a server action privilegiada ou uma nova UI M7. A limpeza
+confere os seis conjuntos de registros sintéticos por IDs próprios. Nenhum dado
+compartilhado, permissão ou migration é alterado. Exigir artefato PASS do SHA,
+incluindo `taskFixturesAbsent`; preparação não constitui resultado executado.

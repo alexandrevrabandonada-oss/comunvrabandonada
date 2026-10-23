@@ -4095,3 +4095,30 @@ migration inicial não substituem o replay canônico. O FAIL permanece em
 `E:/COMUN-M6-LAB-20261022/evidence/m7d-full-auth-54302473/nucleus-full-schema.json`;
 não certifica os cenários que ainda não tinham executado. O runner também passa
 a preservar o primeiro cenário que falhou, mesmo quando a limpeza executa depois.
+
+### SOC-D10.M7.D — Responsabilidades canônicas no ensaio integral (23/10/2026)
+
+O Quality `39951109177` concluiu com sucesso no HEAD `07922561`, fechando a
+pendência do checkpoint anterior. Esse resultado permanece vinculado àquele SHA.
+
+O ensaio integral passa a executar oito verificações adicionais em
+`scripts/organization/full-schema-task-cycle.mjs`: participação e aceite próprio
+via Auth/PostgREST/RLS; isolamento A/B; bloqueio de retirada enquanto há tarefa
+ativa; imutabilidade dos identificadores; devolução após pausa; devolução após
+saída e arquivamento interno; histórico preservado sem reativação; limpeza dos
+registros próprios. São operações reais da API de dados, sem simular interface,
+aceite humano ou chamada à server action privilegiada. Comunidade, ação, tarefas
+e vínculo comunitário são fixtures administrativas explicitamente descartáveis.
+Nenhuma atribuição é transferida automaticamente.
+
+A matriz M7 de 13 casos continua independente, totalizando 21 casos exigidos no
+mesmo reset das 117 migrations. O fingerprint inclui o novo helper, e o workflow
+existente acompanha seu caminho. Limpeza verifica ação, tarefas, atribuições,
+participações, vínculo e comunidade por seus IDs próprios, além da limpeza Auth
+já existente. Não há migration nova, aplicação remota ou alteração de flags.
+
+O código preparado e as verificações locais não certificam o ciclo integral:
+seu resultado exige o artefato do CI do próprio SHA. Permanecem separados o
+ensaio HTTP/RLS, o ciclo mínimo com Next/Chromium e a experiência organizativa
+futura. Backend organizativo liberado, banimento Auth, revisão humana de
+finalidade/retenção/exclusão e legitimidade de revisão continuam pendentes.

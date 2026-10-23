@@ -7,6 +7,7 @@ import http from "node:http";
 import { randomBytes, randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { rehearseNucleusCandidate } from "./nucleus-disposable-domain.mjs";
+import { rehearseFullSchemaTasks } from "./full-schema-task-cycle.mjs";
 
 export function removeOwnedAuxiliary(docker, owner) {
   assert.match(owner, /^comun-m7d-[a-f0-9-]{36}$/);
@@ -47,6 +48,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
       communitiesAbsent: false,
       gatewayClosed: false,
       auxiliaryAbsent: false,
+      taskFixturesAbsent: false,
     },
   };
   const docker = (args) =>
@@ -183,6 +185,31 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
         [account.id],
       );
     }
+    const check = async (name, run, scope = "M7_FULL_RESET_AUTH_HTTP_RLS") => {
+      proof.currentCase = name;
+      try {
+        await run();
+      } catch (error) {
+        proof.failedCase ??= name;
+        throw error;
+      }
+      results.push({
+        name,
+        result: "PASS",
+        scope,
+      });
+    };
+    proof.stage = "canonical-task-http-rls-cycle";
+    await rehearseFullSchemaTasks({
+      admin,
+      accounts,
+      check: (name, run) =>
+        check(name, run, "CANONICAL_TASK_FULL_RESET_AUTH_HTTP_RLS"),
+      onCleanup: (absent) => {
+        proof.cleanup.taskFixturesAbsent = absent;
+      },
+    });
+    assert.equal(results.length, 8);
     proof.stage = "m7-http-rls-matrix";
     await rehearseNucleusCandidate({
       accounts,
@@ -190,22 +217,9 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
       owner,
       password,
       laboratory: context,
-      check: async (name, run) => {
-        proof.currentCase = name;
-        try {
-          await run();
-        } catch (error) {
-          proof.failedCase ??= name;
-          throw error;
-        }
-        results.push({
-          name,
-          result: "PASS",
-          scope: "M7_FULL_RESET_AUTH_HTTP_RLS",
-        });
-      },
+      check,
     });
-    assert.equal(results.length, 13);
+    assert.equal(results.length, 21);
     proof.result = "PASS";
     proof.stage = "complete";
   } catch (error) {
