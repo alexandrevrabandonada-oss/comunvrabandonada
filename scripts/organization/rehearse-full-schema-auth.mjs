@@ -8,6 +8,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { rehearseNucleusCandidate } from "./nucleus-disposable-domain.mjs";
 import { rehearseFullSchemaTasks } from "./full-schema-task-cycle.mjs";
+import { rehearseNextBan } from "./full-schema-next-ban.mjs";
 
 export function removeOwnedAuxiliary(docker, owner) {
   assert.match(owner, /^comun-m7d-[a-f0-9-]{36}$/);
@@ -131,6 +132,20 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
         return;
       }
       try {
+        if (auth && context.authUnavailable) {
+          res.writeHead(503).end();
+          return;
+        }
+        if (
+          !auth &&
+          context.holdProfile &&
+          req.url.includes("/comun_member_profiles?") &&
+          req.url.includes(context.holdProfile.userId)
+        ) {
+          const hold = context.holdProfile;
+          hold.reached();
+          await hold.held;
+        }
         const chunks = [];
         for await (const chunk of req) chunks.push(chunk);
         const headers = { ...req.headers };
@@ -200,6 +215,23 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
         scope,
       });
     };
+    proof.stage = "next-ssr-ban-cycle";
+    await rehearseNextBan({
+      admin,
+      service,
+      local,
+      laboratory: context,
+      accounts,
+      password,
+      owner,
+      check: (name, run) =>
+        check(
+          name,
+          run,
+          "FULL_RESET_NEXT_DEV_SSR_CHROMIUM_NOT_CDN_OR_HUMAN_ACCEPTANCE",
+        ),
+    });
+    assert.equal(results.length, 8);
     proof.stage = "canonical-task-http-rls-cycle";
     await rehearseFullSchemaTasks({
       admin,
@@ -210,17 +242,17 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
         proof.cleanup.taskFixturesAbsent = absent;
       },
     });
-    assert.equal(results.length, 8);
+    assert.equal(results.length, 16);
     proof.stage = "m7-http-rls-matrix";
     await rehearseNucleusCandidate({
-      accounts,
+      accounts: accounts.slice(0, 3),
       service,
       owner,
       password,
       laboratory: context,
       check,
     });
-    assert.equal(results.length, 22);
+    assert.equal(results.length, 30);
     proof.result = "PASS";
     proof.stage = "complete";
   } catch (error) {
@@ -232,6 +264,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
       constraint: error.constraint,
     };
   } finally {
+    proof.authOutcomes = context.authOutcomes;
     const clean = async (key, run) => {
       try {
         proof.cleanup[key] = await run();

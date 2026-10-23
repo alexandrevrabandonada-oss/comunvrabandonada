@@ -59,6 +59,11 @@ async function main() {
     script,
     "scripts/organization/rehearse-full-schema-auth.mjs",
     "scripts/organization/full-schema-task-cycle.mjs",
+    "scripts/organization/full-schema-next-ban.mjs",
+    "lib/community-auth.ts",
+    "lib/community-mesa.ts",
+    "lib/supabase/server.ts",
+    "lib/supabase/middleware.ts",
     "scripts/organization/nucleus-disposable-domain.mjs",
     "lib/community-nucleus-contract.ts",
   ]) {

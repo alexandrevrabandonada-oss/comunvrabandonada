@@ -734,6 +734,21 @@ export async function rehearseNucleusCandidate({
             },
           );
           assert(login.status >= 400, "New login must fail during ban");
+          const refresh = await fetch(
+            base + "/auth/v1/token?grant_type=refresh_token",
+            {
+              method: "POST",
+              headers: {
+                apikey: laboratory.anonKey,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ refresh_token: session.refresh_token }),
+            },
+          );
+          assert(
+            refresh.status >= 400,
+            "Pre-ban refresh token must not renew banned authority",
+          );
           const read = await fetch(base + "/rest/v1/consents?select=id", {
             headers: {
               ...headers,
@@ -746,24 +761,37 @@ export async function rehearseNucleusCandidate({
             [],
             "Old JWT still reads private data after Auth ban",
           );
-          const power = await fetch(
-            base + "/rest/v1/rpc/mandate_active",
-            {
-              method: "POST",
-              headers: {
-                ...headers,
-                "Content-Profile": "comun_org_private",
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ mandate: ma }),
+          const power = await fetch(base + "/rest/v1/rpc/mandate_active", {
+            method: "POST",
+            headers: {
+              ...headers,
+              "Content-Profile": "comun_org_private",
+              "Content-Type": "application/json",
             },
-          );
+            body: JSON.stringify({ mandate: ma }),
+          });
           assert.equal(power.status, 200);
           assert.equal(
             await power.json(),
             false,
             "Old JWT still exercises private organizational power",
           );
+          await denied(a, "request_entry", {
+            nucleus: x,
+            version: NUCLEUS_CONSENT_VERSION,
+            digest: NUCLEUS_CONSENT_NOTICE_SHA256,
+            affirmative: true,
+          });
+          await denied(a, "respond_mandate", { mandate: ma, accept: true });
+          await service.auth.admin.signOut(token, "global");
+          const loggedOutRead = await fetch(
+            base + "/rest/v1/consents?select=id",
+            {
+              headers: { ...headers, "Accept-Profile": "comun_org_private" },
+            },
+          );
+          assert.equal(loggedOutRead.status, 200);
+          assert.deepEqual(await loggedOutRead.json(), []);
         },
         "M7_FULL_RESET_BAN_PREISSUED_JWT_RLS_NEGATIVE",
       );

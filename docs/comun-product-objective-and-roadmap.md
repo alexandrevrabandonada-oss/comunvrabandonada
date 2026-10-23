@@ -4127,7 +4127,7 @@ finalidade/retenção/exclusão e legitimidade de revisão continuam pendentes.
 
 **Incremento candidato (não confundir com certificação):** o laboratório
 integral sobre 117 migrations recebe um caso de banimento de A no GoTrue
-*após* emissão de JWT. Exige novo login e `/auth/v1/user` negados,
+_após_ emissão de JWT. Exige novo login e `/auth/v1/user` negados,
 consulta direta PostgREST de recibos próprios vazia com o token antigo,
 e `mandate_active=false`, sem suspender artificialmente o perfil local
 e sem renovar o token para fabricar a prova. A conta banida e o schema
@@ -4146,3 +4146,47 @@ A prova GoTrue+PostgREST não é prova da rota Next.js/SSR real ou da
 server action privilegiada; o teste de cookies, sessão de navegador,
 cache e fronteira server-side permanece separado. Qualquer leitura
 privada permitida após o banimento impede declarar o gate aprovado.
+
+### SOC-D10.M7.D — Banimento, refresh e fronteira Next/SSR (23/10/2026)
+
+Reconciliação: HEAD remoto `704d543f044d2908acc5229268076fb395bab0d4`,
+PR #572 draft; incorporado por avanço direto. Artefato Coherence `39994471776`
+recuperado: 117 migrations e 22 casos Auth/RLS PASS. FAIL de Prettier dos runs
+Core `39994472157` e Launch `39994472084` recuperados e reproduzidos nos dois
+arquivos indicados; formatação corrigida sem mudar assertions.
+
+`getCommunitySession` passa a negar falhas explícitas do Auth/perfil, capturar
+indisponibilidade e reconsultar a identidade após ler o perfil com service role.
+Isso impede retornar a sessão se o banimento ocorrer enquanto a consulta ao
+perfil estiver aguardando. `requireCommunitySession` exige estado `active`,
+sem aceitar estado ausente ou desconhecido. Não há cache global de autorização.
+Uma checagem de aplicação não estabelece atomicidade com todo commit de negócio:
+a janela após a última validação continua um limite de operações service role;
+a candidata organizativa conserva sua barreira independente no PostgreSQL.
+
+O laboratório integral ganha identidade SSR sintética separada, Next real em
+modo dev/webpack (loopback, sem flags novas) e Chromium móvel em duas instâncias.
+Browser plugin não disponível; utilizado Playwright existente. Oito cenários
+exigem: Mesa e área própria positivas; execução positiva da ação canônica de
+preferências com readback; negação em indisponibilidade Auth; banimento durante
+leitura privilegiada; cookies antigos em HTML/RSC/prefetch/requisições repetidas;
+ação de saída negada e vínculo preservado; histórico/offline/CacheStorage; refresh
+antigo recusado e invalidação de sessões da identidade sintética; limpeza própria.
+Os campos privados sentinela não podem aparecer nas respostas negadas. Nenhum
+HTML, cookie, JWT ou refresh token é escrito como evidência.
+
+A API de logout pode recusar a própria conta banida: seu status é registrado,
+sem chamar essa recusa de logout concluído. O laboratório invalida explicitamente
+somente as sessões da identidade sintética por operação administrativa descartável,
+confere ausência e repete a negação HTTP. A matriz organizativa também verifica
+refresh pré-banimento, RPCs de mutação e recibos após tentativa de logout.
+
+Meta: 30 casos próprios (8 Next + 8 tarefas + 14 organizativos). Não são PASS
+antes de executar CI no próprio SHA. O fingerprint inclui helper Next e fronteiras
+Auth/Mesa/Supabase; o workflow existente instala Chromium antes do ensaio.
+Limites: Next dev não certifica CDN/edge ou cache de build de Production, e não
+pode apagar conteúdo já lido, capturado ou salvo externamente antes da revogação.
+As verificações testam novas respostas e os mecanismos de cache sob controle da
+aplicação. Não há liberação de núcleo, migration nova/remota, conta real banida,
+merge, Production, convite ou notificação a pessoas reais. Decisões humanas de
+finalidade, retenção/exclusão e autoridade permanecem como gates próprios.

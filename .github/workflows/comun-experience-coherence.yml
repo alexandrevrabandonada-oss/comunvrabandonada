@@ -12,6 +12,10 @@ on:
       - "scripts/organization/verify-nucleus-full-schema*"
       - "scripts/organization/rehearse-full-schema-auth.mjs"
       - "scripts/organization/full-schema-task-cycle.mjs"
+      - "scripts/organization/full-schema-next-ban.mjs"
+      - "lib/community-auth.ts"
+      - "lib/community-mesa.ts"
+      - "lib/supabase/**"
       - "scripts/organization/nucleus-disposable-domain.mjs"
       - "lib/community-nucleus-contract.ts"
       - "docs/proposals/m7c/**"
@@ -34,6 +38,10 @@ on:
       - "scripts/organization/verify-nucleus-full-schema*"
       - "scripts/organization/rehearse-full-schema-auth.mjs"
       - "scripts/organization/full-schema-task-cycle.mjs"
+      - "scripts/organization/full-schema-next-ban.mjs"
+      - "lib/community-auth.ts"
+      - "lib/community-mesa.ts"
+      - "lib/supabase/**"
       - "scripts/organization/nucleus-disposable-domain.mjs"
       - "lib/community-nucleus-contract.ts"
       - "docs/proposals/m7c/**"
@@ -99,12 +107,12 @@ jobs:
             cat "$reset_output"
             exit "$reset_status"
           fi
+      - uses: ./.github/actions/setup-playwright-browser
       - name: Candidate DDL and real Auth against the complete canonical reset
         if: github.event_name == 'pull_request'
         env:
           EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
         run: node --experimental-strip-types scripts/organization/verify-nucleus-full-schema.mjs --run-disposable-ci --with-auth-cycle --output .ci-artifacts/experience-coherence/nucleus-full-schema.json
-      - uses: ./.github/actions/setup-playwright-browser
       - run: npm run test:e2e:experience-coherence
         env:
           COMUN_OBSERVATORIES_FOUNDATION_ENABLED: enabled
