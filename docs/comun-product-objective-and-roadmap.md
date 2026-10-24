@@ -4247,3 +4247,41 @@ inclusive mensagens internas criadas pela ação positiva. Sem mensagens reais.
 As respostas privadas Next também não podem usar um erro 5xx como aprovação do
 bloqueio. Status dos probes diretos ficam no JSON sanitizado, sem tokens. O
 cenário controlado de indisponibilidade continua separado da prova de banimento.
+
+### SOC-D10.M7.D — RLS legadas: baseline e proposta restritiva (24/10/2026)
+
+O checkpoint `f49027e545cc5a34ba58eda1c542da210557d979` certificou 31 casos de
+Next/Auth/candidata organizativa, com limpeza e gates próprios; não certificou
+as RLS legadas. Suas policies de vínculos, papéis, participações e atribuições
+usam identidade/dono e estado do vínculo, sem consultar sessão/banimento.
+
+`full-schema-legacy-rls.mjs` cria outra identidade sintética e fixtures próprias
+no reset integral. Mede SELECT nas quatro tabelas, INSERT de participação/atribuição e UPDATE de participação e
+devolução de tarefa, com JWT anterior a banimento e a logout real. Os status e
+contagens ficam no JSON, nunca linhas privadas/tokens. As observações indevidas
+são registradas como `securityResult=FAIL`; não são convertidas em aprovação por
+serem esperadas. Infra/quota não são rejeição de credencial certificada.
+
+A proposta `docs/proposals/m7c/legacy-session-rls-candidate.sql`, fora das
+migrations, acrescenta quatro policies AS RESTRICTIVE para authenticated. Exige
+conta não banida/excluída, sessão do próprio JWT existente e perfil ativo. Não
+substitui policies permissivas, não concede leitura/escrita nas tabelas e não
+transfere responsabilidades. O helper sem parâmetros fica em schema privado,
+fora dos schemas expostos pela API auxiliar; retorna somente booleano da própria
+identidade. USAGE/EXECUTE estritamente necessários à avaliação da policy são
+propostos para authenticated, com PUBLIC/anon/service_role revogados; precisam
+de revisão antes de eventual migration ou aplicação. Service role conserva sua
+fronteira de autorização server-side e não é certificado por esse guard RLS.
+
+Seis cenários de laboratório verificam controles positivos, isolamento/anon,
+banimento, logout, ACL/catalog e limpeza. Comparam definições originais e grants
+antes/depois; removem schema/policies propostas e todas as fixtures próprias,
+restaurando o catálogo antes dos 31 cenários já existentes. Nova meta: 37 casos.
+O fingerprint inclui ambos os arquivos novos. O artefato declara separadamente
+`securityRelease=BLOCKED_LEGACY_RLS_PROPOSAL_NOT_DEPLOYED`, mesmo se o ensaio da
+proposta passar. Resultados reais só podem vir do CI do próprio SHA.
+
+Nenhuma migration, SQL remoto, flag, convite, conta real, merge ou Production.
+Não declarar saneamento das RLS do produto a partir da proposta descartável. O
+próximo portão exige prova negativa real, revisão do escopo/ACL e autorização
+específica para o caminho de integração; não publicar backend organizativo.

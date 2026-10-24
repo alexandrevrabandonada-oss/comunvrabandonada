@@ -60,6 +60,8 @@ async function main() {
     "scripts/organization/rehearse-full-schema-auth.mjs",
     "scripts/organization/full-schema-task-cycle.mjs",
     "scripts/organization/full-schema-next-ban.mjs",
+    "scripts/organization/full-schema-legacy-rls.mjs",
+    "docs/proposals/m7c/legacy-session-rls-candidate.sql",
     "lib/community-auth.ts",
     "lib/community-mesa.ts",
     "lib/supabase/server.ts",
@@ -161,6 +163,7 @@ async function main() {
       const { rehearseFullSchemaAuth } =
         await import("./rehearse-full-schema-auth.mjs");
       report.authCycle = await rehearseFullSchemaAuth({ admin: client, local });
+      report.securityRelease = report.authCycle.securityRelease;
       assert.equal(report.authCycle.result, "PASS");
       report.proofKind =
         "FULL_RESET_SCHEMA_REAL_AUTH_BUILT_NEXT_HTTP_POSTGREST_RLS_NOT_CDN_OR_HUMAN_ACCEPTANCE";

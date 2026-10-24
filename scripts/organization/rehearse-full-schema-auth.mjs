@@ -9,6 +9,7 @@ import { createClient } from "@supabase/supabase-js";
 import { rehearseNucleusCandidate } from "./nucleus-disposable-domain.mjs";
 import { rehearseFullSchemaTasks } from "./full-schema-task-cycle.mjs";
 import { rehearseNextBan } from "./full-schema-next-ban.mjs";
+import { rehearseLegacyRls } from "./full-schema-legacy-rls.mjs";
 
 export function removeOwnedAuxiliary(docker, owner) {
   assert.match(owner, /^comun-m7d-[a-f0-9-]{36}$/);
@@ -37,6 +38,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
     results = [];
   const context = { mode: "FULL_RESET_CI", admin };
   const proof = {
+    securityRelease: "BLOCKED_LEGACY_RLS_PROPOSAL_NOT_DEPLOYED",
     proofKind:
       "FULL_RESET_REAL_AUTH_BUILT_NEXT_POSTGREST_RLS_NOT_CDN_OR_HUMAN_ACCEPTANCE",
     result: "FAIL",
@@ -50,6 +52,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
       gatewayClosed: false,
       auxiliaryAbsent: false,
       taskFixturesAbsent: true,
+      legacyFixturesAbsent: true,
     },
   };
   const docker = (args) =>
@@ -222,6 +225,27 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
         scope,
       });
     };
+    proof.stage = "legacy-rls-baseline-and-unreleased-proposal";
+    proof.cleanup.legacyFixturesAbsent = false;
+    await rehearseLegacyRls({
+      admin,
+      service,
+      local,
+      laboratory: context,
+      accounts,
+      owner,
+      password,
+      check: (name, run) =>
+        check(
+          name,
+          run,
+          "LEGACY_RLS_UNRELEASED_PROPOSAL_NOT_DEPLOYED_PROTECTION",
+        ),
+      onCleanup: (absent) => {
+        proof.cleanup.legacyFixturesAbsent = absent;
+      },
+    });
+    assert.equal(results.length, 6);
     proof.stage = "next-ssr-ban-cycle";
     await rehearseNextBan({
       admin,
@@ -238,7 +262,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
           "FULL_RESET_BUILT_NEXT_SSR_CHROMIUM_NOT_CDN_OR_HUMAN_ACCEPTANCE",
         ),
     });
-    assert.equal(results.length, 8);
+    assert.equal(results.length, 14);
     proof.stage = "canonical-task-http-rls-cycle";
     proof.cleanup.taskFixturesAbsent = false;
     await rehearseFullSchemaTasks({
@@ -250,7 +274,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
         proof.cleanup.taskFixturesAbsent = absent;
       },
     });
-    assert.equal(results.length, 16);
+    assert.equal(results.length, 22);
     proof.stage = "m7-http-rls-matrix";
     await rehearseNucleusCandidate({
       accounts: accounts.slice(0, 3),
@@ -260,7 +284,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
       laboratory: context,
       check,
     });
-    assert.equal(results.length, 31);
+    assert.equal(results.length, 37);
     proof.result = "PASS";
     proof.stage = "complete";
   } catch (error) {
@@ -276,6 +300,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
       constraint: error.constraint,
     };
   } finally {
+    proof.legacyRls = context.legacyRls;
     proof.authOutcomes = context.authOutcomes;
     proof.authBanProbes = context.authBanProbes;
     const clean = async (key, run) => {
