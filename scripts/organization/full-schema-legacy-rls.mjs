@@ -49,7 +49,7 @@ export async function rehearseLegacyRls({
   const policies = async () =>
     (
       await admin.query(
-        "select tablename,policyname,permissive,roles,cmd,qual,with_check from pg_policies where schemaname='public' and tablename=any($1::text[]) order by tablename,policyname",
+        "select tablename,policyname,permissive,roles::text[] as roles,cmd,qual,with_check from pg_policies where schemaname='public' and tablename=any($1::text[]) order by tablename,policyname",
         [names],
       )
     ).rows;

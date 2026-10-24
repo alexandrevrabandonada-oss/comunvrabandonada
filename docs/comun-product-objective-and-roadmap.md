@@ -4285,3 +4285,16 @@ Nenhuma migration, SQL remoto, flag, convite, conta real, merge ou Production.
 Não declarar saneamento das RLS do produto a partir da proposta descartável. O
 próximo portão exige prova negativa real, revisão do escopo/ACL e autorização
 específica para o caminho de integração; não publicar backend organizativo.
+
+**Primeiro ensaio RLS legado, SHA `702f6ebe`.** Coherence `40103711816`
+confirmou 16 operações indevidas com JWT antigo: SELECT nas quatro tabelas,
+UPDATE e INSERT de participação/atribuição, após banimento e após logout real.
+São oito operações por estado, não 16 vulnerabilidades independentes. A proposta
+negou essas operações e preservou os controles positivos/isolamento; a execução
+completa falhou na comparação de roles do catálogo. `pg_policies.roles` é name[];
+a consulta passa a converter explicitamente para text[], que o cliente pg
+decodifica como array, mantendo a exigência exata de authenticated, RESTRICTIVE
+e ALL. Nenhuma policy ou assertion de segurança foi relaxada. Todas as oito
+flags de limpeza e cleanupAbsent vieram true; baseline FAIL permanece preservado.
+CI anterior: 1730 unitários, TypeScript e lint PASS; browser/build posteriores
+SKIPPED, não certificados. Nova execução própria continua necessária.
