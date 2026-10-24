@@ -181,6 +181,37 @@ for (const lane of historicalPreflights) {
   });
 }
 
+test(
+  "48.6-B0 pins verified TLS and read-only psql defaults",
+  () => {
+    const workflow = load(
+      read(".github/workflows/comun-48-6-b0-remote-preflight.yml"),
+    );
+    const job = workflow.jobs["remote-read-only-preflight"];
+    assert.equal(workflow.env?.PGSSLROOTCERT, undefined);
+    assert.equal(job.env?.PGSSLROOTCERT, undefined);
+    const step = job.steps.find(
+      (candidate) =>
+        candidate.name === "Run metadata-only Production preflight",
+    );
+    assert.ok(step);
+    assert.equal(step.run, "bash scripts/run-48-6-b0-remote-preflight.sh");
+    assert.equal(step.env.PGSSLROOTCERT, extraCa);
+    assert.equal(step.env.PGSSLMODE, "verify-full");
+    assert.equal(step.env.PGOPTIONS, "-c default_transaction_read_only=on");
+    assert.equal(step.env.SUPABASE_DB_URL, "${{ secrets.SUPABASE_DB_URL }}");
+    assert.match(
+      read("scripts/run-48-6-b0-remote-preflight.sh"),
+      /begin read only;/,
+    );
+    for (const other of job.steps.filter((candidate) => candidate !== step)) {
+      assert.equal(other.env?.PGSSLROOTCERT, undefined);
+      assert.equal(other.env?.PGSSLMODE, undefined);
+      assert.equal(other.env?.PGOPTIONS, undefined);
+    }
+  },
+);
+
 // Metadata SQL remains pinned. Reviewed domain-scoped routes retain separate
 // acceptance/refusal coverage in capture-readonly-domain-migration-status.node-test.mjs.
 const discoveryPreflightContracts = [

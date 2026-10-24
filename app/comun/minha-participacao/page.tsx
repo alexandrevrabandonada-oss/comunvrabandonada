@@ -400,6 +400,12 @@ export default async function MinhaAreaPage({
       ) : null}
       {selected === "tarefas" && collectiveTaskAssignments.length ? (
         <Area title="Tarefas em ações coletivas">
+          <p className="mb-4 text-sm text-comun-paper/75">
+            Você pode devolver uma tarefa aqui, mesmo depois de pausar ou deixar
+            a comunidade ou de a ação terminar. O histórico permanece; ninguém
+            recebe sua responsabilidade automaticamente. Para pedir ajuda,
+            consulte as orientações públicas da ação.
+          </p>
           <div className="grid gap-4 md:grid-cols-2">
             {collectiveTaskAssignments.map((assignment: any) => (
               <article
@@ -407,7 +413,7 @@ export default async function MinhaAreaPage({
                 key={assignment.id}
               >
                 <p className="text-xs font-black uppercase text-comun-yellow">
-                  Tarefa assumida · {assignment.task?.state}
+                  Atribuição ativa · {assignment.task?.state}
                 </p>
                 <h3 className="mt-2 text-xl font-black">
                   {assignment.task?.title}
@@ -995,15 +1001,16 @@ function MinhaAreaAppV2({
           ) : null}
           {selected === "tarefas" ? (
             <div className="grid gap-3">
-              {[...(center.tasks ?? []), ...collectiveTaskAssignments]
-                .slice(0, 6)
-                .map((item: any, index) => (
+              {[...(center.tasks ?? []), ...collectiveTaskAssignments].map(
+                (item: any, index) => (
                   <article
                     key={item.id ?? index}
                     className="surface-alert rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
                   >
                     <p className="comun-v2-status">
-                      {item.status ?? item.priority ?? "Aguardando pessoa"}
+                      {item.participation
+                        ? "Atribuição ativa"
+                        : (item.status ?? item.priority ?? "Aguardando pessoa")}
                     </p>
                     <h2 className="mt-2 font-black normal-case">
                       {item.title ?? item.task?.title ?? "Tarefa comunitária"}
@@ -1011,10 +1018,44 @@ function MinhaAreaAppV2({
                     <p className="mt-2 text-sm">
                       {item.summary ??
                         item.description ??
+                        item.task?.description ??
                         "Abra a tarefa para conferir responsabilidade e prazo."}
                     </p>
+                    {item.participation && item.task ? (
+                      <div className="mt-3">
+                        <p className="text-sm">
+                          Esta tarefa está vinculada à sua conta. Pode
+                          devolvê-la mesmo após pausar ou sair da comunidade ou
+                          quando a ação terminar. O histórico permanece; não há
+                          transferência automática. Para pedir ajuda, consulte
+                          as orientações públicas da ação.
+                        </p>
+                        <Link
+                          href={withComunAppV2(item.participation.action_url)}
+                          className="mt-2 inline-flex min-h-11 items-center font-black underline"
+                        >
+                          Ver ação e orientações
+                        </Link>
+                        <form action={releaseCollectiveActionTask}>
+                          <input
+                            type="hidden"
+                            name="slug"
+                            value={item.participation.action?.slug}
+                          />
+                          <input
+                            type="hidden"
+                            name="task_id"
+                            value={item.task.id}
+                          />
+                          <button className="mt-2 min-h-11 rounded-xl border border-current px-4 font-black">
+                            Devolver tarefa
+                          </button>
+                        </form>
+                      </div>
+                    ) : null}
                   </article>
-                ))}
+                ),
+              )}
               {!(center.tasks ?? []).length &&
               !collectiveTaskAssignments.length ? (
                 <ComunStatePanel

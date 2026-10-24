@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { execFileSync, spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import path from "node:path";
+import { probeChromiumReadiness } from "./chromium-readiness.mjs";
 
 const require = createRequire(import.meta.url);
 const MAX_ATTEMPTS = 2;
@@ -165,20 +166,40 @@ summary(
 );
 summary(`COMUN_BROWSER_PROVISIONING_VERSION=${version}`);
 
-if (!(await runWithLimitedRetry(["install-deps", "chromium"], "system-dependencies"))) {
-  process.exit(1);
-}
-
-const installed = await runPlaywright(["install", "--list"], "browser-list");
-const hasChromium =
-  installed.status === 0 && /chromium/i.test(installed.output);
-if (process.env.PLAYWRIGHT_CACHE_HIT !== "true" || !hasChromium) {
-  if (!(await runWithLimitedRetry(["install", "chromium"], "chromium"))) {
+// A restored browser cache is not proof of system readiness. Probe first to
+// avoid fragile package-manager downloads when Chromium already launches.
+// Missing system dependencies still fail closed after a genuine launch probe.
+const chromium = require("@playwright/test").chromium;
+if (await probeChromiumReadiness(chromium)) {
+  console.log("COMUN_BROWSER_PROVISIONING_EXISTING_BROWSER_VERIFIED=true");
+  summary("COMUN_BROWSER_PROVISIONING_EXISTING_BROWSER_VERIFIED=true");
+} else {
+  if (
+    !(await runWithLimitedRetry(
+      ["install-deps", "chromium"],
+      "system-dependencies",
+    ))
+  ) {
     process.exit(1);
   }
-} else {
-  console.log("COMUN_BROWSER_PROVISIONING_CACHE_REUSED=true");
-  summary("COMUN_BROWSER_PROVISIONING_CACHE_REUSED=true");
+
+  const installed = await runPlaywright(["install", "--list"], "browser-list");
+  const hasChromium =
+    installed.status === 0 && /chromium/i.test(installed.output);
+  if (process.env.PLAYWRIGHT_CACHE_HIT !== "true" || !hasChromium) {
+    if (!(await runWithLimitedRetry(["install", "chromium"], "chromium"))) {
+      process.exit(1);
+    }
+  } else {
+    console.log("COMUN_BROWSER_PROVISIONING_CACHE_REUSED=true");
+    summary("COMUN_BROWSER_PROVISIONING_CACHE_REUSED=true");
+  }
+
+  if (!(await probeChromiumReadiness(chromium))) {
+    console.error("COMUN_BROWSER_PROVISIONING_FAILED:chromium-smoke");
+    summary("COMUN_BROWSER_PROVISIONING_FAILED:chromium-smoke");
+    process.exit(1);
+  }
 }
 
 console.log("COMUN_BROWSER_PROVISIONING_GREEN");

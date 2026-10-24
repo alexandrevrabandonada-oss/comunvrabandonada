@@ -1,4 +1,4 @@
-const VERSION = "comun-pwa-v3";
+const VERSION = "comun-pwa-v4";
 const SHELL_CACHE = `${VERSION}-shell`;
 const PUBLIC_CACHE = `${VERSION}-public`;
 const SHELL = [
@@ -36,6 +36,11 @@ const PRIVATE_PREFIXES = [
 ];
 
 function isPublicPage(url) {
+  if (
+    url.pathname.startsWith("/comun/c/") &&
+    !/^\/comun\/c\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\/agenda)?\/?$/.test(url.pathname)
+  )
+    return false;
   return (
     url.origin === self.location.origin &&
     url.pathname.startsWith("/comun/") &&

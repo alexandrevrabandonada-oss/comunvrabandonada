@@ -66,3 +66,29 @@ test("Explorar preserva Jogos na experiência App V2", async ({ page }) => {
     page.getByRole("link", { name: /Voltar a Explorar/ }),
   ).toHaveAttribute("href", "/comun/explorar");
 });
+
+test("Home oferece cultura e Jogos sem exigir organização ou cadastro", async ({
+  page,
+}) => {
+  await page.goto("/comun");
+  const culture = page.getByRole("region", { name: "Cultura para aproveitar" });
+  await expect(culture).toBeVisible();
+  const games = culture.getByRole("link", { name: /^Jogos/ });
+  await expect(games).toHaveAttribute("href", "/comun/jogos");
+  await expect(culture.getByRole("link", { name: /^Rádio/ })).toHaveAttribute(
+    "href",
+    "/comun/radio",
+  );
+  await expect(culture.getByRole("link", { name: /^Acervo/ })).toHaveAttribute(
+    "href",
+    "/comun/acervo",
+  );
+  await expect(page.locator('[data-comun-primary-action="true"]')).toHaveCount(
+    1,
+  );
+  await games.click();
+  await expect(page).toHaveURL(/\/comun\/jogos$/);
+  await expect(
+    page.getByRole("heading", { name: "VR: Cidade em Disputa" }),
+  ).toBeVisible();
+});

@@ -102,6 +102,12 @@ export default async function CommunityPage({
             <p className="mt-2 max-w-3xl text-lg text-comun-paper/80">
               {experience.purpose}
             </p>
+            <p className="mt-3 max-w-3xl text-sm">
+              Conviver e acompanhar já são formas legítimas de estar aqui.
+              Colaborar numa atividade é opcional. Solicitar vínculo comunitário
+              exige uma escolha explícita e revisão; não significa ingresso
+              automático em núcleo ou grupo de trabalho.
+            </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <PrimaryLink
                 href={
@@ -472,6 +478,13 @@ function CommunityAppV2({
           </div>
           <p className="mt-4 max-w-2xl text-comun-black/70">
             {experience.purpose}
+          </p>
+          <p className="mt-3 max-w-2xl text-sm text-comun-black/80">
+            Você pode apenas acompanhar, colaborar numa atividade ou solicitar
+            vínculo comunitário. Cada escolha é voluntária. Seguir, estudar ou
+            participar de uma ação não inscreve você em um núcleo; vínculo
+            comunitário e grupo de trabalho também não equivalem a núcleo
+            permanente.
           </p>
           <p className="mt-4 inline-flex rounded-[var(--comun-radius-pill)] border border-comun-black/25 px-3 py-2 text-xs font-black">
             Vínculo atual: visita pública

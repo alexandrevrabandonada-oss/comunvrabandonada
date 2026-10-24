@@ -9,6 +9,41 @@ import {
 } from "./community-administration";
 
 describe("community administration", () => {
+  it.each(["left", "following", undefined])(
+    "resume não restaura aprovação antiga de %s",
+    (priorState) => {
+      expect(
+        resolveCommunitySelfServiceState({
+          priorState,
+          priorJoinedAt: "2026-07-01T00:00:00Z",
+          intent: "resume",
+        }),
+      ).toBe("following");
+    },
+  );
+  it("retoma uma pausa voluntária sem restaurar papel revogado", () => {
+    expect(
+      resolveCommunitySelfServiceState({
+        priorState: "paused",
+        priorJoinedAt: "2026-07-01T00:00:00Z",
+        intent: "resume",
+      }),
+    ).toBe("member");
+    expect(
+      resolveCommunitySelfServiceState({
+        priorState: "paused",
+        priorJoinedAt: null,
+        intent: "resume",
+      }),
+    ).toBe("following");
+    expect(
+      resolveCommunitySelfServiceState({
+        priorState: "suspended",
+        priorJoinedAt: "2026-07-01T00:00:00Z",
+        intent: "resume",
+      }),
+    ).toBe("suspended");
+  });
   it("não permite que solicitação própria transforme seguidor em membro", () => {
     expect(
       resolveCommunitySelfServiceState({

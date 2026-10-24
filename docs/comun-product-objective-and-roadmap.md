@@ -1,5 +1,224 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Estado atual — 21/10/2026
+
+**Entregue:** o roadmap #570 e o catálogo de Jogos #571 foram
+integrados à `main` no commit
+`242f19cd1c2fe948c28eedcc67d424ec47b5e180`.
+O Vercel confirmou Production READY desse commit, não aceite humano.
+
+**Histórico:** a PR #551 foi encerrada como substituída, sem merge.
+Oito PRs antigas continuam abertas; nenhuma se torna aprovada por isso.
+
+**Próximo candidato:** Home App V2 com acesso direto a Jogos, Rádio
+e Acervo. A ação cívica primária, os limites de privacidade e os
+bloqueios da Escola, da restauração remota e do lançamento V1
+continuam preservados.
+
+## Avaliação crítica do produto — 21/10/2026
+
+**Natureza:** diagnóstico e hipóteses de priorização derivados do código
+e do roadmap da `main@242f19cd`; **não** certificação de experiência
+social, lançamento, nem decisão de implementação automática.
+Reutiliza SOC-D01–D10, V1, 49-M e a fila SOC-D10.L; não abre outro
+programa de produto. Revalidar após cada integração importante.
+
+### Veredito e desequilíbrio a corrigir
+
+- **Proposta diferenciada, ainda não comprovada socialmente.**
+  Unir cultura, convivência, utilidade, troca e organização voluntária
+  é coerente; a existência de rotas e ferramentas não demonstra
+  rede viva nem uso recorrente.
+- **Profundidade cívica maior que densidade social.**
+  Home, Minha Participação e navegação ainda carregam semântica
+  de processos, participação e tarefas. Perfil social público,
+  expressão cotidiana livre e vínculos entre pessoas continuam
+  hipóteses, não capacidades comprovadas.
+- **Demasiadas promessas na mesma janela.**
+  Acervo, Rádio, Feirinha, Escola, Fábrica, Jogos, serviços,
+  observatórios e núcleos não podem competir pelo mesmo
+  pequeno orçamento de operação, moderação, conteúdo e QA.
+  Aparência de completude por módulos é um falso critério.
+- **Conteúdo e pessoas reais são dependência de produto.**
+  Build READY, seeds, fixtures, catálogos vazios e contadores
+  de rotas não provam obras publicáveis, transações, reciprocidade,
+  engajamento saudável, grupo ativo ou facilitadores disponíveis.
+  A avaliação não encontrou amostra humana atual suficiente para
+  atribuir sucesso de retenção, uso ou capacidade de operação.
+- **O roadmap perdeu legibilidade executiva.**
+  O arquivo contém quase três mil linhas de histórico e
+  checkpoints antigos, alguns sobre PRs depois integrados.
+  Preservar evidência histórica, mas manter no topo só
+  norte, estado atual validado, bloqueio único por trilha,
+  fila pequena, critérios de saída e links para provas.
+  O checkpoint JSON de execução também precisa ser
+  reconciliado antes de servir de fonte operacional.
+- **Segurança técnica não substitui governança social.**
+  Moderação, direitos autorais, direito de saída, segurança
+  de denunciantes e privacidade de filiação/posição política
+  exigem equipe, procedimento, prestação de contas e
+  ensaio humano. Não lançar DM aberta, social graph público,
+  upload executável nem ingresso em núcleos sem isso.
+
+### Escolhas de produto — manter, alterar e adiar
+
+**MANTER:** um COMUN, com identidade e contexto reutilizáveis
+e domínios que conservam suas próprias autorizações;
+valor cultural sem militância; relato urgente disponível;
+conviver, colaborar pontualmente e organizar como
+vínculos voluntários distintos; direitos e privacidade
+anteriores a personalização e crescimento.
+
+**ALTERAR A PRIORIDADE, não a missão:** privilegiar
+experiências concluídas e relações reais sobre quantidade de
+módulos. Não redesenhar home isoladamente: testar
+Início → Explorar → conteúdo/autor → ação opcional →
+retorno; no mesmo ensaio verificar Relata e Minha área.
+Feirinha precisa de primeira conexão real com resposta;
+núcleos precisam de um ciclo consentido com facilitador
+e substituto antes de expandir a Escola/trilhas internas.
+
+**ADIAR sem descartar:** feed personalizado, seguimento
+público em escala, DM geral, novos badges/reputação,
+gamificação de militância, marketplace aberto a todas
+as pessoas, hospedagem de jogos de terceiros, novas
+migrations para social graph e lançamento de massa.
+Não usar esses itens para compensar ausência de conteúdo
+ou dificuldade de navegação.
+
+### Portões de prova da próxima execução existente
+
+1. **Reconciliação da base e WIP (SOC-D10.L/P0):**
+   comparar cada PR aberto com a `main`, o risco e os
+   checks do SHA, fechando substituídos motivadamente.
+   Não combinar PRs históricos ou contar `SKIPPED`
+   como `SUCCESS`. Não reabrir #571 (Jogos) já integrada.
+2. **Primeiro valor sem conta (P1):** com fontes públicas
+   elegíveis e reais, visitante encontra algo interessante,
+   entende origem e autora, compartilha ou retorna sem login;
+   caminho de relato permanece claro. Estado sem conteúdo
+   e indisponibilidade são apresentados honestamente.
+3. **Continuidade pessoal (P2):** distinguir conta,
+   Minha área, perfil público e vínculos organizativos.
+   Mostrar apenas o que de fato persiste e existe;
+   não fabricar itens salvos, conexões ou timeline.
+4. **Prova social mínima (P3):** com pessoas reais e
+   moderação responsável, testar criação opt-in e
+   resposta voluntária entre duas pessoas, incluindo
+   silêncio, bloqueio, retirada e proteção de público/privado.
+   Protótipo antes de banco, política de abuso antes de DM.
+5. **Reciprocidade e organização (P4/49-M1):** uma troca
+   ou oferta com contato seguro e retorno; um convite
+   opt-in, encontro, tarefa aceita, devolutiva e rotação
+   com coletivo real. Não converter uso da cultura em
+   recrutamento nem publicar filiações em perfis.
+6. **Ensaio de conjunto (P5/50):** pessoa curiosa,
+   criadora, moradora em necessidade e organizadora
+   usam a mesma navegação. Medir conclusão de valor,
+   obstáculos, compreensão, confiança, retorno
+   espontâneo, incidentes e horas reais de moderação.
+   Reprovação relevante volta ao desenho, não cria
+   rapidamente outro módulo.
+
+**Critério de parada:** se não houver conteúdo real
+autorizado ou capacidade humana mínima de operação,
+não chamar o produto de rede social validada, não
+fabricar sinais de atividade e não escalar funcionalidades
+dependentes de massa crítica. Provar **uma comunidade
+real de uso, não um catálogo de possibilidades**.
+
+### Crítica institucional: quem decide e quem responde?
+
+A sobreposição entre rede aberta e movimento organizado só é legítima
+se a plataforma deixar compreensível quem mantém infraestrutura,
+quem define curadoria e moderação, quem controla fundos e quais
+decisões pertencem a núcleos ou organizações. A associação promotora
+não equivale automaticamente à representação de todos os usuários.
+Regras públicas, conflito de interesse, recurso e prestação de contas
+precedem alegações de "governança comunitária".
+Não tratar engajamento cultural como adesão política nem inferir
+filiação pela navegação. Um núcleo precisa de coordenação substituta,
+suporte e capacidade efetiva de acolhimento; software não cria isso.
+
+### Crítica de operação: conteúdo e moderação são o produto
+
+O plano depende de quatro insumos que a base de código não fornece:
+obras culturais publicáveis com direitos claros; organizações com
+ofertas e capacidade de responder; pessoas dispostas a conversar
+e criar com consentimento; e facilitadores com disponibilidade
+para acolher, deliberar, cumprir tarefas e moderar abusos.
+Sem responsáveis, horários de atendimento, protocolos de retirada
+e processo de atualização, uma vitrine tecnicamente funcional pode
+ser vazia, insegura ou decepcionante. Cada piloto deve explicitar
+responsável editorial/operacional, capacidade máxima, prazo de
+retorno realista, canal de recurso e possibilidade de suspensão.
+Não inventar SLA nem escala sem pessoas confirmadas.
+
+### Revisão da metodologia de trabalho — decisão de contenção
+
+- **P0: fonte operacional fresca.** Começar cada ciclo confrontando
+  `main`, PRs, checks por SHA e evidências Production com o resumo
+  executivo. `reports/current/comun-execution-checkpoint.json`
+  ainda registra data 15/10 e SHA histórico; não executá-lo como
+  fila ativa sem reconciliação. Preservar histórico, não apagá-lo.
+- **P1: limitar frentes ativas.** Conservar no máximo uma entrega
+  funcional de valor e uma correção de risco impeditivo sob
+  execução coordenada; ramos antigos ficam em triagem, não
+  contam como autorização para merge em bloco. A documentação
+  entra no PR da frente pertinente sempre que seguro.
+- **P2: proposta exige hipótese falsificável.** Antes do código,
+  registrar pessoa, problema, rota atual, menor mudança,
+  direitos/autorizações, material real disponível, evidência
+  esperada e quem vai operar. Se faltar insumo, não abrir
+  nova funcionalidade para disfarçar vazio.
+- **P3: separar provas.** Teste unitário, browser controlado,
+  Preview READY, Production READY, recuperação remota,
+  operação editorial e uso humano são evidências distintas.
+  Resultado `SKIPPED`, fixture ou seed nunca vira
+  `PASS` de atividade humana.
+- **P4: fechar o ciclo.** Entrega só é concluída com resultado
+  comparado à hipótese, regressões aplicáveis, link de prova,
+  decisão explícita de merge/rollback e registro na linha
+  canônica; interrupções devem deixar próximo bloqueio único.
+- **P5: saneamento documental.** Conservar o arquivo histórico
+  existente e manter no topo um quadro curto com SHA atual,
+  estado por domínio, donos funcionais, próximo experimento
+  e gates. Não duplicar decisões em mais documentos.
+
+### Ensaios decisivos, sem alegar números inexistentes
+
+1. **Pessoa curiosa sem conta:** encontra uma obra, jogo,
+   rádio, item ou história real, identifica origem e volta
+   naturalmente ou encerra satisfeita. Medir conclusão,
+   compreensão e barreiras, não minutos de tela.
+2. **Pessoa que quer expressar-se:** consegue mostrar algo
+   com audiência compreendida e retirar; outra pessoa
+   responde voluntariamente. Testar silêncio, bloqueio
+   e moderação antes de escalar comentários/contatos.
+3. **Pessoa que precisa de algo:** usa ferramenta ou
+   encontra oferta/ajuda, faz contato consentido e
+   obtém resposta ou estado honesto de indisponibilidade.
+4. **Pessoa que quer organizar:** encontra grupo real,
+   escolhe vínculo, aceita função concreta, acessa
+   formação/agenda, conclui ou devolve responsabilidade
+   e acompanha prestação de contas sem exposição pública
+   de filiação ou dados pessoais.
+
+**Critério para prioridades futuras:** antes de ampliar
+feed, social graph, perfis, comunicação privada ou
+núcleos, comprovar ao menos uma jornada real em seu
+respectivo eixo com participantes consentidos, conteúdo
+autorizado e equipe que possa sustentá-la. Não atribuir
+percentuais, retenção ou satisfação sem janela, amostra
+e denominador; documentar inclusive recusas e falhas.
+
+**Condição de governança:** operações de núcleos,
+convites, formação e tarefas respeitam o direito de
+participação voluntária e a não inferência de filiação.
+O COMUN não é ferramenta de pontuação política,
+vigilância dos membros ou coleta de preferências
+sensíveis por comportamento.
+
 ## Checkpoint canônico operacional — 21/10/2026, após #569
 
 **Fonte de verdade neste checkpoint:** `main@f47885b1769281ac79da54f248a266af3a4f6c88`, merge por squash da [#569](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/569). O deployment Vercel do mesmo SHA foi observado em **Production READY**; isso comprova entrega técnica, **não** aceite humano, restauração real, ativação da Escola ou certificação de lançamento V1.
@@ -2960,6 +3179,212 @@ documental não autoriza novas migrations, acesso
 a dados políticos, envios ou convites, flags,
 indexação, mudanças em Production ou merge funcional.
 
+### SOC-D10.M1 — Lacunas comprovadas e primeiro ciclo do núcleo
+
+**21/10/2026 · 49-M0, continuação da auditoria.** Decisões:
+`PRINCÍPIO DECIDIDO`; inventário: `AUDITORIA ESTÁTICA`;
+Mesa do Núcleo: `PLANEJADO`. Integra o SOC-D10.M já
+aprovado; não cria módulo, roadmap, papel global ou backend paralelo.
+O código consultado pertence à main `242f19cd`.
+Nenhum item abaixo comprova operação por pessoas reais.
+
+**O que o código de fato oferece e o que ainda falta:**
+
+1. **Vínculos comunitários:** `lib/community-membership.ts`
+   diferencia acompanhar, solicitar entrada, pausar, retomar e
+   sair, com fila de revisão. `lib/community-administration.ts`
+   prevê papéis server-side, revogáveis e restritos à comunidade.
+   **Lacuna:** associação a um núcleo permanente, com objetivo,
+   participantes autorizados, substituição e mandato explícito,
+   ainda não foi demonstrada.
+2. **Grupos de trabalho:** `lib/community-work-groups.ts`
+   lista grupos ativos ou concluídos, ligados a comunidade e pauta.
+   Não demonstra ciclo duradouro, sucessão ou responsável individual.
+   Quando a consulta falha, retorna uma lista vazia; antes de
+   depender dela numa Mesa, distinguir `empty` e `unavailable`
+   e revisar quais campos podem ser publicados sem vazamento.
+3. **Agenda:** `/comun/c/[slug]/agenda` é um endpoint `route.ts`
+   que exporta um convite `.ics` para uma atividade derivada
+   da experiência editorial da comunidade. **Não é** uma página
+   de calendário nem prova confirmação de presença, alteração,
+   cancelamento, notificações, permissões de local reservado
+   ou integração com tarefas e núcleos. Não declarar agenda pronta.
+4. **Compromissos:** `lib/personal-center.ts` agrega tarefas
+   de pautas e sinais de atenção; `lib/collective-actions.ts`
+   possui ações e designações de tarefas. A projeção agregada
+   **não prova**, sozinha, titularidade ou aceite individual.
+   O piloto deve reutilizar a designação canônica explicitamente
+   aceita, e não mostrar toda tarefa da pauta como "Minha tarefa".
+5. **Formação:** `components/learning/school.tsx` já prevê
+   Hoje, Trilhas, Prática, Materiais e Meu progresso. O catálogo
+   versionado descreve 24 missões em quatro trilhas e prática
+   revisável; `COMUN_LEARNING_R0_ENABLED` e seus gates continuam
+   necessários. Nem estudo, nem aprovação de prática, nem
+   frequência podem conceder papel político automaticamente.
+6. **Minha área:** `/comun/minha-participacao` reúne vínculos,
+   tarefas, aprendizagem e retornos, mas continua densa e voltada
+   à participação. **Lacuna de experiência:** mostrar a quem
+   escolheu organizar somente seus próximos compromissos reais,
+   com limite de informação e saída visível; quem não milita
+   não deve receber esse painel por padrão.
+
+**Contrato mínimo da Mesa do Núcleo — hipótese de UX:**
+
+- **Próximo encontro:** data, assunto, duração, facilitador e
+  acesso segundo permissão; alterações e cancelamentos explícitos.
+  O endereço reservado nunca entra em cards públicos,
+  metadados HTML, calendário público ou cache compartilhado.
+- **Responsabilidades escolhidas:** ação, tarefa, pessoa que
+  aceitou, apoio, esforço combinado, estado, impedimento,
+  devolutiva e opção de devolver a responsabilidade.
+  Papéis não são medalhas nem estatísticas de militância.
+- **Estudar e praticar:** microlição opcional do catálogo,
+  fonte legível e prática com retorno. Não oferecer "lição
+  do dia" como obrigação de presença nem pontos por adesão.
+- **Decisões e memória:** proposta, justificativa, divergência,
+  deliberação autorizada, próximos passos e registro saneado.
+  Uma reação social não equivale a voto; memória pública é
+  diferente de ata interna e de dado pessoal sensível.
+- **Acolhimento e cuidado:** saber quem pode orientar, pedir
+  ajuda, declarar indisponibilidade, solicitar revisão de papel,
+  indicar substituto e sair com dignidade. Não obrigar relato
+  de motivos pessoais ou rastrear ausências como punição.
+
+A Mesa é uma **projeção contextual dentro da mesma comunidade**
+e de Minha área, não um quinto feed, um segundo login ou uma aba
+global obrigatória. Quem só descobre a comunidade vê sua proposta
+e atividades públicas; quem participa pontualmente vê somente
+o próprio compromisso; quem ingressa no núcleo, após autorização,
+vê o conjunto restrito necessário ao seu papel.
+
+**Primeiro ciclo testável (49-M1), sem data nem integrantes fictícios:**
+
+1. Convidar um coletivo real que autorize o piloto, com
+   facilitador e suplente. Documentar regras, privacidade,
+   duração e direito de não continuar.
+2. Uma pessoa escolhe **acompanhar**, **ajudar uma vez** ou
+   **solicitar ingresso continuado**. Os três vínculos geram
+   direitos diferentes e não se convertem automaticamente.
+3. Confirmar convite a um encontro real, com dados mínimos;
+   informar mudança ou cancelamento por canal autorizado.
+4. Convidar, nunca atribuir automaticamente, uma tarefa
+   existente, com prazo razoável, apoio e possibilidade de
+   recusar, pausar ou devolver; registrar retorno compreensível.
+5. Oferecer uma microlição pública curta relacionada à tarefa,
+   acessível sem filiação; registrar progresso privado só
+   após consentimento e quando a Escola estiver liberada.
+6. Encerrar com decisão documentada, devolutiva e memória
+   publicável somente após revisão. Testar transferência da
+   facilitação sem perda de contexto e saída de um integrante.
+
+**Portões antes de abrir o piloto digital:**
+
+- Verificar acesso no servidor e RLS para visitante, seguidor,
+  colaborador pontual, integrante, facilitador, substituto,
+  ex-integrante e conta suspensa; testar bloqueio por objeto.
+- Verificar que contato, filiação política, reunião restrita,
+  presença e estudo privado não aparecem em respostas públicas,
+  índices, notificações, compartilhamentos ou logs.
+- Exigir estados de falha/vazio distintos, leitor de tela,
+  baixa conectividade e recuperação sem perda silenciosa.
+- Identificar responsáveis humanos por acolhimento, curadoria
+  e segurança. Sem equipe ou coletivo real, manter especificação
+  e ensaio controlado, nunca fabricar uma organização ativa.
+- Confirmar operação de Escola, restauração, autorização e
+  demais gates próprios antes de gravar progresso permanente.
+
+**Próxima entrega elegível:** especificar e testar, sobre rotas
+existentes, uma **Mesa read-only e privada** usando apenas
+objetos cuja autorização já é comprovável. Não criar
+`comun_nuclei`, calendário persistente, nova role ou
+sistema de mensagens antes de provar a lacuna e obter
+revisão técnica. O passivo de PRs de SOC-D10.L permanece P0;
+este registro não autoriza merge funcional, migration,
+flags, produção, indexação ou envio de convites.
+
+### SOC-D10.M4 — Certificação de acesso e rito humano
+
+**21/10/2026 · extensão da Mesa M3, no mesmo PR #572.**
+O ensaio read-only permanece restrito a pessoas com vínculo comunitário
+`member` e papel comunitário vigente de coordenação ou facilitação.
+Não equivale a filiação a núcleo, nem autoriza convocação real.
+
+**Achado de schema:** `comun_community_work_group_members` guarda
+`membership_id`, `responsibility`, `joined_at` e `left_at`,
+vinculado a grupos de trabalho com ciclo delimitado. Não registra
+consentimento específico para núcleo permanente, mandato,
+suplência ou transferência de responsabilidades. Reutilizar como
+evidência apenas do vínculo do grupo, nunca inferir militância.
+
+**Contrato verificado em código candidato:**
+`lib/community-mesa.test.ts` ensaia indisponibilidade do serviço,
+vínculo pausado, acesso recusado antes da leitura de atribuições,
+filtros server-side por identidade, escopo, papel não revogado,
+início do papel, gate de ações coletivas, recorte por comunidade e
+ocultação de campos privados. São testes com banco simulado,
+**não** sessão humana ou prova RLS no banco real.
+A rota privada declara `robots.index=false` e `robots.follow=false`.
+Nenhuma indexação, flag pública ou convite foi ativado.
+
+**Protocolo 49-M1 que ainda não foi executado:** a equipe humana
+deve autorizar coletivo e facilitador/substituto; obter escolha
+separada de acompanhar, colaborar uma vez ou integrar núcleo;
+combinar uma reunião existente com cancelamento explícito;
+oferecer uma tarefa que a pessoa possa aceitar ou recusar;
+apresentar fonte de estudo opcional; registrar devolutiva
+revisada; testar saída e substituição sem exposição de identidade.
+O roteiro requer termos claros, contato humano e dados sintéticos
+nos ensaios técnicos. Não criar participantes ou resultados
+fictícios para preencher a interface.
+
+**Gates M4:** o SHA exato deve passar Prettier, TypeScript,
+build, teste de fronteira, coerência, no-leak e COST-02 com
+Preview READY. Depois, ensaio autenticado descartável da rota
+para visitante, seguidor, membro, papel revogado, facilitador,
+ex-integrante e falha de banco. Só então considerar revisão
+do PR; não fazer merge nem publicação por este documento.
+Se a revisão provar que a configuração de grupos atual
+não suporta direitos de núcleo, propor contrato mínimo de
+consentimento e pertencimento, sem criar schema agora.
+
+### SOC-D10.M3 — Mesa privada em modo leitura (candidato no #572)
+
+**21/10/2026 · implementação candidata; sem merge nem Production.**
+O incremento acrescenta `/comun/c/[slug]/mesa` sem entrada pública
+e sem novos papéis, tabelas, migrations, convites ou registros.
+É uma **projeção privada experimental**, não o cadastro de núcleos.
+
+**Autorização fail-closed:** autenticação ativa pela sessão canônica,
+vínculo `member` na comunidade específica e papel comunitário
+`coordinator` ou `facilitator` não revogado, no escopo `community`
+e já iniciado. Qualquer ausência de acesso resulta em 404; falha de
+infraestrutura resulta em indisponibilidade, sem conteúdo privado.
+Os papéis são comunitários; nenhum equivale automaticamente a
+filiação, mandato ou autorização de um núcleo permanente.
+
+**Dados mínimos:** cinco seções (encontro, atribuições, formação,
+decisão/memória, cuidado). Somente atribuições próprias e ativas de
+ações públicas da mesma comunidade, quando o gate de ações coletivas
+estiver efetivamente liberado. Não afirmar aceite voluntário por
+existir uma atribuição. Escola exige seu gate; calendário ICS não
+vira reunião privada. Não há nomes de terceiros, atas internas,
+local reservado, lista de presença, notificação, voto ou progresso
+fabricado. Não há gravação nem rota pública para a Mesa.
+
+**Provas no código:** `lib/community-mesa-contract.ts` com filtros
+puros; `lib/community-mesa.ts` com verificação server-side e
+consulta exclusivamente por `member_user_id`; teste unitário
+`lib/community-mesa-contract.test.ts` cobre estado de vínculo,
+papéis, outra pessoa/comunidade, tarefas privadas/liberadas/inativas.
+O código candidato requer Prettier, TypeScript, build, CI e testes
+autenticados reais; **testes unitários não comprovam RLS ou operação
+de núcleo**. O PR segue draft, sem merge.
+
+**Próxima lacuna real (49-M1):** diferenciar explicitamente ingresso
+num núcleo de papel comunitário, documentar facilitador/substituto,
+confirmar reunião e devolutiva com coletivo real e testar saída.
+Sem essas provas, esta rota é só um ensaio de leitura restrito.
+
 ### Reconciliação do identificador duplicado SOC-D09
 
 O título histórico `SOC-D09 — descoberta pública
@@ -2977,3 +3402,899 @@ esta distinção documental.
 ### SOC-D09 — reconciliação documental com SOC-D10 (21/10/2026)
 
 O candidato funcional `d280e1c7` completou seus gates, inclusive Quality `39532309066` SUCCESS. Main avançou somente o roadmap em `9b92dab8`; esta conciliação preserva integralmente o norte SOC-D10 e o registro de descoberta. O código de produto, testes e workflows permanecem idênticos ao candidato funcional. O novo SHA documental exige seus próprios CI/COST-02/Preview antes de merge. Dados sintéticos são provas de laboratório, não presença social, publicação editorial ou aceite humano. A próxima auditoria deve seguir as etapas SOC-D10 vigentes; a preparação anterior de convivência não constitui autorização para pular essa ordem.
+
+### SOC-D10.M5 — Integração organizativa e ensaio de ciclo completo
+
+**Checkpoint candidato no mesmo PR #572 (21/10/2026).** Base de trabalho
+`a196f794440cefa164c827e207e1e409b8441c58`, main observada `242f19cd`.
+Não constitui merge, liberação em Production, ensaio humano ou ingresso em núcleo.
+
+**Contrato organizativo.** Comunidade é convivência e pertencimento; colaboração
+pontual é escolha em atividade específica; grupo de trabalho tem objetivo e ciclo.
+Nenhum deles equivale a núcleo permanente. Núcleo exige ingresso explícito,
+propósito e regras próprios, direitos revisáveis e liberdade de saída. A Mesa é
+uma projeção privada das ferramentas existentes, sem segundo login, feed ou
+filiação inferida. Papel comunitário autoriza esta leitura limitada, não prova
+vínculo organizativo. Seguir, reagir, estudar ou concluir uma atividade não concede
+papel. Reações não são votos; resultados públicos não são deliberação interna.
+
+**Implementado no candidato.** A leitura server-side revalida sessão, identidade
+solicitada e perfil ativo antes da consulta organizativa. Exige comunidade ativa,
+vínculo `member` e coordenação/facilitação vigente no escopo comunitário; papel
+revogado ou futuro é rejeitado também na defesa em profundidade. O propósito vem
+da descrição real da comunidade. Atividades e resultados usam apenas ações
+públicas publicadas da mesma comunidade, em lista limitada a vinte registros;
+retornam somente título, slug, estado e data. Não há local reservado, participantes,
+contatos ou notas no DTO. Atribuições são filtradas no servidor por pessoa,
+comunidade e publicação e novamente pelo contrato puro. Não se denomina o registro
+como aceite voluntário: convite, interesse, atribuição e aceite são distintos.
+
+A Mesa liga a ação canônica, suas opções existentes de participação/devolução,
+a comunidade, Minha Participação e vínculo/pausa/saída. Atividades publicadas não
+são RSVP, controle de presença ou calendário persistente. Ações concluídas têm
+atalho para resultado/memória na origem; não se inventam atas. Microlições reais
+`reuniao-termina-em-acao` e `facilite-de-verdade` são sugestões voluntárias, somente
+quando o gate já existente da Escola permite; não se consulta progresso pessoal nem
+se altera gate, flag ou direito. A entrada pública explica as escolhas sem revelar
+quem tem acesso à Mesa. A Mesa não adiciona navegação global ou link de filiação
+pública. Estados de gate fechado, vazio, acesso negado e indisponibilidade permanecem
+separados. Não há mutation nova, convite, notificação ou escrita de dados.
+
+**Auditoria de viabilidade e limites comprovados.**
+
+| Estrutura                       | Existente no código                                             | Limite observado no M5                                                       |
+| ------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Vínculo comunitário e papéis    | memberships; role_assignments com scope, starts_at e revoked_at | não representam ingresso em núcleo; review_at não é expiração automática     |
+| Grupo de trabalho               | objetivo, ciclo, integrantes e tarefas vinculadas a pauta       | não é núcleo, nem mandato ou sucessão                                        |
+| Ação, participação e atribuição | status de interesse/participação; atribuição active/released    | não há campo separado de aceite/proveniência do aceite no DTO; não o inferir |
+| Encontro                        | starts_at da ação publicada; ICS editorial                      | não prova RSVP, presença, alteração ou cancelamento                          |
+| Resultado/memória               | ação concluída e objetos públicos canônicos                     | decisão interna e documento sensível não são liberados pela Mesa             |
+| Formação                        | catálogo, microlições e progresso privado existentes            | gates próprios da Escola preservados; nenhum papel concedido por conclusão   |
+| Pausa/saída                     | estado comunitário e participação canônica existentes           | retirar acesso à Mesa não transfere automaticamente atribuições              |
+
+As migrations existentes foram lidas, sem criar/aplicar migrations. Memberships,
+papéis e grupos usam RLS e revogação de acesso direto de anon/authenticated no
+contrato versionado; a aplicação usa service role, portanto essas políticas não
+substituem as validações server-side. Leitura de código e testes mockados não
+certificam o schema/RLS instalado. Nenhum estado de liberação do ambiente foi
+inferido do código ou de um Preview anterior.
+
+**Ensaio controlado e segurança.** Testes de função server-side e renderização
+sintética cobrem visitante, identidade divergente, seguidor, membro sem papel,
+coordenação/facilitação, revogação, início futuro, pausa, saída, suspensão, outra
+comunidade, atribuições de outra pessoa, falhas de banco, gates fechados e campos
+privados inesperados. O percurso é opcional e pode terminar em comunidade,
+atividade ou Minha Participação. As fixtures são sintéticas, não um coletivo real.
+O exercício de renderização não comprova sessão Auth, RLS, aceite/devolução real,
+voto ou continuidade humana. O ensaio autenticado descartável de ponta a ponta
+permanece pendente se não houver ambiente independente com gates já certificados;
+não se ativa Escola ou ação para fabricar uma prova. Evidências locais e checks do
+SHA final devem ser registrados separadamente no checkpoint executivo do PR.
+
+**Lacuna mínima sujeita a revisão humana, sem schema novo.** Ingresso em núcleo
+precisa distinguir solicitação, aprovação e consentimento vigente da pessoa,
+com escopo do coletivo, pausa/revogação e publicidade privada por padrão.
+Responsabilidade precisa distinguir oferta, aceite verificável, devolução e
+transferência aceita pelo substituto, com contexto autorizado. Não reutilizar papel
+comunitário, frequência ou curso como equivalente. Não criar cadastro político.
+Até esse contrato ser revisado, nenhuma mutation organizativa nova é admitida.
+
+**Riscos e pendências.** Somente dados públicos publicados e atribuições próprias
+são projetados; a lista limitada não é inventário completo de toda a história.
+Mudanças concorrentes de vínculo/papel exigem nova validação na próxima leitura;
+a Mesa não oferece operação mutante. Ensaio com pessoas reais, baixa conectividade,
+tecnologia assistiva e operação de cuidado/substituição requerem validação própria.
+CI/Preview/COST-02 são técnicos, não aceitação humana ou autorização de lançamento.
+PR continua draft; Production permanece fora do escopo.
+
+**Próximo incremento específico — SOC-D10.M6.** Executar em ambiente autenticado
+independente o ciclo oferecer/aceitar/devolver uma responsabilidade pelos mecanismos
+canônicos, pausar/sair e verificar revogação na Mesa, com duas identidades sintéticas
+e limpeza comprovada. Antes de persistir ingresso em núcleo ou transferência,
+submeter o contrato mínimo acima à revisão; implementar apenas o que o schema e a
+autorização específicos permitirem. O critério é continuidade sem exposição e sem
+obrigatoriedade, preservando convivência e colaboração pontual como fins legítimos.
+
+**Defesa adicional de privacidade M5:** a revisão encontrou a Mesa e o vínculo
+abrangidos pelo prefixo público `/comun/c/` na retomada offline. A regra passa a
+aceitar apenas a raiz pública da comunidade e a agenda pública conhecida; Mesa,
+participação, descendentes desconhecidos e caminhos codificados são recusados tanto
+na rota segura do armazenamento opcional quanto no service worker. A versão do
+cache muda para invalidar caches anteriores na ativação normal, sem deploy em
+Production. Teste executa o classificador real do worker e o helper com a mesma
+matriz positiva/negativa; não remove rotas de inventários ou enfraquece gates.
+
+**Correção de certificação M5:** o CI próprio de `dc9a8d3d` demonstrou que o
+contrato de qualidade ainda fixava a versão antiga do cache. O checkpoint seguinte
+alinha o status técnico, auditor, ensaio remoto e teste de promoção a v4, preservando
+as comparações exatas, asserts de no-leak, timeouts e gates. O FAIL anterior fica
+preservado; não houve rerun ou dispatch nem alteração de ambiente para obter verde.
+
+### SOC-D10.M6 — Ciclo autenticado, responsabilidades e continuidade (22/10/2026)
+
+**Escopo e reconciliação.** Continuação da mesma PR draft #572, sobre
+`83683fa1022a6814b53b83b2c695e6a85eaecd66`, com main remoto
+`242f19cd1c2fe948c28eedcc67d424ec47b5e180`. Não há novo roadmap, núcleo ou
+cadastro organizativo. A automação permanece PAUSED; esta é uma sessão sob demanda.
+Os estados de Preview/CI do M5 são históricos, não certificação do M6. Os dois
+testes POSIX antes não comprovados no Windows passaram em Linux: suite de três
+testes, zero falhas. O workflow Civic Intelligence herdado concluiu SUCCESS;
+Quality ainda estava em execução na preparação deste checkpoint, sem rerun.
+
+**Incremento implementado.** A devolução canônica deixa de depender de a ação
+continuar aberta/pública. O server action preserva o gate de liberação, exige
+sessão verificada e perfil ativo e passa a identidade da sessão, nunca do formulário,
+ao helper server-only `lib/collective-action-task-release.ts`. A consulta verifica
+atribuição própria ativa, tarefa e slug da ação. O UPDATE repete o escopo do titular
+e confirma a linha realmente alterada; corrida, ausência, erro ou repetição não
+produzem confirmação falsa. Não apaga histórico, transfere tarefa ou reabre vínculo.
+
+Minha Participação no App V2 passa a oferecer **Devolver tarefa** junto da
+atribuição e acesso à ação/orientações; deixa de ocultar responsabilidades depois
+dos primeiros seis cartões. A experiência anterior mantém seu controle canônico.
+O texto explica devolução após pausa/saída/encerramento, histórico e ausência de
+transferência automática. Um registro vinculado à conta não é apresentado como
+prova universal de aceite: o schema ainda não distingue a proveniência de toda
+atribuição antiga. O ensaio comprova especificamente o aceite voluntário de A.
+
+O fluxo de vínculo esclarece que a pausa interrompe acesso à Mesa. A data de
+aprovação é preservada durante pausa de membro, permitindo retomada voluntária;
+seguidores não recebem aprovação por esse caminho. Um formulário antigo de retomar,
+enviado depois da saída, retorna somente acompanhamento, inclusive diante de uma
+data antiga. Retomada não modifica papéis nem desfaz revogação. Saída mantém a
+auditoria existente e encerra a aprovação corrente; reingresso depende de revisão.
+
+**Relação entre as quatro estruturas.** `comun_community_memberships` controla o
+estado do vínculo; `comun_community_role_assignments` mantém o papel/escopo e sua
+revogação; `comun_collective_action_participations` representa participação na ação;
+`comun_collective_action_task_assignments` guarda active/released por pessoa/tarefa.
+Pausa/saída comunitária não libera atribuição nem revoga automaticamente o registro
+histórico de papel. A Mesa exige membro e papel vigente em cada leitura. A tarefa
+continua própria, retornável por Minha Participação enquanto as ações estiverem
+liberadas; participação na ação não pode ser encerrada mantendo tarefa ativa,
+conforme gatilho canônico. Substituição exige novo aceite, nunca atribuição automática.
+
+**Prova funcional e limites.** `scripts/organization/rehearse-organizational-cycle.mjs`
+cria rede Docker interna própria, PostgreSQL, GoTrue, PostgREST e runner, sem portas
+publicadas, URLs externas ou credenciais do projeto. A/B recebem JWT de Auth real;
+não se simula autenticação. A fixture mínima importa as políticas canônicas de
+ações/tarefas e os gatilhos de capacidade/saída, sem aplicar migration a ambiente
+COMUN. A administração de vínculo/papel é controlada no lab; não equivale à execução
+do formulário e da fila editorial. O modo HTTP usa artefato Linux do candidato e
+cookies SSR reais, sem ativar flags. A Mesa continua respeitando liberação de ações
+e Escola; projeção de linhas reais no contrato de domínio não significa liberação
+da funcionalidade no ambiente. Não há ensaio humano concluído.
+
+A matriz cobre Auth A/B, seguidor, colaborador pontual, membro sem papel,
+facilitação vigente/futura/revogada, outra comunidade, pausa, saída, retomada antiga,
+atribuição alheia, aceite/devolução, bloqueio de retirada com tarefa ativa e ausência
+de transferência. Contratos server-side complementam visitante, suspensão de perfil,
+indisponibilidade, campos inesperados, gates fechados e atualização sem efeito.
+O modo HTTP verifica os limites reais de sessão e `private, no-store`; não prova
+histórico de navegador, Service Worker/offline ou cache já exibido a uma pessoa.
+Os testes PWA e no-leak permanecem próprios, sem excluir rotas ou baixar asserts.
+
+**Pendência de autorização no banco.** A política UPDATE de atribuições existente
+valida titularidade, mas não restringe a transição a released nem repete as condições
+de ingresso da política INSERT. O harness testa reativação direta após encerramento
+e registra `KNOWN_GAP`/PARTIAL quando admitida, sem chamar isso de segurança PASS.
+A leitura remota de metadados confirmou esse contrato; não foram consultados dados
+de participantes. Uma alteração de política/gatilho depende de revisão específica
+e autorização para migration; nenhuma foi criada ou aplicada nesta passada.
+
+**Evidências e fechamento.** Relatórios sanitizados ficam em
+`orch-v2/m6-20261022`, incluindo tentativas falhas de preparação, fonte/hashes,
+owner, resultados, intenção/readback do push e certificação do candidato. O primeiro
+ensaio de domínio completou doze verificações reais e removeu as contas. A limpeza
+final também verifica ausência dos containers, volume anônimo e rede próprios.
+O build Windows falhou ao ser usado como artefato Linux; isso motivou build nativo,
+sem remendar o runtime. SHA final, totais finais, CI, COST-02 e Preview devem ser lidos
+no checkpoint executivo atualizado da mesma PR, sem transportar verdes anteriores.
+
+**Lacunas persistentes e SOC-D10.M7.** Prioridade: revisar e autorizar a menor
+barreira de transição de atribuições no banco, com o contraexemplo autenticado do
+M6 como teste negativo; depois fechar o percurso de aceite/devolução pela interface
+em ambiente descartável com release já certificada, incluindo navegação anterior e
+offline após saída. Ingresso em núcleo, mandato, suplência aceita, deliberação e
+transferência de contexto privado continuam sujeitos a contrato próprio. Não
+inferir filiação de papel, curso, acompanhamento ou colaboração. PR permanece
+draft, sem merge, Production, nova flag, convite ou publicação real.
+
+**Certificação M6 em Linux.** O build nativo compilou e completou a matriz de rotas,
+mas a exportação da imagem falhou por I/O do Docker Desktop com falta de espaço em
+C:. O contexto e o arquivo criados pela sessão foram movidos para E:, preservados;
+nenhum recurso compartilhado foi apagado ou reiniciado. A certificação HTTP do SHA
+final passa ao job isolado de M6 dentro do workflow Core Journeys existente, somente
+em PR, com checkout do HEAD exato, contexto `git archive`, build Linux e nenhuma
+credencial do projeto. O gate exige PASS e rejeita PARTIAL/KNOWN_GAP, preservando o
+contraexemplo e a prova de limpeza; CI verde de outros jobs não o substitui.
+
+**Readback após retorno do Docker — 22/10/2026, 14:29 UTC.** Este registro substitui o estado de infraestrutura e de certificação HTTP descrito acima; preserva como histórico a falha de preparação anterior. O commit testado continua sendo `d11a15cbf15403dd2369a7431bdb6fbaa8a9513d`, árvore `53e2f7e9dc5295dbc4e91eca17f7ad3f51176786`, sem alterações locais. `main` permaneceu em `242f19cd1c2fe948c28eedcc67d424ec47b5e180` e a PR #572 draft.
+
+**Ensaio Auth/HTTP no candidato final.** Com Docker restaurado, o build Linux compilou o aplicativo, completou TypeScript e gerou 133 páginas a partir de `git archive` do SHA. A primeira imagem de ensaio continha um `package.json` inválido em `server-only`; a falha foi preservada e a imagem foi reconstruída com instalação npm limpa, validando o manifesto do pacote antes da execução. No ensaio final, 17 verificações passaram com GoTrue/Auth, PostgreSQL, PostgREST, JWT A/B reais e Next HTTP SSR: falta de acesso antes da concessão, escopo de pessoa/comunidade, atribuição voluntária, isolamento de B, revogação com JWT antigo, perfis suspenso/futuro, pausa/saída, devolução pelo caminho canônico, redirecionamento anônimo e `private, no-store`. O resultado geral permanece `PARTIAL` por uma lacuna reproduzida, não por mock ou falha de infraestrutura.
+
+**Contraexemplo RLS e limpeza.** A fixture mínima importou as políticas e gatilhos canônicos de ações/tarefas, sem migration do produto. Com uma sessão autenticada, o titular pôde reativar diretamente a própria atribuição depois do fechamento da ação (`KNOWN_GAP`). A tarefa não foi transferida; a rota da Mesa continuou protegida e a devolução autorizada após pausa/saída passou. O harness apagou A/B e confirmou a remoção dos containers, volume anônimo e rede do owner. Evidência sanitizada, com SHA/hash de fontes, imagens, resultados e limpeza: `E:/COMUN-M6-LAB-20261022/evidence/authenticated-final-d11a15cb-rebuilt-image-20261022T1255Z/authenticated-cycle.json`. Não prova o schema integral já instalado, o formulário completo de ingresso, navegador/histórico/offline ou aceitação humana.
+
+**CI/Preview e encaminhamento.** COST-02, Quality, Security, Coherence e demais checks registrados para `d11a15cb` passaram; o job Auth do workflow Core correspondente continuou FAIL por `toomanyrequests: Data limit exceeded` no ECR antes dos testes. Não houve rerun nem dispatch; a prova local final independente cobre o SHA informado. O Preview daquele SHA estava READY e não era Production. Uma atualização documental posterior recebe SHA e readback próprios; nenhum resultado é transportado automaticamente. A transição RLS requer revisão e autorização específica para migration; até lá, M6 continua parcial e PR draft. M7 mantém como prioridade uma barreira forward-only que impeça reativação após fechamento, seguida da verificação de saída em navegação e modo offline.
+
+**Readback final do Core Journeys e do checkpoint documental — 22/10/2026.** O run `39796557514`, no HEAD documental `02e2f9c97737ab7b0920b722f51e038d51886000`, terminou FAIL. `pr-contract` passou; no job `SOC-D10.M6 / authenticated continuity and RLS`, `postgres:17` foi baixado, mas o pull de `public.ecr.aws/supabase/gotrue:v2.196.0` retornou `toomanyrequests: Data limit exceeded`. O pull de PostgREST e as etapas posteriores de contratos POSIX, build Linux e Auth A/B/RLS foram ignorados. Os logs confirmam limite de transferência do registry público ECR no runner; não indicam falha funcional do produto nem falha do Docker Desktop local. Nenhum rerun, dispatch ou troca de origem de imagem foi feito.
+
+No run `39796557578`, o workflow COMUN CI concluiu SUCCESS; os jobs `COMUN RETRO / unit`, `SECURITY / changed SECURITY DEFINER migrations` e `COST-02 / exact checkpoint Preview` concluíram PASS. Isso não muda o FAIL do Core Auth nem converte etapas ignoradas em PASS. O deployment Vercel do SHA documental `02e2f9c` foi cancelado pelo _Ignored Build Step_; portanto não existe Preview READY desse SHA. O Preview de código `d11a15cbf15403dd2369a7431bdb6fbaa8a9513d` continua READY. Leitura anônima da rota `/comun/c/teste-publico/mesa` nesse Preview chegou a `/comun/entrar`, com `private, no-store`, `noindex` e sem marcador ou conteúdo privado da Mesa. Essa leitura não certifica sessão autenticada, revogação no browser ou modo offline. O próximo candidato de código deve repetir o Core Journeys somente quando a quota ECR permitir a preparação das imagens, sem reduzir o gate; a correção RLS segue condicionada a revisão e autorização específica para migration.
+
+**Readback final do Quality M5.** O run `39712009454`, no SHA `83683fa1`, terminou
+FAIL na etapa Formatação focal e whitespace, especificamente `lib/comun-pwa.ts`.
+O erro foi reproduzido com Prettier 3.9.6; a correção altera somente trivia, com
+sequência de tokens TypeScript idêntica comprovada. O run original permanece
+preservado; o novo checkpoint segue o CI normal do próprio SHA, sem rerun.
+
+### SOC-D10.M6 — Tratamento focal do provisionamento Chromium (22/10/2026)
+
+**Falhas do HEAD `e43a91a4` classificadas por logs exatos:** cinco jobs de
+browser/performance/PWA/admin/acessibilidade falharam antes dos ensaios por
+`install-deps` em runner Linux após timeout e contenção de `apt-get`;
+a classificação falhou por depender de Performance. Diferentemente,
+`SOC-D10.M6 / authenticated continuity and RLS` executou o ensaio e
+terminou `PARTIAL` pelo contraexemplo de reativação via UPDATE após
+encerramento. Não converter essas sete falhas em PASS retroativo.
+
+**Mitigação candidata, somente CI:** o instalador passa a abrir de fato
+o Chromium local e navegar para `about:blank` antes de invocar `apt-get`.
+Se o navegador existente já funcionar, a instalação de dependências não
+é necessária; caso contrário, o caminho de instalação permanece
+obrigatório e um segundo smoke é exigido para concluir com sucesso.
+Não usar cache hit como prova, não pular suíte de navegador ou reduzir
+exigências. O contrato puro do smoke tem quatro testes sintéticos,
+aprovados em Node Linux local; comportamento em runner só será
+certificado pelos workflows do SHA final.
+
+**Segurança:** a lacuna RLS de reativação permanece explicitamente
+`KNOWN_GAP`. Nenhuma migration, policy, flag, mudança de Production,
+convite ou merge foi autorizada ou executada nesta mitigação.
+Um gate Auth M6 que falhe por essa razão deve continuar FAIL até
+haver correção aprovada, ensaio autenticado real e limpeza.
+
+**SOC-D10.M6 — candidata para fechar a transição RLS, 22/10/2026.** A autorização
+humana específica desta continuação permite criar/publicar a migration na PR #572
+e ensaiá-la somente em laboratório descartável. Não inclui aplicação remota,
+novos grants, merge ou Production. A baseline própria `e43a91a4`, run `39803345507`,
+completou Linux/POSIX, build e Auth A/B/Next HTTP; resultado PARTIAL por uma
+reativação direta indevida, com 17 verificações PASS e limpeza comprovada.
+
+A candidata `20261022160000_comun_collective_task_release_boundary.sql` limita
+UPDATE autenticado a atribuição própria ativa que se torne released e mantém
+`id`, `task_id`, `member_user_id` e `created_at` imutáveis por gatilho SECURITY
+INVOKER. Não altera INSERT, SELECT, vínculos, dados existentes ou papéis. O fluxo
+canônico de novo aceite usa serviço com validações próprias e upsert; a
+compatibilidade desse upsert e a devolução após pausa/saída/encerramento precisam
+continuar passando. Não se atribui proteção RLS ao cliente de serviço.
+
+O harness carrega a migration candidata literal e inclui negação de reativação,
+tentativas de retargeting, devolução direta própria, reaceite de serviço sem troca
+de identidade e fronteiras de aceite em ação/tarefa/prazo/participação/capacidade.
+O contraexemplo anterior fica preservado; no candidato uma reativação admitida é
+FAIL, sem converter falha de infraestrutura em aprovação. Certificação Auth real,
+CI, COST-02 e Preview próprios do novo SHA permanecem PENDING até seus resultados.
+A fixture continua mínima e não comprova schema integral, browser/offline ou
+aceite humano. M6 permanece a estação atual; aplicação remota exige outra decisão.
+
+**SOC-D10.M6 — catálogo read-only após a candidata RLS, 22/10/2026.**
+O SHA `b8c48753` publicou a migration autorizada sem aplicação remota. Seu Preview
+exato ficou READY e COST-02 passou; a certificação Auth corrigida não executou,
+pois a preparação das imagens recebeu `toomanyrequests: Data limit exceeded`.
+A prova suplementar PostgreSQL/WASM teve 18 verificações PASS com claims SQL
+simulados; não substitui GoTrue, PostgREST, Next HTTP ou navegador reais.
+
+O catálogo read-only estava fixado em 116 migrations, causando falha do contrato
+unitário com a candidata presente. Esta continuação atualiza somente contagem e
+hash do catálogo completo para 117 arquivos. Não amplia a exceção Escola nem
+aceita a nova migration pendente: teste negativo específico exige recusa quando
+ela falta no histórico remoto ou aparece no diff da PR. Nenhuma rota, assertion,
+consulta remota, permissão ou política de aplicação foi suprimida. Os contratos
+Linux/WSL do classificador, captura e workflows passaram em 30 testes; outros 64
+contratos Linux de TLS e checkpoint Preview passaram. Os checks
+do novo SHA precisam de resultados próprios; preflights remotos continuam sujeitos
+às mesmas barreiras. Docker local respondeu HTTP 500, sem reinício ou limpeza de
+recursos compartilhados. M6 segue parcial; próximo passo é certificar o laboratório
+Auth nativo quando sua infraestrutura estiver disponível, preservando saída,
+revogação e devolução sem reativar acesso.
+
+**SOC-D10.M6 — Next HTTP certificado e prova de navegador, 22/10/2026.**
+No SHA `87435773`, o laboratório limpo concluiu 27 verificações PASS com GoTrue,
+PostgreSQL, PostgREST e Next HTTP reais: cookies SSR, isolamento A/B/comunidade,
+revogação/pausa/saída, suspensão e private/no-store. Quatro containers, volume,
+rede e usuários próprios removidos; relatório `next-http-fresh-deps-87435773`.
+O primeiro ensaio falhou por `server-only/package.json` zerado numa camada Docker
+antiga; FAIL preservado, reinstalação sem cache e integridade verificada antes
+da nova prova. Nenhum código ou gate do produto foi modificado para obter PASS.
+COST-02, Preview READY, pr-contract, PWA e coerência do 87435773 foram revalidados.
+
+Esta continuação acrescenta ao mesmo harness a opção `--with-browser`, exigida
+pelo workflow M6, com Chromium sintético isolado: Mesa móvel autorizada, histórico
+após revogação, negação direta, tentativa offline e inspeção de CacheStorage.
+O Dockerfile instala o navegador somente com argumento de laboratório explícito;
+não há flag de publicação, sessão real, nova migration ou operação remota.
+A prova do novo candidato permanece PENDING até execução; falha de histórico,
+cache, navegador ou infraestrutura não pode ser tratada como aceite. O ciclo não
+prova pertencimento persistente a núcleo, mandato, suplência ou deliberação.
+M6 segue atual até concluir suas provas; M7 deve priorizar devolução/continuidade
+inteligível e contrato mínimo de responsabilidade com consentimento, sem transferir
+atribuições automaticamente nem inferir filiação.
+
+**Readback do SHA `f0645437` — CI e Preview, 22/10/2026.** O deployment exato
+permaneceu READY e o endpoint `quality-status` serviu o SHA completo. COST-02,
+Security de migrations, `pr-contract` e Experience Coherence terminaram SUCCESS.
+O job Auth M6 falhou antes dos testes: o pull de GoTrue no registry público ECR
+respondeu `Data limit exceeded`; não houve rerun ou dispatch. Um readback da tela
+pública `/comun/acoes` confirmou HTTP 200, operação de ações ainda fechada e texto
+que informa que nenhuma participação/tarefa é registrada; as pautas seguem
+acessíveis. No snapshot do PR houve 42 SUCCESS, 20 FAILURE, 74 SKIPPED e um
+`pr-lane` ainda em andamento. Parte dos preflights falhou ao classificar a
+migration M6 como ownership desconhecida; SKIPPED não é certificação.
+
+**Desbloqueio focal de ownership, 22/10/2026.** O manifest registra a migration
+`20261022160000_comun_collective_task_release_boundary.sql` sob owner explícito
+`collective-task-release-boundary`. Os preflights legados que não são donos dela,
+inclusive lanes sem migration, a classificam como não aplicável e não selecionam
+essa migration como candidata; suas verificações read-only de escopo próprio
+continuam valendo. A regra mantém bloqueio para arquivos desconhecidos e
+combinações com a migration própria de outra lane. Os 27 contratos do classificador
+passaram em Linux com Node 22.19.0. Esta correção não comprova o gate M6, não aplica
+a migration e não altera autorização remota; o novo SHA ainda precisa de readback
+CI/Preview próprio. M6 continua sendo a estação atual.
+
+**Readback autenticado M6 no SHA `6befd3131efa258a60f90e60daa65990352b3661` —
+22/10/2026.** O job próprio
+[`SOC-D10.M6 / authenticated continuity and RLS`](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/39840946177/job/120041477532)
+terminou SUCCESS no SHA exato. O workflow executou em Linux a suite POSIX, o build
+do contexto versionado, Auth A/B real, PostgreSQL/RLS, PostgREST, Mesa via Next HTTP
+com cookies SSR e Chromium sintético. O artefato sanitizado
+`comun-m6-authenticated-39840946177` contém 28 verificações PASS e hashes das fontes,
+fixture e imagens. Entre os casos: seguir/solicitar vínculo sem aprovação automática;
+concessão controlada no laboratório; isolamento por pessoa e comunidade; aceite e
+devolução voluntários; identidade imutável; revogação com JWT já emitido; papel futuro;
+perfil suspenso; pausa/saída; URL conhecida; cache/offline e histórico revogado; e
+bloqueio de reativação RLS após fechamento. A tarefa permanece atribuída à pessoa que
+saiu até a devolução voluntária; não é transferida, e não se apaga seu histórico.
+
+A limpeza do artefato confirmou contas sintéticas removidas e ausência dos quatro
+containers, volume anônimo do owner e rede descartável. `proofKind` é
+`REAL_AUTH_DATABASE_NEXT_HTTP_AND_SYNTHETIC_CHROMIUM`; não é aceite humano. A fixture
+importa o SQL candidato em schema mínimo, não equivale ao schema integral já migrado.
+Vínculo/papel foram preparados por administração controlada, não pelo percurso de
+autoatendimento do produto. O Chromium cobre a Mesa sintética e seus estados/cache,
+não o percurso organizativo integral nem a compreensão de participantes.
+
+O deployment Preview do mesmo SHA está READY; o endpoint protegido `quality-status`,
+consultado com acesso autenticado à Vercel, retornou o SHA completo e
+`comun-pwa-v4`. `/comun/acoes` respondeu 200 com `private, no-store` e manteve a
+operação fechada: nenhuma participação/tarefa é registrada por essa tela; as pautas
+públicas continuam disponíveis. No readback dos checks, o gate COST-02 e o
+`pr-contract` ainda estavam pendentes, assim como outros workflows; `SKIPPED` não é
+PASS. Logo, este resultado fecha a prova autenticada descartável do M6, mas não a
+certificação integral da estação, liberação funcional em ambiente, nem aceite humano.
+Não houve aplicação remota da migration, alteração de Production, flag, convite ou
+merge. Próximo incremento da mesma estação: reconciliar COST-02, `pr-contract` e os
+checks relevantes do SHA final; manter documentadas a ausência de vínculo persistente
+de núcleo, mandato, suplência aceita, deliberação e transferência consentida.
+
+### SOC-D10.M6 — CI imagens fixadas e checkpoint de Preview (22/10/2026)
+
+Readback factual do HEAD anterior `2ad7d6b4`: 73 SUCCESS, 199 SKIPPED,
+três FAILURE e zero em andamento. Auth M6 parou no pull de PostgREST
+por quota ECR; o workflow Security parou no pull de Mailpit, também por
+quota. COST-02 reprovou `checkpoint-stale` após mudanças de CI de
+alto risco sem checkpoint recente; `pr-contract` passou. Preview desse
+HEAD estava READY, o que não substitui COST-02.
+
+Nova mitigação somente no M6: os manifests oficiais GoTrue
+`v2.196.0` e PostgREST `v16.2` são obtidos de GHCR com digests SHA-256
+conferidos e alias local com mesmo image ID. O fallback ECR por versão
+é explicitamente rotulado, nunca chamado de digest-pinned; falha em
+ambas as origens continua reprovando o gate. Cinco contratos Node
+sintéticos locais PASS, sem simular download real. A imagem Mailpit
+do workflow Security é um bloqueio separado ainda não corrigido.
+O commit `[comun-preview]` somente solicita nova prova exata: exigir
+Preview READY e COST-02 no SHA, além do ensaio Auth M6, limpeza e
+RLS; não transportar os 28 PASS do candidato anterior `6befd313`.
+Sem merge, migration, flag, convite ou Production.
+
+### SOC-D10.M7.A — Contrato puro de ingresso, mandato e suplência consentida (22/10/2026)
+
+**Incremento implementado em branch/PR canônicos, sem persistência:**
+`lib/community-nucleus-contract.ts` fixa aviso de ingresso específico em
+núcleo com versão e SHA-256; a classificação de vínculo exige identidade
+verificada no servidor, vínculo comunitário ativo, consentimento afirmativo
+não revogado, solicitação ativa, revisão por outra pessoa e matrícula própria
+ativa vinculada ao mesmo pedido. Seguir comunidade, colaborar numa tarefa,
+ser facilitador ou integrar grupo de trabalho **não** satisfaz essa cadeia.
+
+Mandato é separado de papel comunitário: requer oferta, aceite da própria
+pessoa, período vigente, identidade e núcleo compatíveis, sem revogação.
+A prova de acesso inclui identidade e núcleo e não pode ser reutilizada
+em mandatos ou propostas de suplência de terceiros.
+Uma oferta de suplência pode, no máximo, tornar-se elegível para revisão
+humana; aceite não atribui mandato, transfere tarefa ou revela memória.
+Filiação não tem projeção pública padrão. A suíte focada
+`lib/community-nucleus-contract.test.ts` cobre 17 casos incluindo
+outra identidade/comunidade, autoaprovação, revogação, saída, tempo,
+mandato alheio e transferência indevida. Contrato TS validado em análise
+local e testes de fumaça Node com dez asserções; regressão Vitest total
+permanece sujeita ao CI do SHA final.
+
+**Fronteira de segurança inalterada:** não há tabela de núcleos, matrícula
+persistida, formulário de ingresso, convite, lista de participantes, RPC,
+política RLS, migração aplicada, extensão de acesso à Mesa ou liberação de
+funcionalidade. A decisão pura serve para futura implementação auditada;
+não é substituta de Auth/RLS nem prova de legitimidade do revisor. Antes de
+persistir dados potencialmente sensíveis, exigir revisão específica de
+finalidade, minimização, base legal, retenção, cancelamento, direitos,
+capacidades de gestão e separação entre publicação e organização privada.
+
+**Portão M7.B (ainda não autorizado):** proposta da menor estrutura para
+núcleo/consentimento/solicitação/revisão/matrícula/mandato/suplência,
+autorização de schema, migração reversível e RLS com testes A/B e usuário
+revogado. Nunca inferir filiação ou transferir responsabilidade sem novo
+aceite. M6 permanece pendente até Auth/COST-02/pr-contract do HEAD próprio,
+sem transportar evidências de SHAs históricos. PR segue draft, sem merge,
+Production, migração, flag ou convite.
+
+### SOC-D10.M7.B — Proposta de persistência privada e matriz negativa (22/10/2026)
+
+A arquitetura detalhada `docs/comun-nucleus-m7b-persistence-and-rls.md`
+compara o modelo atual de comunidades/grupos à proposta de oito
+entidades privadas, sem DDL executável nem migração. O contrato puro
+`lib/community-nucleus-read-boundary.ts` e sua suíte de cinco cenários
+testam isolamento pessoal, escopo do núcleo/comunidade, evidência do
+revisor e negação de listas, memória e filiação públicas. Contrato
+não é regra de acesso implementada nem prova de banco: RLS/Auth real
+seguem obrigatórios antes de persistência. A pessoa poderá consultar
+seus recibos mínimos após saída sem recuperar poderes organizativos.
+Revisor terá no máximo resumo mínimo, sem autoaprovação.
+
+**Portão M7.C:** revisão LGPD e humana dos tratamentos potencialmente
+sensíveis, autoria legítima e limites de retenção; aprovação separada
+para DDL/RLS em ambiente descartável, seguida por Auth A/B real.
+Não criar automaticamente filiação, mandato, acesso, evento, flag,
+busca pública ou transferência de responsabilidade. A PR #572 segue
+em draft; M6 e os gates do HEAD exato permanecem independentes.
+
+### SOC-D10.M6 → M7.C — Certificação Auth e fundação candidata (22/10/2026)
+
+**Reconciliação e autorização.** Continuação da PR draft #572 sobre
+`5838c9c7fb2b11eeea16a6db947d11760aa6d60f`, main
+`242f19cd1c2fe948c28eedcc67d424ec47b5e180`. A instrução humana desta passada
+autoriza DDL candidata fora de migrations e execução estritamente descartável;
+não autoriza banco compartilhado, migration remota, flag, merge ou Production.
+Os portões históricos M7.C acima são atualizados somente nesse escopo de proposta.
+
+**M6 — bloqueio de formatação corrigido.** O job Auth do SHA `5838c9c7` falhou no
+Prettier antes de Auth, enquanto `pr-contract` e COST-02 desse SHA passaram.
+O Prettier real 3.9.6 foi executado sobre
+`scripts/organization/prepare-m6-images.node-test.mjs`, preservando os cinco casos
+e resultados esperados. Os cinco contratos passaram em Node Linux 22.19.0.
+O workflow existente exige a prova Auth/SQL/Next HTTP/Chromium do HEAD próprio;
+não há rerun/dispatch, exclusão de testes ou herança de aprovação histórica.
+
+**M7.A/B — correções concretas.** Consentimento tem ID, vínculo ao pedido,
+versão de regras e hash da finalidade específica. Teste calcula SHA-256 do aviso
+UTF-8 unido por LF sem LF final e confirma o valor publicado. Datas de calendário
+inválidas e pedido anterior ao consentimento são negados. Revisão exige prova
+independente vinculada ao pedido/titular/núcleo/comunidade e válida no instante
+da decisão. Mandato e suplência incluem comunidade, impedindo reutilizar prova
+em escopo incompatível. A leitura de revisor é específica do pedido/titular,
+com início/fim/revogação e evidência do mesmo instante da operação, sem cache
+de autoridade. Recurso não reconhecido é negado. São contratos de design,
+não sessões verificadas ou autorização por si mesmos. Suíte focal: 29 PASS;
+regressão unitária local: 1.727 PASS. Perfil ativo é requisito explícito nos
+contratos de acesso/leitura; datas inválidas e mandatos/suplências fora dos limites
+da candidata são recusados. Os limites SQL usam durações em horas, evitando
+divergência com os intervalos UTC do contrato TypeScript em mudanças de fuso.
+
+**M7.C — incremento executável.** A candidata
+`docs/proposals/m7c/nucleus-candidate.sql` e sua análise
+`docs/proposals/m7c/README.md` derivam do schema real de comunidades. Dez tabelas
+privadas separam núcleo/finalidade, consentimento, pedido, autoridade específica
+de revisão, decisão, matrícula, mandato, oferta e decisão de suplência e auditoria
+mínima. FKs compostas impedem desvio de titular/comunidade/núcleo; checks, índices
+e triggers preservam histórico, impedem reativação terminal e exigem cadeia
+aprovada. Aceite pessoal, termo delimitado, devolução/revogação de mandato e
+suplência com decisão independente não transferem tarefa, mandato ou memória.
+Nenhuma ferramenta de ações, pautas, Escola ou comunidade foi duplicada.
+
+Todas as tabelas candidatas têm FORCE RLS. `anon` e `service_role` não têm acesso
+ao schema; clientes não têm DML. Recibos usam RLS própria e grants de colunas
+mínimas; revisor só lê o resumo do pedido explicitamente autorizado. Funções
+privilegiadas têm `search_path` fechado, EXECUTE revogado por padrão, identidade
+`auth.uid()` e validações SQL de estado/escopo. O owner privilegiado continua
+sendo limite de confiança e é usado apenas para fixture e bootstrap controlados.
+Não há API de concessão de legitimidade a revisores nem de criação de núcleo.
+
+**Prova funcional e limites.** `--with-nucleus-model` estende o mesmo laboratório
+M6: A/B são protagonistas e C é revisora sintética independente, com dois núcleos
+e duas comunidades. GoTrue emite sessões reais; operações atravessam PostgREST,
+funções SQL e RLS reais. O schema privado é exposto somente nesse PostgREST
+descartável, nunca no ambiente COMUN. Ensaio preliminar do candidato: 37 grupos
+PASS, incluindo 11 de M7, com schema candidato removido, contas apagadas e
+containers/volume/rede do owner ausentes. Evidência em
+`E:/COMUN-M6-LAB-20261022/evidence/m7c-candidate-expanded/authenticated-cycle.json`:
+fonte `dirty=true` e hashes próprios; não certifica o HEAD histórico `5838c9c7`.
+O JSON do job final separa M7.C Auth/RLS de M6 HTTP/Chromium e inclui SHA, hashes,
+imagens, resultados e limpeza. O topo executivo da mesma PR registra o readback
+do SHA publicado, CI/COST-02 e Preview exatos, sem tratá-los como aceite humano.
+
+**Riscos e pendências reais.** Fixture mínima não substitui schema integral.
+Bootstrap de revisores, finalidade/base de tratamento, retenção e exclusão de
+contas (FK RESTRICT), recursos contra decisão, concorrência e revisão dos definers
+precisam de decisão específica. Revogar autoridade de revisor impede poderes
+futuros; anular decisão histórica é um ato distinto, não revoga matrículas de
+terceiros silenciosamente. Não há persistência organizativa no produto, rota de
+inscrição, interface M7 autenticada, integrantes reais ou aceite humano.
+O texto proposto mostra acompanhar/colaborar/ingressar como possibilidades
+independentes, com aceite desmarcado, recusa, tempo esperado, pausa/saída e recibos
+privados; cultura e convivência continuam legítimas sem ingresso em núcleo.
+
+**SOC-D10.M7.D — próximo incremento específico.** Depois dos gates técnicos e
+da revisão de finalidade/legitimidade/retenção e autorização do backend, integrar
+pedido e recibo ao contexto de comunidade/Mesa por sessão verificada, DTO mínimo
+e RLS, com aceite/recusa de mandato e suplência em ambiente descartável. Ensaiar
+mobile/acessibilidade, URLs antigas, revogação e cache sem habilitar matrícula real
+por esta proposta. Qualquer migration aplicável ou persistência compartilhada
+continua bloqueada até autorização própria. Automação permanece PAUSED;
+desenvolvimento sob demanda, mesma ferrovia e PR draft.
+
+### SOC-D10.M7.D — Pré-requisitos técnicos e concorrência (23/10/2026 UTC)
+
+Continuação sobre `86d7cae9a8594255bb00d3a7a3fa1277d455133d`, mesma PR draft
+#572 e main `242f19cd1c2fe948c28eedcc67d424ec47b5e180`. A etapa de integração
+autenticada ainda não está concluída nem liberada. Finalidade, legitimidade dos
+revisores, recurso, retenção/exclusão e autorização específica do backend/migration
+continuam sendo portões próprios.
+
+**Fechamento factual M7.C.** O artefato `comun-m6-authenticated-39870987155`
+certificou aquele SHA, árvore limpa e 39 grupos PASS, com Auth/PostgreSQL/RLS/
+PostgREST/Next SSR/Chromium sintético e limpeza. Core Journeys, Security/Resilience,
+COST-02 e Quality concluíram com sucesso próprios. Coherence
+`39870987365` terminou FAIL: 307 PASS e uma falha móvel JS em
+`help-connectivity.spec.ts`, na ativação por teclado de `#conexao`. Não é PASS.
+Reprodução local com o teste intacto: 28 PASS em sete viewports, com/sem JS,
+mais dois PASS focais. Isso não corrige nem apaga o FAIL original. O workflow
+passa a preservar trace e contexto somente dessa superfície pública em falhas;
+não há aumento de timeout, retry, exclusão ou enfraquecimento de asserções.
+
+**Incremento executável.** `nucleus-disposable-domain.mjs` acrescenta chamadas
+PostgREST concorrentes: duas revisões independentes devem produzir uma única
+decisão/matrícula/auditoria; dois aceites devem produzir uma única transição;
+saída concorrente com aceite não pode restaurar poderes nem permitir reaceite.
+O ensaio candidato local passou em 38 grupos de domínio, incluindo 12 M7,
+com contas/schema/containers/volume/rede removidos. Evidência:
+`E:/COMUN-M6-LAB-20261022/evidence/m7d-concurrency-exit/authenticated-cycle.json`.
+Esse resultado usa fonte modificada e hashes próprios; não certifica novo SHA
+publicado, Next/Chromium ou aceite humano. O job do HEAD próprio continua exigido.
+
+**Compatibilidade e limites.** Inspeção SQL explicitamente READ ONLY no stack
+local confirmou nomes/tipos dos seis campos externos de comunidade, perfil e
+vínculo usados pela candidata. Não aplicou DDL, alterou dados ou comprovou o
+schema integral. O ensaio não cobre todas as intercalações, carga ou revogação
+administrativa concorrente. Não foi criada rota de inscrição, backend liberado,
+migration aplicável, nova filiação, flag ou transferência de responsabilidade.
+
+**Próximo movimento M7.D.** Investigar a falha de foco com trace próprio caso
+reapareça, provar compatibilidade da candidata com schema integral em clone
+descartável e revogação concorrente. Depois das decisões específicas de
+finalidade/retenção/autoridade, integrar pedido/recibo por sessão verificada e
+ensaiar UI móvel e saída. PR segue draft; sem merge ou alteração de Production.
+
+### SOC-D10.M7.D — Revogação durante revisão bloqueada (22/10/2026, Brasília)
+
+Reconciliação própria do HEAD `ebd0f0f589dcaaff6e40dcab0c6f973381fefff5`:
+Core Journeys `39878276633`, Coherence `39878276896`, Quality `39878276769`,
+Security/Resilience `39878276925` e COST-02 do workflow `39878276668` concluíram
+SUCCESS. Isso fecha os checks então pendentes; não apaga a falha intermitente
+histórica da ajuda nem prova sua causa ou aceite humano.
+
+**Incremento executável:** o harness segura a linha da autoridade em transação
+administrativa exclusivamente descartável, inicia a revisão via PostgREST e
+observa a espera real pelo lock. Comita a revogação antes de liberar o pedido;
+exige erro, zero decisões/matrículas/auditorias de aprovação e perda da leitura
+pela revisora revogada. Outra revisora com autorização nova consegue deliberar;
+a matrícula sintética resultante é encerrada antes da limpeza.
+
+As primeiras tentativas falharam por instrumentação: o snapshot de
+`pg_stat_activity` era reutilizado dentro da transação, e a asserção em `finally`
+ocultava o erro original. A renovação explícita do snapshot e o tratamento do
+resultado após a limpeza corrigem o teste. O SQL candidato original passou;
+a alteração SQL especulativa foi revertida, sem publicação. Prova local de
+domínio: 39 grupos PASS, 13 M7, fonte modificada e hashes próprios, não SHA final
+certificado nem navegador, em
+`E:/COMUN-M6-LAB-20261022/evidence/m7d-revocation-refreshed-observer/authenticated-cycle.json`.
+As duas evidências FAIL anteriores permanecem preservadas; recursos próprios
+foram removidos também nas falhas. Gate CI passa a exigir os 13 grupos M7 e
+continua exigindo HEAD exato, árvore limpa, Next/Chromium e limpeza.
+
+**Bloqueio comprovado de schema integral:** a inspeção READ ONLY encontrou
+110 migrations registradas no stack local, até `20260901000000`, contra 117
+arquivos no checkout. O stack não foi alterado e não é clone certificado deste
+HEAD. Próximo incremento: construir clone descartável atualizado para provar
+compatibilidade integral, sem tocar bancos compartilhados. Depois permanecem
+as decisões específicas de finalidade, retenção/exclusão, autoridade/recurso e
+autorização do backend/migration antes da integração de UI. Esta passada não
+cria rota de inscrição, flags, filiação real, merge ou alteração de Production.
+
+### SOC-D10.M7.D — Ajuda por teclado e replay canônico para DDL (22/10/2026)
+
+No HEAD `1bd4e9b6`, Auth/Core Journeys, Security/Resilience, Coherence e COST-02
+passaram próprios. Quality `39883292439` falhou no mesmo teste de ajuda com JS,
+agora em 430px: 307 PASS/1 FAIL ao ativar `#conexao` por teclado. A causa completa
+da intermitência ainda não foi comprovada. `app/comun/ajuda/page.tsx` passa a usar
+âncora HTML nativa para fragmentos da própria página, preservando Next Link entre
+rotas e o teste original intacto. Ensaio local: 42 PASS em sete viewports com/sem
+JS; isso não apaga o FAIL histórico nem substitui o CI do commit publicado.
+
+O novo verificador `scripts/organization/verify-nucleus-full-schema.mjs` utiliza
+o reset canônico do workflow Coherence, em runner hospedado isolado. Recusa
+execução no PC, runner self-hosted ou endpoint externo. Confere todas as versões
+registradas contra os 117 arquivos (incluindo versões históricas de 12 dígitos),
+os bytes do HEAD da PR e o container local identificado. Só então aplica a
+candidata fora de migrations, verifica dez tabelas/FORCE RLS/constraints e remove
+o schema, produzindo evidência sanitizada com SHA de HEAD, checkout de integração,
+fingerprint e limpeza. Não modifica migrations, pré-flights, histórico ou schemas
+remotos. Dois contratos locais dos guardas passaram; DDL integral só receberá
+PASS depois do artefato real do job. Auth no schema integral permanece distinto
+do ciclo mínimo já certificado.
+
+O snapshot local divergente não foi alterado. Os ensaios de clone anteriores
+falharam durante bootstrap/restauração e, após restauração bem-sucedida, no gate
+de identidade do hardening; nenhum foi contado como compatibilidade da candidata.
+O replay limpo do CI substitui a tentativa de deduzir o histórico desse snapshot.
+Continuam os portões de finalidade/retenção/exclusão, autoridade/recurso e
+autorização específica do backend antes de pedido/recibo na UI e ensaio humano.
+PR #572 permanece draft, sem merge, Production, flags ou migration remota.
+
+### SOC-D10.M7.D — Matriz M7 autenticada no reset integral
+
+Reconciliação sobre `b079240a8e9a591ed6e06a24962a65c71977625c`: a candidata
+estrutural passou sobre 117 migrations, com fingerprint próprio e limpeza; Auth
+mínimo passou em 41 grupos e os checks centrais concluíram SUCCESS. Isso ainda
+não provava operações Auth sobre o schema integral.
+
+O novo `rehearse-full-schema-auth.mjs`, chamado por `--with-auth-cycle` no mesmo
+workflow Coherence, usa contas sintéticas A/B/C no Auth real do runner, login e
+`getUser`, e um PostgREST auxiliar com a imagem imutável e configuração JWT do
+serviço local. A API auxiliar expõe a candidata apenas a loopback; não modifica
+o PostgREST existente, flags, banco compartilhado ou API do produto. O verificador
+confere também os bytes do novo runner, matriz reutilizada e contrato contra o
+HEAD da PR antes de admitir o ensaio.
+
+As 13 verificações M7 são reutilizadas, com comunidades/perfis/vínculos criados
+explicitamente como fixtures e revisores autorizados administrativamente apenas
+no laboratório. O schema integral exige campos comunitários omitidos na fixture
+mínima e aceita perfil `paused`, não `suspended`; o modo integral usa os campos e
+estados reais sem modificar constraints. Perfil pausado não equivale a conta
+banida no Auth. O ramo mínimo permanece independente e passou em 39 grupos de
+domínio após a refatoração, com limpeza própria e fonte modificada, em
+`E:/COMUN-M6-LAB-20261022/evidence/m7d-full-auth-refactor-minimal/authenticated-cycle.json`.
+Isso não é certificação Auth do novo SHA ou do modo integral.
+
+O JSON integral exige todos os casos PASS e limpeza de schema, comunidades,
+perfis, contas, gateway e container próprios. Falhas não impedem tentar as demais
+etapas de limpeza. Resultado real, commit e Preview serão registrados no topo
+da mesma PR; não concluir pelo código ou pelo PASS estrutural anterior. Continuam
+pendentes UI organizativa autenticada, tarefas canônicas M6 no schema integral,
+banimento de conta, revisão humana de finalidade/retenção/exclusão/autoridade e
+autorização específica do backend/migration. Sem inscrição ou vínculo real,
+transferência automática, merge, Production, convite ou notificação real.
+
+**Correção factual do ensaio integral.** O run `39949144785`, HEAD `54302473`,
+executou sete cenários e falhou ao usar perfil `paused` (SQLSTATE 23514,
+`comun_member_profiles_status_check`); todas as verificações de limpeza passaram.
+A afirmação anterior desta entrada sobre o estado integral estava incorreta:
+`20260715155802_comun_community_auth_profiles.sql` substitui a constraint inicial
+por `active/suspended/deactivation_requested/deactivated/archived`. A fixture usa
+agora `suspended`, sem alterar a constraint ou a proteção. Snapshot local e
+migration inicial não substituem o replay canônico. O FAIL permanece em
+`E:/COMUN-M6-LAB-20261022/evidence/m7d-full-auth-54302473/nucleus-full-schema.json`;
+não certifica os cenários que ainda não tinham executado. O runner também passa
+a preservar o primeiro cenário que falhou, mesmo quando a limpeza executa depois.
+
+### SOC-D10.M7.D — Responsabilidades canônicas no ensaio integral (23/10/2026)
+
+O Quality `39951109177` concluiu com sucesso no HEAD `07922561`, fechando a
+pendência do checkpoint anterior. Esse resultado permanece vinculado àquele SHA.
+
+O ensaio integral passa a executar oito verificações adicionais em
+`scripts/organization/full-schema-task-cycle.mjs`: participação e aceite próprio
+via Auth/PostgREST/RLS; isolamento A/B; bloqueio de retirada enquanto há tarefa
+ativa; imutabilidade dos identificadores; devolução após pausa; devolução após
+saída e arquivamento interno; histórico preservado sem reativação; limpeza dos
+registros próprios. São operações reais da API de dados, sem simular interface,
+aceite humano ou chamada à server action privilegiada. Comunidade, ação, tarefas
+e vínculo comunitário são fixtures administrativas explicitamente descartáveis.
+Nenhuma atribuição é transferida automaticamente.
+
+A matriz M7 de 13 casos continua independente, totalizando 21 casos exigidos no
+mesmo reset das 117 migrations. O fingerprint inclui o novo helper, e o workflow
+existente acompanha seu caminho. Limpeza verifica ação, tarefas, atribuições,
+participações, vínculo e comunidade por seus IDs próprios, além da limpeza Auth
+já existente. Não há migration nova, aplicação remota ou alteração de flags.
+
+O código preparado e as verificações locais não certificam o ciclo integral:
+seu resultado exige o artefato do CI do próprio SHA. Permanecem separados o
+ensaio HTTP/RLS, o ciclo mínimo com Next/Chromium e a experiência organizativa
+futura. Backend organizativo liberado, banimento Auth, revisão humana de
+finalidade/retenção/exclusão e legitimidade de revisão continuam pendentes.
+
+### SOC-D10.M7.D — Banimento no Auth com JWT emitido — cenário negativo (23/10/2026)
+
+**Incremento candidato (não confundir com certificação):** o laboratório
+integral sobre 117 migrations recebe um caso de banimento de A no GoTrue
+_após_ emissão de JWT. Exige novo login e `/auth/v1/user` negados,
+consulta direta PostgREST de recibos próprios vazia com o token antigo,
+e `mandate_active=false`, sem suspender artificialmente o perfil local
+e sem renovar o token para fabricar a prova. A conta banida e o schema
+temporário continuam sujeitos à limpeza já existente.
+
+O SQL **apenas candidato**, em `docs/proposals/m7c/nucleus-candidate.sql`,
+passa a consultar `auth.users.banned_until` e `deleted_at` nas
+barreiras `actor_active`, `current_member`, `subject_enrollment_current`,
+`validate_enrollment_chain` e `review_entry`, além de verificar
+perfil e vínculo comunitário. As funções protegidas não confiam em
+claims antigos para esse estado. Nenhuma migration operacional foi
+criada ou aplicada; é necessário comprovar a política com Auth/RLS real.
+
+**Limite de escopo:** banimento do Auth não revoga retroativamente JWT.
+A prova GoTrue+PostgREST não é prova da rota Next.js/SSR real ou da
+server action privilegiada; o teste de cookies, sessão de navegador,
+cache e fronteira server-side permanece separado. Qualquer leitura
+privada permitida após o banimento impede declarar o gate aprovado.
+
+### SOC-D10.M7.D — Banimento, refresh e fronteira Next/SSR (23/10/2026)
+
+Reconciliação: HEAD remoto `704d543f044d2908acc5229268076fb395bab0d4`,
+PR #572 draft; incorporado por avanço direto. Artefato Coherence `39994471776`
+recuperado: 117 migrations e 22 casos Auth/RLS PASS. FAIL de Prettier dos runs
+Core `39994472157` e Launch `39994472084` recuperados e reproduzidos nos dois
+arquivos indicados; formatação corrigida sem mudar assertions.
+
+`getCommunitySession` passa a negar falhas explícitas do Auth/perfil, capturar
+indisponibilidade e reconsultar a identidade após ler o perfil com service role.
+Isso impede retornar a sessão se o banimento ocorrer enquanto a consulta ao
+perfil estiver aguardando. `requireCommunitySession` exige estado `active`,
+sem aceitar estado ausente ou desconhecido. Não há cache global de autorização.
+Uma checagem de aplicação não estabelece atomicidade com todo commit de negócio:
+a janela após a última validação continua um limite de operações service role;
+a candidata organizativa conserva sua barreira independente no PostgreSQL.
+
+O laboratório integral ganha identidade SSR sintética separada, Next real em
+modo dev/webpack (loopback, sem flags novas) e Chromium móvel em duas instâncias.
+Browser plugin não disponível; utilizado Playwright existente. Oito cenários
+exigem: Mesa e área própria positivas; execução positiva da ação canônica de
+preferências com readback; negação em indisponibilidade Auth; banimento durante
+leitura privilegiada; cookies antigos em HTML/RSC/prefetch/requisições repetidas;
+ação de saída negada e vínculo preservado; histórico/offline/CacheStorage; refresh
+antigo recusado e invalidação de sessões da identidade sintética; limpeza própria.
+Os campos privados sentinela não podem aparecer nas respostas negadas. Nenhum
+HTML, cookie, JWT ou refresh token é escrito como evidência.
+
+A API de logout pode recusar a própria conta banida: seu status é registrado,
+sem chamar essa recusa de logout concluído. O laboratório invalida explicitamente
+somente as sessões da identidade sintética por operação administrativa descartável,
+confere ausência e repete a negação HTTP. A matriz organizativa também verifica
+refresh pré-banimento, RPCs de mutação e recibos após tentativa de logout.
+
+Meta: 30 casos próprios (8 Next + 8 tarefas + 14 organizativos). Não são PASS
+antes de executar CI no próprio SHA. O fingerprint inclui helper Next e fronteiras
+Auth/Mesa/Supabase; o workflow existente instala Chromium antes do ensaio.
+Limites: Next dev não certifica CDN/edge ou cache de build de Production, e não
+pode apagar conteúdo já lido, capturado ou salvo externamente antes da revogação.
+As verificações testam novas respostas e os mecanismos de cache sob controle da
+aplicação. Não há liberação de núcleo, migration nova/remota, conta real banida,
+merge, Production, convite ou notificação a pessoas reais. Decisões humanas de
+finalidade, retenção/exclusão e autoridade permanecem como gates próprios.
+
+**Segurança de sessão e primeira execução Next.** O ensaio `40002876682`, SHA
+`8dd81f0072464102fde844f819b770b6e501f887`, falhou no primeiro cenário positivo
+Next antes de chegar ao banimento. Artefato recuperado com 117 migrations, schema
+removido, contas/perfis/comunidades/gateway/container limpos e processo Next
+encerrado; tarefas não chegaram a criar fixtures. Esse FAIL não prova a corrida
+nem permite aprovação de SSR. O harness registra agora etapa, status/cache de
+respostas e localização de assertion, sem HTML, cookies ou tokens.
+
+O código de `node_modules/next/dist/server/lib/dedupe-fetch.js` demonstra que a
+memoização GET ignora `cache`; um sinal explícito opta por consultas independentes.
+O transporte `lib/supabase/private-fetch.ts` aplica `no-store` e sinal próprio a
+cada chamada privada, preservando cancelamento do chamador/Request e sem criar
+ou alterar timeouts. Aplica-se aos clientes SSR e service role, conservando o
+cliente público. Três testes locais verificam o contrato; prova em renderização
+real continua condicionada ao ensaio integral.
+
+A proposta SQL, somente fora das migrations, passa a exigir `session_id` do JWT
+associado à pessoa em `auth.sessions`. Banimento e perfil ativo, isolados, não
+provam que uma sessão ainda exista após logout. `current_member` reutiliza a
+barreira `actor_active` existente, sem novos grants ou funções. O ensaio acrescenta
+logout real de B não banido, ausência da sessão, refresh recusado e leitura/RPC
+negados com JWT antigo. Para Next, após revogar a sessão de D, remove-se o banimento
+somente dessa identidade sintética e repete-se a negação, isolando invalidação de
+sessão de banimento. Meta ampliada a 31 casos. Nada disso autoriza aplicação remota
+ou liberação do backend. O fingerprint inclui rotas, ação, contrato de vínculo,
+proxy e service worker efetivamente exercitados, além dos transportes privados.
+
+**Ajuste demonstrado do runtime do ensaio.** A execução local Next 16.3.8 em modo
+dev, sem sessão e com destino Supabase loopback isolado, confirmou cabeçalho
+`no-cache, must-revalidate`; a fonte `base-server.js` define esse comportamento
+de desenvolvimento. O ensaio exigia `private/no-store`. As assertions não foram
+removidas: o harness passa a construir o Next com a configuração dos serviços
+locais e iniciar `next start`, usando o manifest de ações do build. Mantém-se
+também o build geral já existente no workflow. Isso certifica, quando executado,
+o servidor compilado descartável; não CDN, ambiente remoto ou Production.
+O diagnóstico dev foi encerrado e sua alteração gerada de tipos foi restaurada.
+
+**FAIL próprio d4ba151d e correção específica da prova positiva.** O artefato
+Coherence `40006150493` confirmou build 0, Mesa HTTP 200 com
+`private, no-cache, no-store, max-age=0, must-revalidate`, área própria HTTP 200,
+e falha na linha 172 do helper ao exigir o display_name na App V2. A superfície
+canônica intencionalmente não renderiza esse campo; ele aparece na variante
+legada. O cenário agora exige marcador privado da App V2 na rota canônica e
+conserva a sentinela na variante legada explícita; ambas entram nos testes de
+negação HTML/RSC/concorrência. Nenhuma assertion de privacidade foi dispensada.
+Todas as sete confirmações de limpeza do FAIL foram true; banimento, refresh e
+cenários posteriores ainda NOT_RUN. O artefato preserva GoTrue v2.195.0 e os IDs
+das imagens. A Caixa de entrada não tem FK para apagar dados junto com a conta:
+o laboratório limpa e confere também suas linhas pelo ID sintético próprio,
+inclusive mensagens internas criadas pela ação positiva. Sem mensagens reais.
+
+**Classificação de infraestrutura.** Probes de banimento/logout exigem HTTP
+400/401/403; 5xx, timeout e quota não contam como rejeição de credencial validada.
+As respostas privadas Next também não podem usar um erro 5xx como aprovação do
+bloqueio. Status dos probes diretos ficam no JSON sanitizado, sem tokens. O
+cenário controlado de indisponibilidade continua separado da prova de banimento.
+
+### SOC-D10.M7.D — RLS legadas: baseline e proposta restritiva (24/10/2026)
+
+O checkpoint `f49027e545cc5a34ba58eda1c542da210557d979` certificou 31 casos de
+Next/Auth/candidata organizativa, com limpeza e gates próprios; não certificou
+as RLS legadas. Suas policies de vínculos, papéis, participações e atribuições
+usam identidade/dono e estado do vínculo, sem consultar sessão/banimento.
+
+`full-schema-legacy-rls.mjs` cria outra identidade sintética e fixtures próprias
+no reset integral. Mede SELECT nas quatro tabelas, INSERT de participação/atribuição e UPDATE de participação e
+devolução de tarefa, com JWT anterior a banimento e a logout real. Os status e
+contagens ficam no JSON, nunca linhas privadas/tokens. As observações indevidas
+são registradas como `securityResult=FAIL`; não são convertidas em aprovação por
+serem esperadas. Infra/quota não são rejeição de credencial certificada.
+
+A proposta `docs/proposals/m7c/legacy-session-rls-candidate.sql`, fora das
+migrations, acrescenta quatro policies AS RESTRICTIVE para authenticated. Exige
+conta não banida/excluída, sessão do próprio JWT existente e perfil ativo. Não
+substitui policies permissivas, não concede leitura/escrita nas tabelas e não
+transfere responsabilidades. O helper sem parâmetros fica em schema privado,
+fora dos schemas expostos pela API auxiliar; retorna somente booleano da própria
+identidade. USAGE/EXECUTE estritamente necessários à avaliação da policy são
+propostos para authenticated, com PUBLIC/anon/service_role revogados; precisam
+de revisão antes de eventual migration ou aplicação. Service role conserva sua
+fronteira de autorização server-side e não é certificado por esse guard RLS.
+
+Seis cenários de laboratório verificam controles positivos, isolamento/anon,
+banimento, logout, ACL/catalog e limpeza. Comparam definições originais e grants
+antes/depois; removem schema/policies propostas e todas as fixtures próprias,
+restaurando o catálogo antes dos 31 cenários já existentes. Nova meta: 37 casos.
+O fingerprint inclui ambos os arquivos novos. O artefato declara separadamente
+`securityRelease=BLOCKED_LEGACY_RLS_PROPOSAL_NOT_DEPLOYED`, mesmo se o ensaio da
+proposta passar. Resultados reais só podem vir do CI do próprio SHA.
+
+Nenhuma migration, SQL remoto, flag, convite, conta real, merge ou Production.
+Não declarar saneamento das RLS do produto a partir da proposta descartável. O
+próximo portão exige prova negativa real, revisão do escopo/ACL e autorização
+específica para o caminho de integração; não publicar backend organizativo.
+
+**Primeiro ensaio RLS legado, SHA `702f6ebe`.** Coherence `40103711816`
+confirmou 16 operações indevidas com JWT antigo: SELECT nas quatro tabelas,
+UPDATE e INSERT de participação/atribuição, após banimento e após logout real.
+São oito operações por estado, não 16 vulnerabilidades independentes. A proposta
+negou essas operações e preservou os controles positivos/isolamento; a execução
+completa falhou na comparação de roles do catálogo. `pg_policies.roles` é name[];
+a consulta passa a converter explicitamente para text[], que o cliente pg
+decodifica como array, mantendo a exigência exata de authenticated, RESTRICTIVE
+e ALL. Nenhuma policy ou assertion de segurança foi relaxada. Todas as oito
+flags de limpeza e cleanupAbsent vieram true; baseline FAIL permanece preservado.
+CI anterior: 1730 unitários, TypeScript e lint PASS; browser/build posteriores
+SKIPPED, não certificados. Nova execução própria continua necessária.

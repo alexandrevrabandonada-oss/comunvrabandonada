@@ -101,6 +101,24 @@ test("missing owned migrations refuse even with valid Escola proof", () => {
     }),
   );
 });
+
+test("the M6 RLS candidate remains blocking when absent remotely or changed in the PR", () => {
+  const candidate = "20261022160000_comun_collective_task_release_boundary.sql";
+  assert.ok(localCatalog.some(({ name }) => name === candidate));
+  for (const overrides of [
+    {
+      remoteVersions: base.remoteVersions.filter(
+        (version) => version !== candidate.split("_")[0],
+      ),
+    },
+    { changedMigrations: [`supabase/migrations/${candidate}`] },
+  ]) {
+    assert.throws(
+      () => validateDomainMigrationStatus({ ...base, ...overrides }),
+      { message: "DOMAIN_MIGRATION_STATUS_NOT_ACCEPTED" },
+    );
+  }
+});
 test("full source catalog cannot omit, add, rename, or change migration bytes", () => {
   for (const localCatalog of [
     base.localCatalog.slice(1),

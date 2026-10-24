@@ -26,6 +26,10 @@ runs:
         path: ~/.cache/ms-playwright
         key: comun-playwright-${{ runner.os }}-${{ runner.arch }}-${{ steps.playwright-version.outputs.version }}-${{ hashFiles('package-lock.json') }}
 
+    - name: Verify Chromium readiness smoke contract
+      shell: bash
+      run: node --test scripts/ci/chromium-readiness.node-test.mjs
+
     - name: Provision Chromium and system dependencies
       shell: bash
       env:

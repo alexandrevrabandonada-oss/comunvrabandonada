@@ -19,7 +19,8 @@ test("classifies every COMUN page into the seven-shell migration matrix", async 
   // R5 adds one publisher-only collective-entity projection desk.
   // The operational chain adds member onboarding plus one R4 reviewer desk.
   // Escola R0 adds six learner pages and one civic/editorial review desk.
-  assert.equal(summary.total, 241);
+  // M3 acrescenta uma rota privada de Mesa com autenticação e checagem de papel.
+  assert.equal(summary.total, 242);
   // Also includes the public read-only first-action guide from #520.
   assert.deepEqual(summary.duplicate_routes, []);
   assert.deepEqual(Object.keys(summary.shell_modes).sort(), [
@@ -110,6 +111,9 @@ test("keeps roots, nested routes, immersive tools and admin surfaces distinct", 
     byRoute.get("/comun/admin/calcadas/relatos")?.shell_mode,
     "admin",
   );
+  assert.equal(byRoute.get("/comun/c/[slug]/mesa")?.shell_mode, "member_nested");
+  assert.equal(byRoute.get("/comun/c/[slug]/mesa")?.auth_required, true);
+  assert.equal(byRoute.get("/comun/c/[slug]/mesa")?.public, false);
   assert.equal(byRoute.get("/comun/admin")?.shell_mode, "admin");
   assert.equal(byRoute.get("/comun/entrar")?.shell_mode, "auth");
 });

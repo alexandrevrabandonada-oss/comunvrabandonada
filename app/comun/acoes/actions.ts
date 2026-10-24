@@ -6,6 +6,7 @@ import { requireCommunitySession } from "@/lib/community-auth";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { requireCollectiveActionsRelease } from "@/lib/collective-actions-release";
 import { isComunCollectiveActionsCanonicalExperienceEnabled } from "@/lib/comun-collective-actions-canonical-feature";
+import { releaseOwnCollectiveTask } from "@/lib/collective-action-task-release";
 
 const participationStates = new Set([
   "interested",
@@ -146,23 +147,17 @@ export async function claimCollectiveActionTask(form: FormData) {
 }
 
 export async function releaseCollectiveActionTask(form: FormData) {
-  const { slug, userId, db, action } = await memberAction(form);
+  await requireCollectiveActionsRelease();
+  const session = await requireCommunitySession(
+    "/comun/minha-participacao?secao=tarefas",
+  );
+  if (session.profile?.status !== "active")
+    throw new Error("A participação está indisponível agora.");
+  const slug = value(form, "slug");
   const taskId = value(form, "task_id");
-  if (!taskId) throw new Error("Tarefa inválida.");
-  const { data: task } = await db
-    .from("comun_collective_action_tasks")
-    .select("id")
-    .eq("id", taskId)
-    .eq("action_id", action.id)
-    .maybeSingle();
-  if (!task) throw new Error("Tarefa inválida para esta ação.");
-  const { error } = await db
-    .from("comun_collective_action_task_assignments")
-    .update({ status: "released", released_at: new Date().toISOString() })
-    .eq("task_id", taskId)
-    .eq("member_user_id", userId)
-    .eq("status", "active");
-  if (error) throw new Error("Não foi possível liberar esta tarefa.");
+  const db = createServiceSupabaseClient();
+  if (!db) throw new Error("A participação está indisponível agora.");
+  await releaseOwnCollectiveTask(db, { userId: session.user.id, slug, taskId });
   revalidatePath(`/comun/acoes/${slug}`);
   revalidatePath("/comun/minha-participacao");
   finishCanonicalMutation(form, slug, "task_released");

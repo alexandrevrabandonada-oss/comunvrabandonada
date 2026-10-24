@@ -31,8 +31,12 @@ export function resolveCommunitySelfServiceState(input: {
     return input.priorState === "member" ? "member" : "following";
   if (input.intent === "pause") return "paused" as const;
   if (input.intent === "leave") return "left" as const;
-  if (input.intent === "resume")
+  if (input.intent === "resume") {
+    // A stale resume form must not undo a completed departure. Re-entry needs review.
+    if (input.priorState !== "paused")
+      return input.priorState === "member" ? "member" : "following";
     return input.priorJoinedAt ? ("member" as const) : ("following" as const);
+  }
   if (input.priorState === "member") return "member" as const;
   if (input.priorState === "paused") return "paused" as const;
   return "following" as const;

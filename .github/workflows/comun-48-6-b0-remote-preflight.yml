@@ -40,6 +40,9 @@ jobs:
           EXPECTED_MAIN_SHA: ${{ github.event.pull_request.base.sha || inputs.expected_main_sha }}
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           B0_ARTIFACT_DIR: .ci-artifacts/48-6-b0-preflight
+          PGSSLROOTCERT: ${{ github.workspace }}/scripts/security/supabase-prod-ca-2021.crt
+          PGSSLMODE: verify-full
+          PGOPTIONS: -c default_transaction_read_only=on
         shell: bash
         run: bash scripts/run-48-6-b0-remote-preflight.sh
       - uses: actions/upload-artifact@v4
