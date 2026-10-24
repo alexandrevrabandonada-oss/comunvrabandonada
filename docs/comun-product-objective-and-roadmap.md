@@ -4441,3 +4441,30 @@ inclusive mudanças posteriores sem GRANT. Mesmo corpo/assinatura/grants, sem
 ampliar autorização. Teste preservado: antes 14 PASS/1 FAIL; depois 15/15 PASS
 da exceção e 59/59 contratos Node combinados. O novo SHA ainda exige seus próprios
 gates; nenhum resultado de ded00042 é transportado como aprovação.
+
+
+**SOC-D10.M7.D — ownership da barreira de sessão.** O SHA `0430637a`
+concluiu Coherence `40126564395`, Security `40126564348` e Quality
+`40126564502` com sucesso. Coherence: 37 cenários Auth/RLS, 1730 unitários
+e 315 browser PASS, limpeza confirmada. Security comprova o laboratório;
+permanece BLOCKED_PROVIDER_CAPABILITY por capacidade atual e ponto durável
+de recuperação não comprovados.
+
+O manifesto de migrations registra o arquivo exato
+`20261024174838_comun_legacy_private_live_session.sql` sob owner explícito
+`legacy-private-live-session`. Preflights históricos não são donos dessa
+barreira transversal: classificam esse arquivo como não aplicável à sua
+migration candidata, preservando consultas de metadata e gates próprios.
+Isso não é PASS de segurança nem autorização de aplicação remota. A prova
+continua no reset integral Auth/RLS e no contrato que fixa o SQL revisado.
+SQL, grants e workflows não foram alterados.
+
+Regressão de ownership desconhecido reproduzida. Correção: 28/28 contratos
+em Linux descartável, incluindo Bash real dos workflows. Arquivos futuros
+desconhecidos e misturas com migration de outra etapa continuam bloqueados.
+Uma tentativa Windows encontrou Bash/Node incompatível e não conta como PASS.
+Container sem rede removido ao concluir. Novo SHA exige gates próprios.
+
+Pendências: recuperação durável operacional, autorização separada para SQL
+remoto e ensaio humano. Próximo incremento: fechar readback de CI/Preview e
+preparar comprovação de recuperação sem alteração remota, gasto ou exportação.

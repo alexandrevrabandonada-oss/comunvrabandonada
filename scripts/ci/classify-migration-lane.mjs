@@ -6,6 +6,8 @@ import process from "node:process";
 // listed here is unknown and must block the historical gate until its owner is
 // recorded. It is not safe to infer ownership from a future filename.
 export const MIGRATION_LANE_MANIFEST = Object.freeze({
+  "20261024174838_comun_legacy_private_live_session.sql":
+    "legacy-private-live-session",
   "20261022160000_comun_collective_task_release_boundary.sql":
     "collective-task-release-boundary",
   "20261006134804_comun_learning_r0.sql": "learning-r0",
@@ -258,6 +260,9 @@ const NON_APPLICABLE_LANES = Object.freeze({
 // These migrations have explicit owners. Historical gates must classify them
 // as unrelated, never unknown; each owning lane retains its own exact checks.
 for (const lanes of Object.values(NON_APPLICABLE_LANES)) {
+  // M7.D is certified by the full-reset Auth/RLS suite and pinned privilege
+  // contract, never by a historical feature lane or a remote migration plan.
+  lanes.add("legacy-private-live-session");
   lanes.add("collective-task-release-boundary");
   lanes.add("collective-entity-consent");
   lanes.add("collective-entity-auth-runtime");
@@ -279,6 +284,7 @@ for (const [lane, owners] of Object.entries(NON_APPLICABLE_LANES)) {
 const ZERO_MIGRATION_LANES = new Set(["48-3-b1", "48-3-c1", "48-3-d1", "p1g"]);
 
 const LEGACY_NON_APPLICABLE_OWNERS = new Set([
+  "legacy-private-live-session",
   "learning-r0",
   "collective-task-release-boundary",
 ]);
