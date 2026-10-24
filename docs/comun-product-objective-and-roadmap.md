@@ -4417,3 +4417,27 @@ via proxy TCP localhost descartável. Não houve pull, reset de banco local ou
 uso de contas reais. Antes da correção: 2/3 PASS, detach reproduzido. Após: 3/3
 PASS no foco desktop; matriz de sete tamanhos: 21/21 PASS. Provas nos artefatos
 locais, sem credenciais; certificação de CI/Preview exige o novo SHA final.
+
+**Readback próprio `ded00042`.** Coherence `40124571377` SUCCESS: 118 migrations,
+37 cenários autenticados PASS, 1730 unitários, 315 browser e build/TypeScript/lint
+PASS. RPC do helper negada para sessão viva e anon; 16 operações antigas negadas,
+zero migratedFailures e todas as flags de limpeza true. Fingerprint conferido
+independentemente em 142 blobs Git:
+`a5f2a5c5b36154d75434e3b85cd7c99a976f7588252e3643f63eb66121a0016e`.
+Security `40124571358` comprovou restore, contribuição autenticada e ausência
+do perfil sintético, dump e banco isolado destruídos. Seu relatório operacional
+permanece BLOCKED_PROVIDER_CAPABILITY: plano atual, ponto durável, PITR e cópia
+secundária de Storage não comprovados; workflow SUCCESS não altera esse bloqueio.
+COST-02/contrato de privilégios `40124571343`, Core `40124571419` e Launch
+`40124571455` SUCCESS; Quality `40124571356` ainda em execução nesta leitura.
+Preview próprio READY e quality-status HTTP 200 com SHA completo ded00042.
+
+**Fechamento da exceção entre migrations.** Um teste real do CLI, com dois
+arquivos SQL sintéticos e sem executar SQL, demonstrou aceitação indevida de
+CREATE OR REPLACE do helper em arquivo posterior sem novo grant. Grants
+existentes poderiam sobreviver à redefinição. O validador passa a exigir o
+contrato revisado para qualquer migration que mencione o schema reservado,
+inclusive mudanças posteriores sem GRANT. Mesmo corpo/assinatura/grants, sem
+ampliar autorização. Teste preservado: antes 14 PASS/1 FAIL; depois 15/15 PASS
+da exceção e 59/59 contratos Node combinados. O novo SHA ainda exige seus próprios
+gates; nenhum resultado de ded00042 é transportado como aprovação.

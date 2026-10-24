@@ -13,6 +13,16 @@ const config = await readFile("supabase/config.toml", "utf8");
 for (const file of files) {
   const sourceSql = await readFile(path.join(directory, file), "utf8");
   const sql = sourceSql.replace(/--.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
+  const reviewedSessionHelper = permitsReviewedLiveSessionHelper(
+    file,
+    sourceSql,
+    config,
+  );
+  // CREATE OR REPLACE retains existing grants. A later file must not silently
+  // replace the reviewed body, change its owner/path, or reuse this private schema.
+  if (/\bcomun_auth_private\b/i.test(sql) && !reviewedSessionHelper) {
+    failures.push(`${file}:REVIEWED_PRIVATE_SESSION_CONTRACT_REQUIRED`);
+  }
 
   for (const match of sql.matchAll(
     /create\s+table\s+(?:if\s+not\s+exists\s+)?([\w.]+)/gi,
@@ -69,7 +79,7 @@ for (const file of files) {
       /grant\s+execute[\s\S]*?on\s+function[\s\S]*?to\s+(?:anon|authenticated)\b/i.test(
         sql,
       ) &&
-      !permitsReviewedLiveSessionHelper(file, sourceSql, config)
+      !reviewedSessionHelper
     ) {
       failures.push(`${file}:SECURITY_DEFINER_CLIENT_EXECUTE_FORBIDDEN`);
     }
