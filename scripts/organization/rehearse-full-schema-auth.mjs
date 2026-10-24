@@ -38,7 +38,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
     results = [];
   const context = { mode: "FULL_RESET_CI", admin };
   const proof = {
-    securityRelease: "BLOCKED_LEGACY_RLS_PROPOSAL_NOT_DEPLOYED",
+    securityRelease: "BLOCKED_REMOTE_APPLICATION_NOT_AUTHORIZED",
     proofKind:
       "FULL_RESET_REAL_AUTH_BUILT_NEXT_POSTGREST_RLS_NOT_CDN_OR_HUMAN_ACCEPTANCE",
     result: "FAIL",
@@ -225,7 +225,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
         scope,
       });
     };
-    proof.stage = "legacy-rls-baseline-and-unreleased-proposal";
+    proof.stage = "legacy-rls-installed-migration";
     proof.cleanup.legacyFixturesAbsent = false;
     await rehearseLegacyRls({
       admin,
@@ -236,11 +236,7 @@ export async function rehearseFullSchemaAuth({ admin, local }) {
       owner,
       password,
       check: (name, run) =>
-        check(
-          name,
-          run,
-          "LEGACY_RLS_UNRELEASED_PROPOSAL_NOT_DEPLOYED_PROTECTION",
-        ),
+        check(name, run, "LEGACY_RLS_MIGRATION_DISPOSABLE_NOT_REMOTE_RELEASE"),
       onCleanup: (absent) => {
         proof.cleanup.legacyFixturesAbsent = absent;
       },

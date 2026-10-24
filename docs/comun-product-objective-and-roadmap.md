@@ -4298,3 +4298,43 @@ e ALL. Nenhuma policy ou assertion de segurança foi relaxada. Todas as oito
 flags de limpeza e cleanupAbsent vieram true; baseline FAIL permanece preservado.
 CI anterior: 1730 unitários, TypeScript e lint PASS; browser/build posteriores
 SKIPPED, não certificados. Nova execução própria continua necessária.
+
+### SOC-D10.M7.D — Integração da barreira de sessão nas RLS legadas (24/10/2026)
+
+**Certificado anterior próprio.** SHA `1c4e3cf4e787fb2ed7f32bbf6d3d8d7aa0f24191`,
+Coherence `40109754980` SUCCESS: 117 migrations, 37/37 casos autenticados,
+1730 unitários, 308 browser, TypeScript/lint/formatação/build PASS. Fingerprint
+independente de 139 blobs Git:
+`9d3eb9d33234723bf8df660fc0e0735575a47fdd14586a623db37e04e189219d`.
+Oito indicadores de limpeza e cleanupAbsent=true; catálogo/grants restaurados.
+COST-02 `40109754905`, Core `40109754709`, Security `40109754888` e Quality
+`40109754879` SUCCESS. Preview exato READY. O baseline conserva 16 operações
+indevidas da própria identidade com JWT antigo; a proposta passou exclusivamente
+no laboratório, sem comprovar aplicação remota.
+
+**Escopo autorizado reconciliado.** O pedido humano M7.D autoriza implementar
+a menor correção suficiente e proíbe aplicar migrations remotamente. A
+restrição anterior do M6 não impede preparar a migration na mesma PR sob esta
+instrução posterior; nenhuma aplicação remota, merge ou liberação é inferida.
+
+A migration `20261024174838_comun_legacy_private_live_session.sql`, gerada pela
+CLI, promove as quatro policies restritivas testadas. Preserva permissivas e
+ACL das tabelas; exige conta não banida/excluída, sessão do próprio JWT existente
+e perfil ativo. Helper sem parâmetros em schema não exposto, search_path
+pg_catalog, somente USAGE/EXECUTE para authenticated; PUBLIC/anon/service_role
+revogados. Não cria filiação, capacidades, tabela, transferência ou notificação.
+A fronteira service role continua exigindo validação server-side independente.
+
+O laboratório passa a testar a migration instalada pelo reset completo (118
+migrations esperadas), sem remover guards para recriar o baseline histórico.
+Mede novamente as 16 operações antigas, exige todas negadas e mantém os controles
+positivos, isolamento, Auth, Next/SSR e matriz canônica. Confere que o catálogo
+instalado e grants permanecem intactos após remover somente fixtures próprias.
+Nova certificação do SHA entregue obrigatória; certificados anteriores não se
+transferem. Release permanece BLOCKED_REMOTE_APPLICATION_NOT_AUTHORIZED.
+
+Risco/limite: sessões são revalidadas por statement; dados já recebidos pelo
+dispositivo não podem ser apagados remotamente. A mudança cobre quatro tabelas,
+não certifica todo o schema. Aplicação remota, revisão operacional/rollback
+descendente e liberação continuam gates separados. Próximo incremento: prova
+da migration real, depois revisão do caminho remoto sem executá-lo por timer.

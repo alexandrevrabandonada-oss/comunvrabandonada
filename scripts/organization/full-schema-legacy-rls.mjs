@@ -1,7 +1,6 @@
-/** Measure legacy policy exposure, then test a separate unreleased restrictive proposal. */
+/** Test the session RLS migration installed by the complete disposable reset. */
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import fs from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 
 export async function rehearseLegacyRls({
@@ -19,9 +18,9 @@ export async function rehearseLegacyRls({
   assert.equal(process.env.RUNNER_ENVIRONMENT, "github-hosted");
   assert.equal(new URL(laboratory.gatewayUrl).hostname, "127.0.0.1");
   const report = (laboratory.legacyRls = {
-    baseline: [],
-    proposal: "NOT_RUN",
-    release: "BLOCKED_UNAPPLIED_PROPOSAL",
+    migrated: [],
+    migration: "NOT_RUN",
+    release: "BLOCKED_REMOTE_APPLICATION_NOT_AUTHORIZED",
     cleanup: false,
   });
   const ids = Object.fromEntries(
@@ -65,13 +64,11 @@ export async function rehearseLegacyRls({
   assert(
     (
       await admin.query(
-        "select to_regnamespace('comun_auth_private') is null as absent",
+        "select to_regnamespace('comun_auth_private') is not null as present",
       )
-    ).rows[0].absent,
+    ).rows[0].present,
   );
-  let identity,
-    ownsSchema = false,
-    access;
+  let identity, access;
   const email = `legacy-${owner}@example.invalid`;
   const client = createClient(laboratory.gatewayUrl, local.ANON_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -124,7 +121,7 @@ export async function rehearseLegacyRls({
       rows: count,
     };
   };
-  const observe = async (token, state, baseline) => {
+  const observe = async (token, state, recordCurrent) => {
     const outcomes = [];
     for (const [table, id] of tables)
       outcomes.push(await probe(token, table, id));
@@ -167,7 +164,7 @@ export async function rehearseLegacyRls({
         "POST",
       ),
     );
-    if (!baseline) {
+    {
       for (const [table, id] of [
         [tables[2][0], ids.extraParticipation],
         [tables[3][0], ids.extraAssignment],
@@ -190,20 +187,19 @@ export async function rehearseLegacyRls({
       "delete from public.comun_collective_action_participations where id=$1",
       [ids.extraParticipation],
     );
-    if (baseline)
-      report.baseline.push(
+    if (recordCurrent)
+      report.migrated.push(
         ...outcomes.map((row) => ({
           ...row,
           state,
           securityResult: row.rows ? "FAIL" : "PASS",
         })),
       );
-    else
-      assert(
-        outcomes.every((row) => row.rows === 0),
-        "Unreleased proposal still exposes legacy data/powers",
-      );
-    // Restore only this fixture after measuring a permitted legacy mutation.
+    assert(
+      outcomes.every((row) => row.rows === 0),
+      "Migrated policies still expose legacy data/powers",
+    );
+    // Restore only this fixture before the next independent authenticated scenario.
     await admin.query(
       "update public.comun_collective_action_task_assignments set status='active',released_at=null where id=$1",
       [ids.assignment],
@@ -261,7 +257,7 @@ export async function rehearseLegacyRls({
     );
     await login();
     await check(
-      "legacy RLS: real identity and four positive owned records",
+      "legacy migration: real identity and four positive owned records",
       async () => {
         await admin.query(
           "insert into public.comun_communities(id,slug,name,short_description,full_description,main_cta) values($1,$2,'Ensaio RLS','Somente laboratório','Fixture descartável','Conhecer')",
@@ -313,25 +309,18 @@ export async function rehearseLegacyRls({
           assert.equal((await probe(access, table, id)).rows, 1);
       },
     );
-    // Baseline failures remain failures in the evidence; never label them mitigation PASS.
+    // The historical baseline remains in prior artifacts; never remove installed guards to recreate it.
     await ban();
     await observe(access, "BANNED", true);
     await unban();
     await logout();
     await observe(access, "LOGGED_OUT", true);
-    report.baselineFailures = report.baseline.filter(
+    report.migratedFailures = report.migrated.filter(
       (row) => row.securityResult === "FAIL",
     ).length;
     await login();
-    ownsSchema = true;
-    await admin.query(
-      await fs.readFile(
-        "docs/proposals/m7c/legacy-session-rls-candidate.sql",
-        "utf8",
-      ),
-    );
     await check(
-      "legacy proposal: live own access retained; foreign/anonymous access still denied",
+      "legacy migration: live own access retained; foreign/anonymous access still denied",
       async () => {
         const foreign = (await accounts[1].client.auth.getSession()).data
           .session.access_token;
@@ -344,7 +333,7 @@ export async function rehearseLegacyRls({
       },
     );
     await check(
-      "legacy proposal: banned old JWT cannot read four tables or mutate responsibilities",
+      "legacy migration: banned old JWT cannot read four tables or mutate responsibilities",
       async () => {
         await ban();
         await observe(access, "BANNED", false);
@@ -360,7 +349,7 @@ export async function rehearseLegacyRls({
       },
     );
     await check(
-      "legacy proposal: real logout invalidates private access independently of ban",
+      "legacy migration: real logout invalidates private access independently of ban",
       async () => {
         await unban();
         for (const [table, id] of tables)
@@ -370,15 +359,10 @@ export async function rehearseLegacyRls({
       },
     );
     await check(
-      "legacy proposal: restrictive AND gates preserve permissive policies and closed helper",
+      "legacy migration: restrictive AND gates preserve permissive policies and closed helper",
       async () => {
         const current = await policies();
-        assert.deepEqual(
-          current.filter(
-            (row) => row.policyname !== "Live Auth session required",
-          ),
-          originalPolicies,
-        );
+        assert.deepEqual(current, originalPolicies);
         const added = current.filter(
           (row) => row.policyname === "Live Auth session required",
         );
@@ -400,17 +384,13 @@ export async function rehearseLegacyRls({
           { anon: false, service: false },
         );
         assert.deepEqual(await grants(), originalGrants);
-        report.proposal = "PASS_DISPOSABLE_ONLY";
+        report.migration = "PASS_DISPOSABLE_MIGRATION_ONLY";
       },
     );
   } finally {
     const failures = [];
     for (const cleanup of [
       () => admin.query("rollback"),
-      () =>
-        ownsSchema
-          ? admin.query("drop schema if exists comun_auth_private cascade")
-          : Promise.resolve(),
       () =>
         admin.query(
           "delete from public.comun_collective_actions where id=any($1::uuid[])",
@@ -428,7 +408,7 @@ export async function rehearseLegacyRls({
       }
     }
     await check(
-      "legacy proposal: original policies/grants restored and all owned fixtures absent",
+      "legacy migration: installed policies/grants retained and all owned fixtures absent",
       async () => {
         assert.equal(failures.length, 0);
         assert.deepEqual(await policies(), originalPolicies);
@@ -436,9 +416,9 @@ export async function rehearseLegacyRls({
         assert(
           (
             await admin.query(
-              "select to_regnamespace('comun_auth_private') is null as absent",
+              "select to_regnamespace('comun_auth_private') is not null as present",
             )
-          ).rows[0].absent,
+          ).rows[0].present,
         );
         for (const [table, id] of [
           ...tables,
