@@ -1,2 +1,4 @@
 supabase/migrations/20260922120000_comun_canonical_security_hardening_v2.sql text eol=lf
 tests/fixtures/pr437-post/*.sql -whitespace
+
+supabase/migrations/20261024174838_comun_legacy_private_live_session.sql text eol=lf

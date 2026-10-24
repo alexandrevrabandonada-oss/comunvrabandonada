@@ -235,10 +235,19 @@ test("backup recupera o schema privado quando ele existe", async () => {
     "scripts/security/rehearse-comun-database-restore.mjs",
     "utf8",
   );
-  assert.match(rehearsal, /nspname in \('public','private'\)/);
+  assert.match(
+    rehearsal,
+    /nspname in \('public','private','comun_auth_private'\)/,
+  );
   assert.match(rehearsal, /sourcePrivateCounts/);
   assert.match(rehearsal, /restoredPrivateCounts/);
   assert.match(rehearsal, /privateSchemaRecovered/);
+  assert.match(rehearsal, /sessionAuthorizationSchemaRecovered/);
+  assert.match(rehearsal, /select count\(\*\) from auth.sessions/);
+  assert.match(
+    rehearsal,
+    /select comun_auth_private.current_session_active\(\)/,
+  );
   assert.match(rehearsal, /artifactPublished: false/);
 });
 
@@ -504,10 +513,9 @@ test("Storage post-delete requires explicit absence of every recorded key", asyn
 
 test("Storage post-delete rejects deletion acknowledged with surviving object", async () => {
   await assert.rejects(
-    assertStorageObjectsMissing(
-      { exists: async () => true },
-      [["private_image", "synthetic"]],
-    ),
+    assertStorageObjectsMissing({ exists: async () => true }, [
+      ["private_image", "synthetic"],
+    ]),
     { message: "COMUN_STORAGE_DELETE_POSTFLIGHT_FAILED" },
   );
 });
@@ -515,10 +523,9 @@ test("Storage post-delete rejects deletion acknowledged with surviving object", 
 for (const answer of [undefined, null, "missing"]) {
   test(`Storage post-delete rejects ambiguous response ${String(answer)}`, async () => {
     await assert.rejects(
-      assertStorageObjectsMissing(
-        { exists: async () => answer },
-        [["public_image", "synthetic"]],
-      ),
+      assertStorageObjectsMissing({ exists: async () => answer }, [
+        ["public_image", "synthetic"],
+      ]),
       { message: "COMUN_STORAGE_DELETE_POSTFLIGHT_FAILED" },
     );
   });

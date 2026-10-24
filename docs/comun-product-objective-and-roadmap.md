@@ -4338,3 +4338,41 @@ dispositivo não podem ser apagados remotamente. A mudança cobre quatro tabelas
 não certifica todo o schema. Aplicação remota, revisão operacional/rollback
 descendente e liberação continuam gates separados. Próximo incremento: prova
 da migration real, depois revisão do caminho remoto sem executá-lo por timer.
+
+### SOC-D10.M7.D — Readback da migration e gates restantes (24/10/2026)
+
+SHA `30d6522e177809dcc2645bf395960e65ad71397d`, Coherence `40117936512`:
+reset de 118 migrations e 37/37 cenários autenticados PASS. As 16 operações com
+JWT antigo antes indevidas passaram a ser negadas (SELECT/UPDATE vazios; INSERT
+403), após banimento e logout real. Controles positivos, isolamento, tarefas
+canônicas, Auth e Next/SSR preservados. Todas as oito flags de limpeza e
+cleanupAbsent=true; policies/grants da migration permaneceram instalados.
+Fingerprint: `b9002834f44ac732f30b8373b6463a265a3755e046f9e08669cee40cfec409d2`.
+
+Não é PASS global: 307 browser PASS/1 FAIL no foco de Ajuda 390x844; build
+posterior SKIPPED. O trace mostra a substituição do fallback público entre
+focus e Enter, antes de navegar ao fragmento. A correção restringe Ajuda à
+renderização por requisição com connection(), para resolver o shell dependente
+de query no servidor. Mantém o link nativo e os testes originais; acrescenta
+prova com scripts atrasados, exigindo navegação por teclado antes da hidratação
+e preservação do mesmo nó depois. Custo: essa rota deixa a pré-renderização
+estática; não cria acesso privado nem altera o shell global. Prova local de
+browser bloqueada por Chromium spawn UNKNOWN, inclusive com TEMP em E:, sem
+interação executada. O CI Linux deverá comprovar o comportamento.
+
+Security `40117936526` falhou na restauração post-data: o dump omitira o novo
+schema de autorização referenciado pelas policies. O ensaio inclui agora
+comun_auth_private na allowlist de schemas de aplicação, sem copiar auth ou
+tokens. O shadow Auth permanece sintético e sem sessões; verifica helper
+restaurado e retorno false. Os 35 contratos locais de segurança passaram;
+a restauração real corrigida continua pendente de CI. Launch `40117936363`
+apontou CRLF na migration: normalização LF e atributo específico adicionados.
+
+**Gate preservado:** CI `40117936419`, contrato
+`scripts/db/lint-explicit-database-privileges.mjs`, rejeita EXECUTE de qualquer
+SECURITY DEFINER para authenticated. O helper privado necessita desse EXECUTE
+para avaliação RLS. A prova funcional não substitui essa decisão de política.
+Não alterar o gate, ampliar grants ou alegar integração certificada enquanto
+o conflito não for explicitamente resolvido. Solicitada revisão humana da
+exceção restrita ao helper sem parâmetros/booleano próprio/schema não exposto.
+Nenhuma autorização de SQL remoto, merge, flag ou Production decorre disso.

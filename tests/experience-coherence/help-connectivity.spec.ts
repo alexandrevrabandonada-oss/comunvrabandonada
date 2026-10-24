@@ -50,3 +50,47 @@ for (const javaScriptEnabled of [true, false]) {
     }
   });
 }
+
+test("Ajuda mantém o link nativo durante a hidratação atrasada", async ({
+  browser,
+  baseURL,
+}) => {
+  const context = await browser.newContext({ baseURL });
+  let releaseScripts!: () => void;
+  const scriptsReleased = new Promise<void>((resolve) => {
+    releaseScripts = resolve;
+  });
+  try {
+    await context.route("**/_next/static/**/*.js", async (route) => {
+      await scriptsReleased;
+      await route.continue();
+    });
+    const page = await context.newPage();
+    await page.goto("/comun/ajuda", { waitUntil: "commit" });
+    const connection = page.getByRole("link", {
+      name: "Ler orientações de conexão",
+      exact: true,
+    });
+    await expect(connection).toBeVisible();
+    const original = await connection.elementHandle();
+    expect(original).not.toBeNull();
+    await connection.focus();
+    await expect(connection).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/\/comun\/ajuda#conexao$/);
+    releaseScripts();
+    await expect(page.locator("html")).toHaveAttribute(
+      "data-comun-keyboard",
+      "closed",
+    );
+    await expect(page.getByRole("banner")).toBeVisible();
+    expect(await original!.evaluate((node) => node.isConnected)).toBe(true);
+    await expect(page).toHaveURL(/\/comun\/ajuda#conexao$/);
+    await expect(
+      page.getByRole("region", { name: "Se a conexão cair", exact: true }),
+    ).toBeVisible();
+  } finally {
+    releaseScripts();
+    await context.close();
+  }
+});

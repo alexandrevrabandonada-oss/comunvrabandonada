@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { ComunShell } from "@/components/comun-shell";
 import { ComunBreadcrumbs, ComunSection } from "@/components/comun-ui";
 
@@ -37,7 +38,10 @@ const topics = [
   },
 ];
 
-export default function HelpPage() {
+export default async function HelpPage() {
+  // Resolve the query-dependent shell on the server: replacing its public
+  // Suspense fallback can otherwise discard keyboard focus during hydration.
+  await connection();
   return (
     <ComunShell publicReadOnlyFallback>
       <ComunSection>

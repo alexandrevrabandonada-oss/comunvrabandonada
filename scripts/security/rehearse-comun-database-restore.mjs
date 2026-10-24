@@ -62,7 +62,7 @@ async function main() {
     dumpPath = path.join(tempDir, "source.dump");
     const sourceApplicationSchemas = remoteRows(
       sourceUrl,
-      "select nspname from pg_namespace where nspname in ('public','private') order by nspname;",
+      "select nspname from pg_namespace where nspname in ('public','private','comun_auth_private') order by nspname;",
     );
     assert.ok(sourceApplicationSchemas.includes("public"));
     const sourceTables = remoteTableNames(sourceUrl, "public");
@@ -166,6 +166,20 @@ async function main() {
     recoveryPhase = "restore_post_data";
     isolatedRestore(["--section=post-data"]);
 
+    recoveryPhase = "authorization_schema";
+    if (sourceApplicationSchemas.includes("comun_auth_private")) {
+      assert.equal(
+        isolatedScalar(
+          "select to_regprocedure('comun_auth_private.current_session_active()') is not null;",
+        ),
+        "t",
+      );
+      assert.equal(isolatedScalar("select count(*) from auth.sessions;"), "0");
+      assert.equal(
+        isolatedScalar("select comun_auth_private.current_session_active();"),
+        "f",
+      );
+    }
     recoveryPhase = "aggregate_counts";
     const restoredCounts = isolatedCounts("public", sourceTables);
     const restoredPrivateCounts = isolatedCounts(
@@ -274,6 +288,8 @@ async function main() {
         structure: { ...structure, publicFkOrphans },
         aggregateCountsMatch: true,
         privateSchemaRecovered: sourceApplicationSchemas.includes("private"),
+        sessionAuthorizationSchemaRecovered:
+          sourceApplicationSchemas.includes("comun_auth_private"),
         migrationLedger: {
           count: sourceMigrations.length,
           setChecksum: envelopeDigest(sourceMigrations),
@@ -911,7 +927,9 @@ create extension if not exists unaccent with schema extensions;
 create extension if not exists pg_trgm with schema extensions;
 create schema if not exists auth;
 create schema if not exists storage;
-create table if not exists auth.users(id uuid primary key);
+create table if not exists auth.users(id uuid primary key,deleted_at timestamptz,banned_until timestamptz);
+-- No provider sessions or tokens are copied: restored credentials must be reissued.
+create table if not exists auth.sessions(id uuid primary key,user_id uuid references auth.users(id));
 create or replace function auth.uid() returns uuid language sql stable as $$ select null::uuid $$;
 create or replace function auth.jwt() returns jsonb language sql stable as $$ select '{}'::jsonb $$;
 create or replace function auth.role() returns text language sql stable as $$ select 'anon'::text $$;
