@@ -4442,7 +4442,6 @@ ampliar autorização. Teste preservado: antes 14 PASS/1 FAIL; depois 15/15 PASS
 da exceção e 59/59 contratos Node combinados. O novo SHA ainda exige seus próprios
 gates; nenhum resultado de ded00042 é transportado como aprovação.
 
-
 **SOC-D10.M7.D — ownership da barreira de sessão.** O SHA `0430637a`
 concluiu Coherence `40126564395`, Security `40126564348` e Quality
 `40126564502` com sucesso. Coherence: 37 cenários Auth/RLS, 1730 unitários
@@ -4468,3 +4467,25 @@ Container sem rede removido ao concluir. Novo SHA exige gates próprios.
 Pendências: recuperação durável operacional, autorização separada para SQL
 remoto e ensaio humano. Próximo incremento: fechar readback de CI/Preview e
 preparar comprovação de recuperação sem alteração remota, gasto ou exportação.
+
+**SOC-D10.M7.D — catálogo de domínio completo.** O CI de `3afd26ce`
+detectou três falhas: contrato read-only de CA e contrato de continuidade
+rejeitavam o catálogo atual, e o roadmap exigia Prettier. O classificador
+de domínio estava fixado em 117 migrations, embora a migration de sessão
+revisada elevasse o catálogo a 118. A atualização fixa os bytes completos
+das 118 migrations (SHA-256 do catálogo
+`52fe25133706ce72f5ba8ab7a9942e610474cdeadf96250a33b9e095638c083b`),
+sem remover arquivos do inventário ou adicionar exceção de pendência.
+A migration M7 ausente no remoto ou alterada na PR continua bloqueando o
+classificador de domínio; teste específico acompanha o contrato M6 anterior.
+Fixtures de história remota são sintéticas e não comprovam aplicação remota.
+Prettier aplicado ao documento canônico. Nenhum SQL, grant, workflow ou
+comportamento de aplicação foi alterado. Novo SHA exige certificação própria.
+
+Verificação da correção do catálogo: 99/99 testes Linux PASS (CA/TLS,
+classificador, captura read-only, plano reconciliado, workflows Bash reais,
+ownership e exceção de privilégio). Antes: 26 PASS/4 FAIL no subconjunto
+reprodutor; depois: nenhuma falha. O catálogo anterior de 117 arquivos,
+excluída somente a nova migration, mantém exatamente o hash revisado anterior
+`67e1f0a2959e206810db4e6342df575dd24e4676a1c12063a2e09d1b2cecbcca`.
+Nenhuma migration foi alterada. Prettier e diff-check verificados.

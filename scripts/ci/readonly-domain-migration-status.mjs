@@ -3,7 +3,7 @@ import { validateHardeningLedger } from "./readonly-reconciled-migration-plan.mj
 
 const learning = "20261006134804_comun_learning_r0.sql";
 const catalogHash =
-  "67e1f0a2959e206810db4e6342df575dd24e4676a1c12063a2e09d1b2cecbcca";
+  "52fe25133706ce72f5ba8ab7a9942e610474cdeadf96250a33b9e095638c083b";
 const manifestHash =
   "3b598bc6b3ea3dfe462ba205b6747016aace52de87c87dec332ecbb1a567d4de";
 const lanes = new Set([
@@ -45,7 +45,7 @@ export function validateDomainMigrationStatus({
     changedMigrations.length !== 0
   )
     refuse();
-  if (!Array.isArray(localCatalog) || localCatalog.length !== 117) refuse();
+  if (!Array.isArray(localCatalog) || localCatalog.length !== 118) refuse();
   const catalog = localCatalog
     .map((entry) => {
       if (
