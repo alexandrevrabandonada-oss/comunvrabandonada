@@ -136,3 +136,68 @@ test("alias, no-result, prompt injection e rate limit preservam a fronteira", as
     expect(statuses).toContain(429);
   }
 });
+
+test("semantic mode works without JavaScript and preserves public context", async ({
+  browser,
+  baseURL,
+}) => {
+  const context = await browser.newContext({
+    baseURL,
+    javaScriptEnabled: false,
+  });
+  try {
+    const page = await context.newPage();
+    await page.goto("/comun/buscar?q=calcadas&tipo=pauta&experiencia=legacy");
+    await page
+      .getByRole("button", { name: "Usar somente termos", exact: true })
+      .click();
+    await expect(page).toHaveURL(/semantic=0/);
+    const url = new URL(page.url());
+    expect(url.searchParams.get("q")).toBe("calcadas");
+    expect(url.searchParams.get("tipo")).toBe("pauta");
+    expect(url.searchParams.get("experiencia")).toBe("legacy");
+    await expect(
+      page.getByRole("button", { name: "Buscar também relações", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
+  } finally {
+    await context.close();
+  }
+});
+
+test("search controls retain their DOM through delayed hydration", async ({
+  browser,
+  baseURL,
+}) => {
+  const context = await browser.newContext({ baseURL });
+  let release!: () => void;
+  const released = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  try {
+    await context.route("**/_next/static/**/*.js", async (route) => {
+      await released;
+      await route.continue();
+    });
+    const page = await context.newPage();
+    await page.goto("/comun/buscar?q=calcadas", { waitUntil: "commit" });
+    const toggle = page.getByRole("button", {
+      name: "Usar somente termos",
+      exact: true,
+    });
+    await expect(toggle).toBeVisible();
+    const original = await toggle.elementHandle();
+    expect(original).not.toBeNull();
+    release();
+    await expect(page.getByRole("banner")).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute(
+      "data-comun-keyboard",
+      "closed",
+    );
+    expect(await original!.evaluate((node) => node.isConnected)).toBe(true);
+    await toggle.click();
+    await expect(page).toHaveURL(/semantic=0/);
+  } finally {
+    release();
+    await context.close();
+  }
+});

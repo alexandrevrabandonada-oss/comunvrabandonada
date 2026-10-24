@@ -183,12 +183,11 @@ export function LiveSearchResults({
               ? " Relações indisponíveis; resultados iniciais preservados."
               : ""}
         </p>
-        <button
-          type="button"
-          ref={modeControl}
-          aria-pressed={!semantic}
-          className="min-h-11 border-2 border-comun-paper px-3 font-bold"
-          onClick={() => {
+        <form
+          action="/comun/buscar"
+          method="get"
+          onSubmit={(event) => {
+            event.preventDefault();
             restoreModeFocus.current = true;
             router.push(
               searchHref({ ...context, semantic: semantic ? "0" : undefined }),
@@ -196,8 +195,25 @@ export function LiveSearchResults({
             );
           }}
         >
-          {semantic ? "Usar somente termos" : "Buscar também relações"}
-        </button>
+          {Array.from(
+            new URLSearchParams(
+              searchHref({
+                ...context,
+                semantic: semantic ? "0" : undefined,
+              }).split("?")[1],
+            ),
+          ).map(([name, value]) => (
+            <input key={name} type="hidden" name={name} value={value} />
+          ))}
+          <button
+            type="submit"
+            ref={modeControl}
+            aria-pressed={!semantic}
+            className="min-h-11 border-2 border-comun-paper px-3 font-bold"
+          >
+            {semantic ? "Usar somente termos" : "Buscar também relações"}
+          </button>
+        </form>
         {phase === "ready" &&
         (availability === "unavailable" || availability === "partial") ? (
           <button

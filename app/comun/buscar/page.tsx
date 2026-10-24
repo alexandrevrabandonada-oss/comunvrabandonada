@@ -65,7 +65,13 @@ export default async function Page({
   const results = search.results,
     durationMs = search.durationMs;
   return (
-    <ComunShell publicReadOnlyFallback>
+    <ComunShell
+      publicReadOnlyFallback
+      resolvedLocation={{
+        pathname: "/comun/buscar",
+        experience: state.experiencia ?? null,
+      }}
+    >
       <ComunSection>
         <ComunBreadcrumbs
           items={[{ label: "Início", href: "/comun" }, { label: "Buscar" }]}

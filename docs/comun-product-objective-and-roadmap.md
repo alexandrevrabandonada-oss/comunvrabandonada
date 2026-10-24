@@ -4489,3 +4489,29 @@ reprodutor; depois: nenhuma falha. O catálogo anterior de 117 arquivos,
 excluída somente a nova migration, mantém exatamente o hash revisado anterior
 `67e1f0a2959e206810db4e6342df575dd24e4676a1c12063a2e09d1b2cecbcca`.
 Nenhuma migration foi alterada. Prettier e diff-check verificados.
+
+**SOC-D10.M7.D — continuidade do controle público de busca.** No SHA
+`56198f10`, continuidade/CA/Launch/COST-02/Coherence/Security concluíram
+com sucesso, mas Civic Intelligence falhou em 1024x768 e 1366x768: clique
+no controle semântico não mudava a URL. Regressão local reproduzida: botão
+inerte sem JavaScript e DOM original removido na hidratação atrasada.
+
+A página pública de busca fornece ao shell sua localização já normalizada,
+como a Ajuda; o conteúdo não precisa ser substituído para descobrir o contexto.
+O controle semântico passa a usar formulário GET nativo, com somente parâmetros
+públicos de `searchHref`, e mantém a navegação client-side/foco após hidratação.
+Nenhum acesso privado, índice, flag ou API foi ampliado. Testes preservam
+assertivas/timeouts existentes e acrescentam os percursos sem JavaScript e
+com scripts atrasados, inclusive retenção do DOM e contexto canônico.
+
+TypeScript, lint e 23 testes unitários focais PASS. A certificação de browser
+da correção e do novo SHA deve ser registrada separadamente; a falha original
+e traces são preservados. Recuperação operacional permanece bloqueada por
+capacidade atual/ponto durável não comprovados, sem SQL remoto ou Production.
+
+Limitação local desta correção: após os dois FAIL reproduzidos, o Docker
+parou de responder à execução/consulta do container próprio. O fallback de
+Chromium Windows também não concluiu; não recebe PASS. C: observado com cerca
+de 21 MB livres. Não houve limpeza destrutiva, reset do Docker ou exclusão de
+bancos. A correção segue como candidata em PR draft para prova Linux de CI;
+sem alegação de certificação completa ou aplicação remota.
