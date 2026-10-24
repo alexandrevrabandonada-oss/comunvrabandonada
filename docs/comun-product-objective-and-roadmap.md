@@ -4376,3 +4376,44 @@ Não alterar o gate, ampliar grants ou alegar integração certificada enquanto
 o conflito não for explicitamente resolvido. Solicitada revisão humana da
 exceção restrita ao helper sem parâmetros/booleano próprio/schema não exposto.
 Nenhuma autorização de SQL remoto, merge, flag ou Production decorre disso.
+
+### SOC-D10.M7.D — Exceção restrita autorizada e correções reproduzidas (24/10/2026)
+
+Autorização humana explícita: somente exceção ao contrato de privilégios para
+`comun_auth_private.current_session_active()`, sem SQL remoto, merge ou Production.
+O linter admite somente a migration integral revisada, identificada pelo nome
+e SHA-256 do conteúdo (normalização exclusiva CRLF/LF). Corpo, argumentos,
+policies ou grants diferentes não recebem exceção. A configuração versionada
+da API precisa ser inequívoca e não expor o schema. O helper continua sem
+parâmetros, retorna booleano próprio, usa pg_catalog, revoga PUBLIC/anon/service_role
+e conserva somente USAGE/EXECUTE authenticated. A proibição geral permanece.
+Os 14 testes novos rejeitam RPC pública, argumentos, mudança do retorno, ausência
+de escopo/banimento/sessão, search_path inseguro, anon, grants ampliados, grant
+option, SQL adicional, policies permissivas e configuração da API inválida ou
+exposta. Executados automaticamente por db:privileges:lint; 21 testes com o
+validador de migrations PASS localmente, além do próprio linter. Isso não
+certifica a configuração remota da API nem autoriza aplicar a migration.
+
+**Readback anterior preservado.** SHA `518de6e6`, Coherence `40120671962`: o
+novo teste de hidratação demonstrou que connection() sozinho não preservava o
+nó no desktop. Não remover a assertion. Ensaio Linux local reproduziu o detach;
+a solução resolve a localização pública no servidor e separa os controles
+dependentes de query em Suspense dentro do shell reutilizado. Opt-in somente
+na Ajuda, sem segunda navegação ou modificação de autorização. O restante das
+rotas mantém resolução da URL no cliente. O fingerprint do laboratório inclui
+agora os dois componentes de shell para rastrear seus efeitos em Next/SSR.
+
+Security `40120672331` já restaurou o schema, mas a contribuição sintética foi
+negada. O smoke passa a preparar explicitamente o perfil ativo da identidade
+Auth recém-criada no ambiente descartável antes da contribuição; não concede
+vínculo ou papel. Sessões antigas restauradas continuam inexistentes e o helper
+restaurado retorna false. O perfil sintético é removido e sua ausência verificada
+explicitamente (migrations antigas não garantem FK com Auth). Não substituir a prova real de restore por mocks;
+a nova execução própria deverá demonstrar contribuição e limpeza.
+
+Limite local preservado: Chromium Windows spawn UNKNOWN; navegador Linux de
+imagem existente, com a mesma versão Next/Playwright, acessou o servidor atual
+via proxy TCP localhost descartável. Não houve pull, reset de banco local ou
+uso de contas reais. Antes da correção: 2/3 PASS, detach reproduzido. Após: 3/3
+PASS no foco desktop; matriz de sete tamanhos: 21/21 PASS. Provas nos artefatos
+locais, sem credenciais; certificação de CI/Preview exige o novo SHA final.

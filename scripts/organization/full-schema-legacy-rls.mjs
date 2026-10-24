@@ -384,6 +384,33 @@ export async function rehearseLegacyRls({
           { anon: false, service: false },
         );
         assert.deepEqual(await grants(), originalGrants);
+        await login();
+        for (const token of [access, local.ANON_KEY]) {
+          for (const [schema, expected] of [
+            ["public", 404],
+            ["comun_auth_private", 406],
+          ]) {
+            const response = await fetch(
+              laboratory.gatewayUrl + "/rest/v1/rpc/current_session_active",
+              {
+                method: "POST",
+                headers: {
+                  apikey: local.ANON_KEY,
+                  Authorization: "Bearer " + token,
+                  "Content-Type": "application/json",
+                  "Content-Profile": schema,
+                },
+                body: "{}",
+              },
+            );
+            assert.equal(
+              response.status,
+              expected,
+              "Private session helper must not be exposed as an RPC",
+            );
+          }
+        }
+        report.privateHelperRpc = "DENIED_LIVE_AND_ANON";
         report.migration = "PASS_DISPOSABLE_MIGRATION_ONLY";
       },
     );

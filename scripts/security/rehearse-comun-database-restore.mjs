@@ -723,6 +723,21 @@ async function rehearseApplicationAgainstRestore(tables) {
     const authenticationProbeMs = Date.now() - authenticationStartedAt;
     if (loginError)
       throw new Error("COMUN_DATABASE_SYNTHETIC_AUTH_LOGIN_FAILED");
+    // A new disposable Auth identity must also complete the active profile prerequisite.
+    // This is an owned fixture, not restoration of provider credentials or organizational membership.
+    applicationPhase = "synthetic_profile_create";
+    const { error: profileError } = await service
+      .from("comun_member_profiles")
+      .upsert(
+        {
+          user_id: syntheticUserId,
+          display_name: "Ensaio descartável de recuperação",
+          status: "active",
+        },
+        { onConflict: "user_id" },
+      );
+    if (profileError)
+      throw new Error("COMUN_DATABASE_SYNTHETIC_PROFILE_CREATE_FAILED");
     applicationPhase = "synthetic_action_create";
     const { data: action, error: actionError } = await service
       .from("comun_collective_actions")
@@ -765,6 +780,8 @@ async function rehearseApplicationAgainstRestore(tables) {
       publicRoutes: routes.length,
       centralOperationalNegativePermission: "green",
       syntheticLogin: "green",
+      syntheticActiveProfile: "owned_fixture",
+      syntheticProfileCleanupVerified: true,
       noLeak: "green",
       notificationsSent: false,
       applicationSchema: {
@@ -800,6 +817,7 @@ async function rehearseApplicationAgainstRestore(tables) {
         .then(() => {})
         .catch(() => {});
     }
+    let profileCleanupFailed = false;
     if (syntheticUserId) {
       const service = createClient(
         localEnv.API_URL,
@@ -808,9 +826,27 @@ async function rehearseApplicationAgainstRestore(tables) {
           auth: { persistSession: false },
         },
       );
+      // Older profile migrations do not all have an Auth FK: delete and verify explicitly.
+      try {
+        const removed = await service
+          .from("comun_member_profiles")
+          .delete()
+          .eq("user_id", syntheticUserId);
+        const absent = await service
+          .from("comun_member_profiles")
+          .select("user_id")
+          .eq("user_id", syntheticUserId);
+        profileCleanupFailed = Boolean(
+          removed.error || absent.error || !absent.data || absent.data.length,
+        );
+      } catch {
+        profileCleanupFailed = true;
+      }
       await service.auth.admin.deleteUser(syntheticUserId).catch(() => {});
     }
     app.kill("SIGTERM");
+    if (profileCleanupFailed)
+      throw new Error("COMUN_DATABASE_SYNTHETIC_PROFILE_CLEANUP_FAILED");
   }
 }
 

@@ -11,6 +11,7 @@ export function ComunShell({
   appBar,
   publicReadOnlyFallback = false,
   publicReadOnlyFallbackClassName = "",
+  resolvedLocation,
 }: {
   children: ReactNode;
   showSyntheticNotice?: boolean;
@@ -19,6 +20,7 @@ export function ComunShell({
   // Opt-in only for public server-rendered content, never private panels.
   publicReadOnlyFallback?: boolean;
   publicReadOnlyFallbackClassName?: string;
+  resolvedLocation?: { pathname: string; experience: string | null };
 }) {
   return (
     <Suspense
@@ -45,6 +47,7 @@ export function ComunShell({
         showSyntheticNotice={showSyntheticNotice}
         inboxBadge={inboxBadge}
         appBar={appBar}
+        resolvedLocation={resolvedLocation}
       >
         {children}
       </ComunAppShell>

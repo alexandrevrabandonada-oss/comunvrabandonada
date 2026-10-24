@@ -62,6 +62,8 @@ async function main() {
     "scripts/organization/full-schema-next-ban.mjs",
     "scripts/organization/full-schema-legacy-rls.mjs",
     "docs/proposals/m7c/legacy-session-rls-candidate.sql",
+    "components/comun-app-shell.tsx",
+    "components/comun-shell.tsx",
     "lib/community-auth.ts",
     "lib/community-mesa.ts",
     "lib/supabase/server.ts",

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { SearchReturnLink } from "./civic-intelligence/search-return-link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FormEvent, MouseEvent, ReactNode } from "react";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { ParticipateSheet, SearchSheet } from "./comun-experience-controls";
 import {
   ComunMemberNavigation,
@@ -26,20 +26,57 @@ import {
 } from "@/lib/comun-experience";
 import { COMUN_MOTOROLA_PRIMARY_ACTION } from "@/lib/comun-motorola-contract";
 
-export function ComunAppShell({
-  children,
-  showSyntheticNotice = true,
-  inboxBadge,
-  appBar,
-}: {
+type ComunAppShellProps = {
   children: ReactNode;
   showSyntheticNotice?: boolean;
   inboxBadge?: number | string | null;
   appBar?: Omit<ComunMobileAppBarProps, "experienceV2">;
-}) {
+  // Public pages may resolve their location on the server to keep content outside URL-hook fallbacks.
+  resolvedLocation?: { pathname: string; experience: string | null };
+};
+
+export function ComunAppShell(props: ComunAppShellProps) {
+  if (props.resolvedLocation) {
+    return (
+      <ResolvedComunAppShell
+        {...props}
+        pathname={props.resolvedLocation.pathname}
+        experience={props.resolvedLocation.experience}
+        stablePublicContent
+      />
+    );
+  }
+  return <UrlComunAppShell {...props} />;
+}
+
+function UrlComunAppShell(props: ComunAppShellProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const appV2 = isComunAppV2(searchParams.get("experiencia"));
+  return (
+    <ResolvedComunAppShell
+      {...props}
+      pathname={pathname}
+      experience={searchParams.get("experiencia")}
+    />
+  );
+}
+
+function ResolvedComunAppShell({
+  children,
+  showSyntheticNotice = true,
+  inboxBadge,
+  appBar,
+  pathname,
+  experience,
+  stablePublicContent = false,
+}: ComunAppShellProps & {
+  pathname: string;
+  experience: string | null;
+  stablePublicContent?: boolean;
+}) {
+  const appV2 = isComunAppV2(experience);
+  const urlControl = (node: ReactNode) =>
+    stablePublicContent ? <Suspense fallback={null}>{node}</Suspense> : node;
   const { route, contract } = resolveComunShellContract(pathname);
   const surface = resolveComunSurfaceMigration(pathname);
 
@@ -59,10 +96,10 @@ export function ComunAppShell({
         <ComunPwaRuntime />
         <SkipLink />
         {showSyntheticNotice ? <SyntheticNotice /> : null}
-        <DesktopHeader />
-        <ComunMobileAppBar {...appBar} />
+        {urlControl(<DesktopHeader />)}
+        {urlControl(<ComunMobileAppBar {...appBar} />)}
         <main id="conteudo" tabIndex={-1} className="pb-24 lg:pb-0">
-          <SearchReturnLink />
+          {urlControl(<SearchReturnLink />)}
           {children}
         </main>
         <InstitutionalFooter />
@@ -92,8 +129,10 @@ export function ComunAppShell({
       {showSyntheticNotice && route.mode === "public_web" ? (
         <SyntheticNotice />
       ) : null}
-      {showDesktopHeader ? <DesktopHeader experienceV2 /> : null}
-      {showMobileAppBar ? <ComunMobileAppBar {...appBar} experienceV2 /> : null}
+      {showDesktopHeader ? urlControl(<DesktopHeader experienceV2 />) : null}
+      {showMobileAppBar
+        ? urlControl(<ComunMobileAppBar {...appBar} experienceV2 />)
+        : null}
       <ComunPwaRuntime inlineConnectionStatus />
       <main
         id="conteudo"
@@ -101,7 +140,7 @@ export function ComunAppShell({
         className="comun-app-shell-v2__content"
         data-bottom-navigation={showBottomNavigation ? "present" : "absent"}
       >
-        <SearchReturnLink />
+        {urlControl(<SearchReturnLink />)}
         {children}
       </main>
       {showFooter ? (

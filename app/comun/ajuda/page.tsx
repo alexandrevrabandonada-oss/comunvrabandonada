@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { connection } from "next/server";
 import { ComunShell } from "@/components/comun-shell";
 import { ComunBreadcrumbs, ComunSection } from "@/components/comun-ui";
 
@@ -38,12 +37,23 @@ const topics = [
   },
 ];
 
-export default async function HelpPage() {
-  // Resolve the query-dependent shell on the server: replacing its public
-  // Suspense fallback can otherwise discard keyboard focus during hydration.
-  await connection();
+export default async function HelpPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  // Resolve the actual URL before the query-dependent client shell renders.
+  // Its public fallback must not replace an already focused guidance link.
+  const query = await searchParams;
   return (
-    <ComunShell publicReadOnlyFallback>
+    <ComunShell
+      publicReadOnlyFallback
+      resolvedLocation={{
+        pathname: "/comun/ajuda",
+        experience:
+          typeof query.experiencia === "string" ? query.experiencia : null,
+      }}
+    >
       <ComunSection>
         <ComunBreadcrumbs
           items={[{ label: "Início", href: "/comun" }, { label: "Ajuda" }]}

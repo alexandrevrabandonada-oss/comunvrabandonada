@@ -28,6 +28,7 @@ for (const javaScriptEnabled of [true, false]) {
         exact: true,
       });
       await expect(guidance).toBeVisible();
+      await expect(guidance).toBeInViewport();
       await expect(guidance).toHaveAttribute("id", "conexao");
       await expect(guidance).toHaveAttribute(
         "aria-labelledby",
@@ -89,6 +90,9 @@ test("Ajuda mantém o link nativo durante a hidratação atrasada", async ({
     await expect(
       page.getByRole("region", { name: "Se a conexão cair", exact: true }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "Se a conexão cair", exact: true }),
+    ).toBeInViewport();
   } finally {
     releaseScripts();
     await context.close();

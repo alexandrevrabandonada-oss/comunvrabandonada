@@ -20,7 +20,7 @@
     "solo:reconcile:sidewalk-scoped": "node scripts/solo/reconcile-sidewalk-scoped.mjs --local-scoped-reconciliation",
     "db:baseline:verify": "node scripts/db/verify-canonical-baseline.mjs",
     "test:db-baseline": "node --test scripts/db/verify-canonical-baseline.node-test.mjs",
-    "db:privileges:lint": "node scripts/db/lint-explicit-database-privileges.mjs",
+    "db:privileges:lint": "node --test scripts/db/live-session-privilege-exception.node-test.mjs && node scripts/db/lint-explicit-database-privileges.mjs",
     "test:schema-release-ledger": "node scripts/db/test-schema-release-ledger.mjs",
     "test:security-hardening": "node --test --test-name-pattern=\"security hardening|migration checksum\" scripts/db/canonical-security-hardening.node-test.mjs",
     "test:promotion-runner": "node --test scripts/solo/apply-forward-only.node-test.mjs",
