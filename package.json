@@ -55,7 +55,7 @@
     "security:incidents": "node scripts/security/rehearse-comun-incidents.mjs",
     "security:retention": "node scripts/security/audit-comun-retention.mjs",
     "security:provider-capability": "node scripts/security/audit-comun-provider-capability.mjs",
-    "security:test": "node --test scripts/security/comun-security-resilience.node-test.mjs",
+    "security:test": "node --test scripts/security/comun-security-resilience.node-test.mjs scripts/security/rehearse-offsite-encrypted-recovery.node-test.mjs",
     "security:collect:local": "node scripts/security/collect-comun-security-resilience.mjs",
     "security:collect:remote": "node scripts/security/collect-comun-security-resilience.mjs --remote",
     "smoke:editorial-incidents": "node --experimental-strip-types scripts/smoke-comun-editorial-incidents.mjs",

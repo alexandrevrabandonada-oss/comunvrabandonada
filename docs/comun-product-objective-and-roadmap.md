@@ -4515,3 +4515,55 @@ Chromium Windows também não concluiu; não recebe PASS. C: observado com cerca
 de 21 MB livres. Não houve limpeza destrutiva, reset do Docker ou exclusão de
 bancos. A correção segue como candidata em PR draft para prova Linux de CI;
 sem alegação de certificação completa ou aplicação remota.
+
+### SOC-D10.M7.E — recuperação externa cifrada e custódia
+
+**Autorização e limites.** O humano autorizou uma cópia somente leitura do
+banco da aplicação, cópia separada do Storage e restore descartável, com arquivos
+privados/cifrados, e delegou a escolha do destino. Pasta externa privada validada
+por metadata e teste de envio no Drive da conta responsável pelo projeto; nenhuma
+permissão ampliada. A chave real foi gerada com ACL local restrita e o humano
+confirmou sua custódia no gerenciador de senhas. Chave, identidade, referências
+privadas da pasta e credenciais não entram em Git, PR ou artifacts de CI.
+
+**Código entregue.** `scripts/security/rehearse-offsite-encrypted-recovery.mjs`
+implementa um ensaio exclusivamente sintético com `age` v1.3.2. Banco fonte e
+restore são criados pelo harness, com nome/owner aleatórios, rede desabilitada,
+imagem existente fixada por digest, dados em tmpfs e remoção verificada. Não há
+modo remoto. Dump PostgreSQL custom passa por pipe diretamente à cifragem;
+nenhum dump em claro é persistido. A CLI rejeita modo remoto, opções desconhecidas
+e caminhos relativos. Recibo minimizado rejeita campos privados inesperados,
+software não fixado e promoção indevida a backup real. `security:test` incorpora
+16 testes novos de contrato, sem suprimir testes anteriores.
+
+**Prova externa executada.** Duas linhas sintéticas A/B foram exportadas,
+cifradas, enviadas à pasta privada, baixadas por leitura autenticada e restauradas
+em outro banco descartável. Hash do arquivo cifrado e do dump decifrado conferem;
+conteúdo adulterado rejeitado; duas linhas restauradas; containers próprios e
+identidades sintéticas eliminados. A primeira tentativa de restore falhou;
+preparação exata do schema no banco descartável com `--clean --if-exists` corrigiu
+o ensaio, sem tocar bancos existentes. Prova final preservada em envelope agregado:
+`SYNTHETIC_OFFSITE_RESTORE_PASS`, `actualDurableRecovery=NOT_PROVEN`.
+A release Windows oficial de age foi validada contra o digest SHA-256 da release
+`f48d8f8f9ebe903ab5027ed067652f2cc1db94bc206976430133b905dcd8e8c7`.
+
+**Verificação e escopo.** 51 contratos de segurança locais PASS, incluindo os
+16 novos. O teste de criptografia/transporte/restore foi real e sintético, não
+mock, não exportação de dados de usuários. Drives e arquivo de teste mantêm
+`shared=false`, somente proprietária. Nenhuma chave real foi enviada ao Drive.
+CI/COST-02/Preview exigem o novo SHA; não herdar os verdes de `aaf344ed`.
+
+**Pendência concreta da origem.** O processo local não possui `SUPABASE_DB_URL`,
+`SUPABASE_PROJECT_REF` nem configuração do runtime de Storage; `.env.local` não
+existe neste worktree. Não foram buscadas/exportadas credenciais de outros
+ambientes, criada conta/chave de API ou disparado workflow remoto. A cópia real
+precisa executar em runtime protegido que já possua as credenciais da origem e
+transporte privado até o destino autorizado. Não usar artifact GitHub ou logs
+como ponte de dados. O plano atual Free foi confirmado por metadata autenticada;
+isso não comprova backup nativo, PITR ou recuperação de Auth.
+
+**Próximo incremento.** Conectar o executor de cópia ao runtime já autorizado,
+com somente o recipient público e o destino privado, e provar dump real cifrado,
+restore e limpeza; em seguida, a cópia física separada do Storage. Autorização
+para copiar não autoriza migration remota, flags, merge, Production, novo plano
+ou scheduler. RPO contínuo de 24h e recuperação nativa de Auth permanecem pendentes.

@@ -138,3 +138,29 @@ substituto precisa conseguir, a partir do checkout e dos sistemas responsáveis:
 
 Credenciais permanecem no GitHub, Vercel, Supabase e provedor de Storage; o
 runbook registra somente o sistema responsável e o estado.
+
+## M7.E — ensaio externo cifrado sem dados reais
+
+O harness `scripts/security/rehearse-offsite-encrypted-recovery.mjs` comprova
+somente o percurso sintético. Usa age v1.3.2 oficial, banco source/restore próprios
+sem rede, imagem fixada, dump custom cifrado por stream e arquivo externo privado.
+Não admite URL de origem, modo remoto, chave real ou resultado de backup real.
+
+```text
+node scripts/security/rehearse-offsite-encrypted-recovery.mjs prepare --root <diretorio-externo-absoluto> --age <age-absoluto-verificado> --keygen <age-keygen-absoluto-verificado>
+node scripts/security/rehearse-offsite-encrypted-recovery.mjs verify --directory <diretorio-retornado> --downloaded <cifra-baixada-absoluta> --age <age-absoluto-verificado>
+```
+
+Entre as etapas, enviar somente `synthetic.dump.age` e baixar o mesmo arquivo
+por acesso autenticado ao destino privado. Nunca enviar `synthetic-identity.txt`;
+é uma identidade efêmera, removida após verificação. O recibo registra hashes,
+duas linhas sintéticas, rejeição de corrupção e ausência dos containers. Não
+persistir dump decifrado: a restauração passa por pipe para o banco descartável,
+com transação única e verificação do processo de decifragem e do restore.
+
+A chave real de recuperação é separada desse ensaio, tem custódia humana em
+gerenciador de senhas e não deve ser versionada ou colocada junto da cópia.
+A presença de pasta/arquivo sintético no Drive não comprova cópia durável dos
+dados reais. O executor real ainda exige acesso configurado à origem protegida,
+TLS verificado, alvo allowlisted, somente leitura e transporte privado; não
+buscar/expor chaves, abrir permissões ou usar artifacts/logs como ponte.
