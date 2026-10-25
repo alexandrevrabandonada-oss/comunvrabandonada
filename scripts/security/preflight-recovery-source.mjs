@@ -14,7 +14,7 @@ const CA = fileURLToPath(
   new URL("./supabase-prod-ca-2021.crt", import.meta.url),
 );
 const QUERY =
-  "select current_setting('transaction_read_only')='on', current_setting('server_version_num')::int>=170000, (select ssl from pg_stat_ssl where pid=pg_backend_pid());";
+  "BEGIN READ ONLY; select current_setting('transaction_read_only')='on', current_setting('server_version_num')::int>=170000; ROLLBACK;";
 
 function reject(code) {
   throw new Error(code);
@@ -76,7 +76,9 @@ export function validateSource(text) {
 }
 
 export function classifyProbe(result) {
-  if (!result.error && result.status === 0 && result.stdout?.trim() === "t|t|t")
+  // verify-full with the pinned CA authenticates the client -> pooler TLS
+  // connection. pg_stat_ssl describes the independent pooler -> backend hop.
+  if (!result.error && result.status === 0 && result.stdout?.trim() === "t|t")
     return "READ_ONLY_TLS_PROBE_PASS";
   const error = result.stderr || "";
   if (/Tenant or user not found/i.test(error)) return "POOLER_TARGET_REJECTED";
@@ -127,6 +129,7 @@ export function probePlan(password, certificate = CA, inherited = process.env) {
       IMAGE,
       "psql",
       "--no-psqlrc",
+      "--quiet",
       "--no-password",
       "-h",
       HOST,

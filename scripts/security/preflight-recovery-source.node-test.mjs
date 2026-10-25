@@ -107,16 +107,17 @@ test("password travels in environment only; image, CA, identity and read-only qu
   assert.ok(plan.args.some((arg) => /^sha256:[a-f0-9]{64}$/.test(arg)));
   assert.ok(plan.options.timeout <= 25000);
 });
-test("PASS requires exact three booleans, successful exit and no execution error", () => {
+test("PASS requires exact read-only/version booleans, successful exit and no execution error", () => {
   assert.equal(
-    classifyProbe({ status: 0, stdout: "t|t|t\n" }),
+    classifyProbe({ status: 0, stdout: "t|t\n" }),
     "READ_ONLY_TLS_PROBE_PASS",
   );
   for (const result of [
-    { status: 1, stdout: "t|t|t" },
-    { status: 0, stdout: "t|f|t" },
-    { status: 0, stdout: "t|t|t\nprivate" },
-    { status: 0, stdout: "t|t|t", error: new Error("private") },
+    { status: 1, stdout: "t|t" },
+    { status: 0, stdout: "f|t" },
+    { status: 0, stdout: "t|f" },
+    { status: 0, stdout: "t|t\nprivate" },
+    { status: 0, stdout: "t|t", error: new Error("private") },
   ])
     assert.notEqual(classifyProbe(result), "READ_ONLY_TLS_PROBE_PASS");
 });

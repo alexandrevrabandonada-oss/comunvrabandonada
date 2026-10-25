@@ -168,8 +168,11 @@ buscar/expor chaves, abrir permissões ou usar artifacts/logs como ponte.
 ### Preflight explícito da origem (M7.E)
 
 `scripts/security/preflight-recovery-source.mjs --config <arquivo-absoluto>`
-valida o arquivo privado e executa somente uma consulta de três booleanos:
-transação read-only, PostgreSQL 17+ e TLS ativo. Não lê tabelas da aplicação,
+valida o arquivo privado e executa somente uma consulta de dois booleanos
+dentro de `BEGIN READ ONLY`/`ROLLBACK`: transação read-only e PostgreSQL 17+.
+TLS do cliente ao Session pooler é obrigatório por libpq `verify-full` com CA
+fixada. `pg_stat_ssl` no servidor mede outro trecho (pooler ao backend), portanto
+não comprova nem refuta o TLS do cliente. Não lê tabelas da aplicação,
 não exporta dados, não restaura e não redefine credenciais. O comando não é
 agendado e não faz retries; executar novamente somente após mudança relevante.
 
@@ -181,7 +184,9 @@ O caminho de CA informado no arquivo não substitui a CA fixada pelo executor.
 A imagem PostgreSQL é fixada pelo ID existente, sem pull; a senha passa apenas
 por ambiente, nunca por argumentos ou saída. O container cliente não monta o
 arquivo de configuração, usa filesystem somente leitura e não recebe capabilities.
-O Docker local é parte da fronteira confiável: seu administrador ainda pode
+`PGOPTIONS` é apenas defesa adicional: no ensaio real o pooler não encaminhou
+essa opção inicial, por isso a transação explícita é obrigatória e seu estado
+é conferido na própria consulta. O Docker local é parte da fronteira confiável: seu administrador ainda pode
 inspecionar o ambiente do processo/container durante a execução.
 
 Saída é um envelope categórico `SOURCE_CONNECTIVITY_ONLY_NOT_BACKUP`, incluindo
@@ -195,3 +200,11 @@ usuário, porta e banco foram comparados ao painel; a última tentativa anterior
 retornou autenticação recusada. Não repetir com a mesma credencial. Redefinição
 não foi autorizada nem executada; exige análise de dependências e execução humana
 coordenada. Testes locais de contrato não validam a senha ou a conexão remota.
+
+Na janela posteriormente autorizada pelo humano, a senha foi redefinida por ele.
+A conexão real passou com certificado válido e transação explicitamente read-only,
+tanto no cliente Node quanto no preflight Docker corrigido. Secrets existentes
+do GitHub e a variável sensível de conexão de Production foram atualizados sem
+leitura pública de valores. O deployment autorizado reutiliza somente o commit
+de Production `242f19cd`; a PR #572 permanece separada. Esse acesso comprovado
+ainda não representa exportação real, restore ou backup durável.

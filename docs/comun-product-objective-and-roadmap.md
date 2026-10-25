@@ -4595,3 +4595,25 @@ Próxima entrega da mesma estação: disponibilizar credencial válida por opera
 humana coordenada, após análise das dependências da conexão; então comprovar
 origem read-only e integrar exportação cifrada. Não avançar a estação por esses
 contratos. Storage, Auth, ponto durável real e RPO continuam pendentes.
+
+**M7.E — rotação humana coordenada e origem comprovada.** O humano autorizou
+a exceção específica de atualização dos secrets existentes, arquivo privado e
+conexão sensível de Production, com redeployment somente do commit já publicado
+`242f19cd`, sem integração da PR #572. A redefinição foi feita pelo humano; os
+secrets GitHub `SUPABASE_DB_URL`/`SUPABASE_DB_PASSWORD` e a variável existente
+`COMUN_COLLECTIVE_ACTIONS_DATABASE_URL` tiveram atualização aceita e metadata
+reconferida. Nenhum valor entra no roadmap, logs ou PR.
+
+O ensaio real revelou dois pressupostos incorretos do preflight: o pooler não
+encaminhou `PGOPTIONS` como configuração da sessão e `pg_stat_ssl` descreve TLS
+entre pooler/backend, não cliente/pooler. Correção: transação explícita
+`BEGIN READ ONLY`/`ROLLBACK`, leitura do estado da própria transação e TLS
+libpq verify-full obrigatório com CA fixada. Cliente Node comprovou transporte
+cifrado/certificado autorizado e transação read-only; CLI Docker corrigida
+retornou `READ_ONLY_TLS_PROBE_PASS`. Nenhum dado de aplicação foi consultado
+ou exportado. Isso não é backup real. O novo SHA exige seus próprios gates.
+
+Deployment da rotação é acompanhado separadamente: não inferir READY, saúde ou
+sucesso operacional a partir de solicitação aceita. Próxima entrega: concluir
+readback desse mesmo commit Production e executar exportação cifrada no escopo
+autorizado, com restore descartável, sem confundir origem acessível com cópia.
