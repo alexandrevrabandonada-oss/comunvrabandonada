@@ -4655,3 +4655,35 @@ Próxima entrega da mesma M7.E: identificar o runtime protegido do Storage ativo
 provar cópia/restore dos bytes no destino autorizado, mantendo Auth separado.
 Sem merge da PR #572, SQL de mutação remoto, flags ou nova publicação Production
 nesta passada. CI/COST-02/Preview próprios do novo código ainda são necessários.
+
+**M7.E — inventário completo antes da cópia do Storage.** A configuração R2 foi
+confirmada por metadata completa sem decrypt; resposta truncada do conector não
+foi tratada como ausência. Credenciais permanecem no runtime. O caminho existente
+de ensaio grava temporariamente em claro e cria/remove fixtures remotas, portanto
+não foi executado como cópia real cifrada somente leitura. Nenhum objeto real de
+Storage foi enumerado, copiado ou modificado nesta passada.
+
+Falha reproduzida: o runtime devolvia GREEN com IsTruncated=true sem token e
+também com tamanho baixado divergente. A correção compartilhada entre runtime e
+CLI exige término explícito, cursores sem repetição, ausência de duplicatas,
+metadados de tamanho válidos, budgets e igualdade dos bytes listados/baixados.
+Falhas não recebem retry ou detalhes privados no erro. O relatório registra que
+o ensaio não é recuperação durável, não cifra antes da persistência e não mede
+snapshot atômico. Gates/assertivas de limpeza anteriores preservados.
+
+Provas locais: 100 contratos Node Windows/Linux PASS, incluindo 19 novos;
+10 testes focais do runtime PASS (antes 8 PASS/2 FAIL), TypeScript/lint/format
+verificados. Testes de paginação e integração simulada não são evidência de R2
+real. Próxima entrega desta M7.E: adaptador de leitura/cifragem por stream no
+runtime protegido, seguido de cópia privada e restore; não transportar GREEN
+sintético ou inventário temporário como backup real.
+
+**Dependência da rotação reparada com autorização específica.** A listagem
+completa revelou a URL PostgreSQL sensível da Calçada, e o diagnóstico protegido
+confirmou conexão indisponível. O humano autorizou somente essa extensão da
+rotação e republicação do mesmo Production `242f19cd`. Atualização por stdin,
+metadata reconferida e redeployment READY; health retornou SHA exato e diagnóstico
+passou a reachable/ledger exact/OPERATIONAL_READY, sem mudar a flag. Não houve
+nova senha, grant, migration, merge ou publicação de código da PR #572. A ausência
+de baseline anterior impede atribuir a causa exclusivamente à rotação inicial.
+Histórico e falha anterior preservados; operação não equivale à cópia do Storage.

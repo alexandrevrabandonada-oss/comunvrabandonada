@@ -266,3 +266,52 @@ default incorreto foi marcado obsoleto; somente o catálogo v2 é referência at
 Permanecem separados: atributos/memberships globais de papéis, recuperação nativa
 de Auth, ensaio autenticado completo contra o restore, bytes do Storage e RPO
 contínuo. Correspondência de ACLs e estrutura RLS não certifica essas superfícies.
+
+### Inventário físico do Storage — gates de completude
+
+`lib/security/storage-copy-inventory.mjs` é compartilhado pelo ensaio R2 no
+runtime e pelo CLI. Só conclui com `IsTruncated=false`. Listagem truncada sem
+token, token repetido/conflitante, contagem inconsistente, chave duplicada,
+tamanho ausente/inválido e orçamento excedido bloqueiam sucesso. Limites:
+1.000 páginas/50.000 objetos por escopo; não produzem inventário parcial verde.
+Falha do provedor não recebe retry automático e seus detalhes não são impressos.
+
+Antes de gravar cada arquivo temporário, o tamanho baixado precisa coincidir
+com o inventário. Arquivos vazios são válidos; tamanho desconhecido não vira zero.
+Isso não certifica ETag/versão imutável nem um snapshot atômico entre páginas.
+Os relatórios distinguem inventário completo, comprimentos verificados e
+`durableRecovery=NOT_PROVEN`. O ensaio atual grava em claro temporariamente e
+declara `encryptedBeforePersistence=false`; não atende à cópia real cifrada
+antes da persistência. Seu RPO é uma janela de listagem, não um ponto atômico.
+
+Regressão no próprio runtime: duas entradas simuladas antes da correção
+retornavam GREEN para listagem incompleta e tamanho divergente. Depois: 10/10
+testes do runtime PASS; objeto preexistente preservado e nenhuma escrita de
+fixture antes de o inventário ser validado. Mais 19 contratos Node exercitam
+paginação/budgets/privacidade/tamanho; são provas de contrato e integração
+simulada, não cópia real de R2.
+
+Metadata completa, sem decrypt, confirmou configuração R2 sensível em Production.
+A resposta do conector estava truncada; ausência nessa resposta não comprova
+variável ausente. O caminho completo foi lido via API autenticada, filtrando
+somente nomes/tipos/targets, sem exportar valores. Presença não comprova validade
+das credenciais nem enumeração dos buckets. O caminho existente de ensaio requer
+Cron/HMAC e cria/remove fixtures remotas; não foi chamado como atalho para a cópia.
+Não houve env pull, busca de chaves, dispatch ou leitura dos objetos reais.
+
+Próxima operação: transporte cifrado de leitura apenas dentro do runtime já
+autorizado, com listagem completa, identificação de versões, manifesto cifrado,
+destino privado e restore descartável. Credenciais ficam na origem. A correção
+dos gates prepara essa operação; não a declara executada.
+
+### Readback adicional da rotação PostgreSQL
+
+A leitura completa revelou também `COMUN_SIDEWALK_OPERATIONAL_DATABASE_URL`,
+cujo diagnóstico protegido estava DATABASE_CONNECTION_FAILED. O contrato
+versionado a alimenta da conexão canônica SUPABASE_DB_URL. Mediante extensão
+humana específica, somente essa variável sensível existente foi atualizada por
+stdin; nenhuma senha, flag ou grant foi alterado. Redeployment do mesmo commit
+Production `242f19cd` chegou a READY. Health autenticado confirmou o SHA; o
+diagnóstico retornou database reachable, ledger exact e OPERATIONAL_READY, com
+flag inalterada. Não houve publicação da PR #572 nem inferência dessa autorização
+a partir do comando seguir. A configuração antiga não foi lida/descriptografada.

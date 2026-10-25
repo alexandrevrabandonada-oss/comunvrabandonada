@@ -12,6 +12,7 @@ const state = vi.hoisted(() => ({
   deleteCalls: 0,
   failDeletionAt: 7,
   skipDeletion: false,
+  inventoryMode: "empty" as "empty" | "truncated" | "size-mismatch",
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -77,8 +78,20 @@ vi.mock("@aws-sdk/client-s3", async (importOriginal) => {
         const key = `${input.Bucket}/${input.Key}`;
         switch (command.constructor.name) {
           case "ListObjectsV2Command":
-            return { Contents: [] };
+            if (state.inventoryMode === "truncated")
+              return { Contents: [], IsTruncated: true };
+            if (
+              state.inventoryMode === "size-mismatch" &&
+              input.Bucket === "private"
+            )
+              return {
+                Contents: [{ Key: "originals/existing-synthetic", Size: 1 }],
+                IsTruncated: false,
+                KeyCount: 1,
+              };
+            return { Contents: [], IsTruncated: false, KeyCount: 0 };
           case "PutObjectCommand":
+            state.events.push("synthetic-put");
             state.objects.set(key, {
               body: input.Body as Buffer,
               mime: input.ContentType as string,
@@ -132,6 +145,7 @@ beforeEach(() => {
   state.deleteCalls = 0;
   state.failDeletionAt = 7;
   state.skipDeletion = false;
+  state.inventoryMode = "empty";
   state.assetError =
     state.relationCleanupError =
     state.objectCleanupError =
@@ -179,9 +193,36 @@ afterEach(() => {
 });
 
 describe("runtime Storage restore cleanup", () => {
+  it("rejects truncated inventory without a continuation token before synthetic writes", async () => {
+    state.inventoryMode = "truncated";
+    await expect(
+      runRuntimeStorageRestoreRehearsal("synthetic-incomplete-list"),
+    ).rejects.toThrow("COMUN_STORAGE_INVENTORY_INCOMPLETE");
+    expect(state.events).not.toContain("synthetic-put");
+    expect(state.events).toContain("workspace-cleanup");
+  });
+  it("rejects changed object length without deleting the pre-existing source object", async () => {
+    state.inventoryMode = "size-mismatch";
+    state.objects.set("private/originals/existing-synthetic", {
+      body: Buffer.from("synthetic-existing-bytes"),
+      mime: "application/octet-stream",
+    });
+    await expect(
+      runRuntimeStorageRestoreRehearsal("synthetic-length-change"),
+    ).rejects.toThrow("COMUN_STORAGE_BACKUP_OBJECT_CHANGED");
+    expect(state.objects.has("private/originals/existing-synthetic")).toBe(
+      true,
+    );
+    expect(state.events).not.toContain("synthetic-put");
+    expect(state.events).toContain("workspace-cleanup");
+  });
   it("returns green only after removing objects and workspace", async () => {
     const result = await runRuntimeStorageRestoreRehearsal("synthetic-success");
     expect(result.result).toBe("COMUN_STORAGE_RESTORE_REHEARSAL_GREEN");
+    expect(result.physicalBackup.inventoryComplete).toBe(true);
+    expect(result.physicalBackup.listedObjectLengthsVerified).toBe(true);
+    expect(result.physicalBackup.durableRecovery).toBe("NOT_PROVEN");
+    expect(result.physicalBackup.encryptedBeforePersistence).toBe(false);
     expect(state.objects.size).toBe(0);
     expect(state.events.at(-1)).toBe("workspace-cleanup");
   });

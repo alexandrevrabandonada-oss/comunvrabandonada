@@ -12,6 +12,10 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import {
+  listCompleteStorageScope,
+  assertStorageObjectLength,
+} from "./storage-copy-inventory.mjs";
 
 const RESULT = "COMUN_STORAGE_RESTORE_REHEARSAL_GREEN";
 const required = [
@@ -51,7 +55,10 @@ export async function runRuntimeStorageRestoreRehearsal(attemptId: string) {
     scope === "public"
       ? process.env.R2_BUCKET_PUBLIC!
       : process.env.R2_BUCKET_ORIGINALS!;
-  const tag = attemptId.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 64);
+  const tag = attemptId
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "")
+    .slice(0, 64);
   const sourcePrefix = `security-rehearsal/${tag}/source`;
   const restorePrefix = `security-rehearsal/${tag}/isolated-restore`;
   const fixtures: Fixture[] = [
@@ -122,15 +129,10 @@ export async function runRuntimeStorageRestoreRehearsal(attemptId: string) {
     await assertObjectsMissing(client, bucket, sourceObjects);
 
     for (const [index, item] of fixtures.entries()) {
-      await putVerified(
-        client,
-        bucket(item.scope),
-        restoreObjects[index].key,
-        {
-          ...item,
-          body: backedUp[index].body,
-        },
-      );
+      await putVerified(client, bucket(item.scope), restoreObjects[index].key, {
+        ...item,
+        body: backedUp[index].body,
+      });
       const restored = await getObject(
         client,
         bucket(item.scope),
@@ -185,6 +187,10 @@ export async function runRuntimeStorageRestoreRehearsal(attemptId: string) {
         objectKeysPublished: false,
         externalUpload: false,
         artifactPublished: false,
+        inventoryComplete: true,
+        listedObjectLengthsVerified: true,
+        durableRecovery: "NOT_PROVEN",
+        encryptedBeforePersistence: false,
         duration: durationBand(Date.now() - startedAt),
       },
       rehearsal: {
@@ -209,7 +215,7 @@ export async function runRuntimeStorageRestoreRehearsal(attemptId: string) {
         realObjectsDeleted: false,
       },
       rpoRto: {
-        storageRpoObserved: "snapshot_at_rehearsal_start",
+        storageRpoObserved: "listing_window_not_atomic_snapshot",
         isolatedStorageRecoveryRto: durationBand(Date.now() - startedAt),
       },
       evidenceBoundary: {
@@ -265,23 +271,16 @@ async function backupInventory(
 ) {
   const objects: Array<{ scope: Scope; key: string; size: number }> = [];
   for (const scope of ["private", "public"] as const) {
-    let continuationToken: string | undefined;
-    do {
-      const listed = await client.send(
+    const listed = await listCompleteStorageScope((continuationToken) =>
+      client.send(
         new ListObjectsV2Command({
           Bucket: bucket(scope),
           ContinuationToken: continuationToken,
+          MaxKeys: 1000,
         }),
-      );
-      for (const object of listed.Contents ?? [])
-        if (object.Key)
-          objects.push({
-            scope,
-            key: object.Key,
-            size: Number(object.Size ?? 0),
-          });
-      continuationToken = listed.NextContinuationToken;
-    } while (continuationToken);
+      ),
+    );
+    objects.push(...listed.map((object) => ({ scope, ...object })));
   }
   const declaredBytes = objects.reduce((sum, item) => sum + item.size, 0);
   const filesystem = await statfs(directory);
@@ -301,6 +300,7 @@ async function backupInventory(
       bucket(object.scope),
       object.key,
     );
+    assertStorageObjectLength(object.size, downloaded.body.length);
     checksums.push(digest(downloaded.body));
     bytes += downloaded.body.length;
     const mime = normalizeMime(downloaded.mime);

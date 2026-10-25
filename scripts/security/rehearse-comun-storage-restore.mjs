@@ -1,4 +1,8 @@
 import assert from "node:assert/strict";
+import {
+  listCompleteStorageScope,
+  assertStorageObjectLength,
+} from "../../lib/security/storage-copy-inventory.mjs";
 import { assertSignedUrlExpiry } from "./assert-signed-url-expiry.mjs";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
@@ -141,6 +145,10 @@ try {
       objectKeysPublished: false,
       externalUpload: false,
       artifactPublished: false,
+      inventoryComplete: true,
+      listedObjectLengthsVerified: true,
+      durableRecovery: "NOT_PROVEN",
+      encryptedBeforePersistence: false,
       duration: durationBand(Date.now() - startedAt),
     },
     rehearsal: {
@@ -165,7 +173,7 @@ try {
       realObjectsDeleted: false,
     },
     rpoRto: {
-      storageRpoObserved: "snapshot_at_rehearsal_start",
+      storageRpoObserved: "listing_window_not_atomic_snapshot",
       isolatedStorageRecoveryRto: durationBand(Date.now() - startedAt),
     },
   };
@@ -306,22 +314,15 @@ function r2Provider() {
     scopes: ["private_image", "public_image"],
     bucket,
     async list(scope) {
-      const rows = [];
-      let ContinuationToken;
-      do {
-        const result = await client.send(
+      return listCompleteStorageScope((ContinuationToken) =>
+        client.send(
           new ListObjectsV2Command({
             Bucket: bucket(scope),
             ContinuationToken,
+            MaxKeys: 1000,
           }),
-        );
-        for (const object of result.Contents || []) {
-          if (object.Key)
-            rows.push({ key: object.Key, size: object.Size || 0 });
-        }
-        ContinuationToken = result.NextContinuationToken;
-      } while (ContinuationToken);
-      return rows;
+        ),
+      );
     },
     async get(scope, key) {
       const object = await client.send(
@@ -517,6 +518,7 @@ async function backupPhysicalObjects(target, directory) {
   const mimes = {};
   for (const object of objects) {
     const downloaded = await target.get(object.scope, object.key);
+    assertStorageObjectLength(object.size, downloaded.body.length);
     const digest = checksum(downloaded.body);
     checksums.push(digest);
     bytes += downloaded.body.length;
