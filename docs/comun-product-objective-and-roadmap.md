@@ -4687,3 +4687,25 @@ passou a reachable/ledger exact/OPERATIONAL_READY, sem mudar a flag. Não houve
 nova senha, grant, migration, merge ou publicação de código da PR #572. A ausência
 de baseline anterior impede atribuir a causa exclusivamente à rotação inicial.
 Histórico e falha anterior preservados; operação não equivale à cópia do Storage.
+
+**M7.E — exportador privado cifrado por stream, ainda sem cópia R2 real.**
+Novo adaptador expõe exclusivamente ListObjectsV2/GetObject, com If-Match por
+ETag, tamanho exato, inventário reconferido e sem retry. TAR transmite bytes e
+manifesto diretamente ao age v1.3.2 fixado por checksum; somente cifra persiste.
+CLI de verificação confere checksum externo e conteúdo interno sem extração em
+disco. Budgets, metadados limitados, erros sanitizados e criação exclusiva evitam
+sucesso parcial, vazamento em logs e sobrescrita de arquivo anterior.
+
+Ensaio local com age real, identidade descartável e dois objetos sintéticos
+(binário/vazio) PASS: hashes de manifesto coincidentes, corrupção rejeitada,
+colisão preservada e limpeza verificada. Testes de contrato cobrem ETags,
+inventário alterado, tamanhos divergentes, metadados inesperados e TAR inválido.
+São provas sintéticas; não houve leitura, escrita ou restauração no R2 real.
+Runbook: docs/comun-storage-encrypted-stream-runbook.md. tar-stream 3.2.2 fixado
+no lockfile; nenhuma nova rota, flag, credencial ou publicação Production.
+
+Pendente: execução no processo protegido da origem, cópia privada offsite com
+readback e restauração dos bytes/metadados em destino descartável autorizado.
+Verificar archive não equivale a restore no provedor. Segunda listagem não é
+snapshot atômico. CI/COST-02/Preview do novo SHA exigem certificação própria.
+Permanece na M7.E, com Auth nativa e RPO contínuo também pendentes.
