@@ -164,3 +164,34 @@ A presença de pasta/arquivo sintético no Drive não comprova cópia durável d
 dados reais. O executor real ainda exige acesso configurado à origem protegida,
 TLS verificado, alvo allowlisted, somente leitura e transporte privado; não
 buscar/expor chaves, abrir permissões ou usar artifacts/logs como ponte.
+
+### Preflight explícito da origem (M7.E)
+
+`scripts/security/preflight-recovery-source.mjs --config <arquivo-absoluto>`
+valida o arquivo privado e executa somente uma consulta de três booleanos:
+transação read-only, PostgreSQL 17+ e TLS ativo. Não lê tabelas da aplicação,
+não exporta dados, não restaura e não redefine credenciais. O comando não é
+agendado e não faz retries; executar novamente somente após mudança relevante.
+
+O alvo é o Session pooler exato conferido no painel do projeto, porta 5432.
+URLs de outro projeto, overrides por query/fragmento, placeholders e variáveis
+desconhecidas/duplicadas são rejeitados antes da rede. A CA versionada tem hash
+fixado; `verify-full` e `default_transaction_read_only=on` não são opcionais.
+O caminho de CA informado no arquivo não substitui a CA fixada pelo executor.
+A imagem PostgreSQL é fixada pelo ID existente, sem pull; a senha passa apenas
+por ambiente, nunca por argumentos ou saída. O container cliente não monta o
+arquivo de configuração, usa filesystem somente leitura e não recebe capabilities.
+O Docker local é parte da fronteira confiável: seu administrador ainda pode
+inspecionar o ambiente do processo/container durante a execução.
+
+Saída é um envelope categórico `SOURCE_CONNECTIVITY_ONLY_NOT_BACKUP`, incluindo
+`backupVerified=false` mesmo quando a conexão passa. Erros do provedor, URLs,
+senhas e exceções de filesystem não são impressos. Configuração precisa conter
+`SUPABASE_PROJECT_REF`, `PGSSLMODE=verify-full` e
+`PGOPTIONS=-c default_transaction_read_only=on`, além da conexão privada.
+
+Readback da origem: o humano informou não possuir a senha do banco. Endereço,
+usuário, porta e banco foram comparados ao painel; a última tentativa anterior
+retornou autenticação recusada. Não repetir com a mesma credencial. Redefinição
+não foi autorizada nem executada; exige análise de dependências e execução humana
+coordenada. Testes locais de contrato não validam a senha ou a conexão remota.

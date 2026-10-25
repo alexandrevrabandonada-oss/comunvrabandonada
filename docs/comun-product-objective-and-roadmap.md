@@ -4567,3 +4567,31 @@ com somente o recipient público e o destino privado, e provar dump real cifrado
 restore e limpeza; em seguida, a cópia física separada do Storage. Autorização
 para copiar não autoriza migration remota, flags, merge, Production, novo plano
 ou scheduler. RPO contínuo de 24h e recuperação nativa de Auth permanecem pendentes.
+
+**M7.E — preflight reproduzível da origem.** O readback de `48797802`
+concluiu CI/COST-02, Coherence, Quality e Security com sucesso. Isso certifica
+o código e o laboratório daquele SHA; recuperação operacional real continua
+pendente. A conexão Direct não possui IPv4 no alvo observado; o Session pooler
+foi conferido no painel, mas a senha configurada foi recusada. O humano informou
+não possuir a senha existente. Nenhuma exportação real ou redefinição ocorreu.
+
+O novo `scripts/security/preflight-recovery-source.mjs` substitui comandos
+manuais por validação explícita e uma única consulta de conectividade: destino
+exato, TLS verify-full/CA fixada, sessão read-only e versão PostgreSQL. Não há
+consulta a dados da aplicação, senha em argumentos/saída, retry, reset de senha,
+backup, scheduler ou publicação. Imagem cliente fixada, filesystem read-only,
+sem capabilities e sem montagem do arquivo privado. Erros viram categorias;
+sucesso de conexão mantém `backupVerified=false`. Contratos exercitam rejeição
+de alvo divergente, overrides TLS/escrita, duplicatas, placeholders, erros e
+PASS incompleto. Testes sintéticos de contrato não comprovam autenticação real.
+
+Verificação local: 69/69 contratos de segurança PASS, incluindo 18 novos e
+execução real da CLI com configurações inválidas, sem Docker/rede. ESLint,
+sintaxe e diff-check PASS. O daemon Docker estava indisponível nesta sessão;
+não há nova prova Linux ou conexão autenticada. Nenhuma tentativa foi repetida
+com a senha recusada. O novo SHA exige CI/COST-02/Preview próprios.
+
+Próxima entrega da mesma estação: disponibilizar credencial válida por operação
+humana coordenada, após análise das dependências da conexão; então comprovar
+origem read-only e integrar exportação cifrada. Não avançar a estação por esses
+contratos. Storage, Auth, ponto durável real e RPO continuam pendentes.
