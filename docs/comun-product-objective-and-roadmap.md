@@ -4617,3 +4617,41 @@ Deployment da rotação é acompanhado separadamente: não inferir READY, saúde
 sucesso operacional a partir de solicitação aceita. Próxima entrega: concluir
 readback desse mesmo commit Production e executar exportação cifrada no escopo
 autorizado, com restore descartável, sem confundir origem acessível com cópia.
+
+**M7.E — cópia real e complemento de autorização da aplicação.** A cópia dos
+schemas public/private/ledger foi concluída por pipe pg_dump → age, sem dump em
+claro, e enviada a Drive privado owner-only. Download e hashes cifrado/decifrado
+conferidos. Restore descartável comprovou 239 tabelas/33.493 registros e estrutura
+RLS, com limpeza verificada. Não incluiu Auth/Storage internos ou ACLs naquele
+primeiro archive. O humano já havia autorizado essa cópia e a custódia separada
+da chave; não houve novo scheduler ou ampliação de permissões.
+
+Nesta passada, um companion schema-only cifrado preserva proprietários e ACLs,
+sem repetir dados. Catálogo read-only e comparador canônico novos cobrem
+proprietário, grantor/grantee, privilégio, repasse, coluna e defaults. Testes
+PostgreSQL detectaram/corrigiram array ACL vazio e código de tipo de sequência
+`s` (o `S` inicial significava servidor estrangeiro). Falhas preservadas. O
+diagnóstico cifrado anterior foi marcado obsoleto; catálogo v2 cifrado é ativo.
+
+Restore de dados + companion, em container novo sem rede/portas/volumes do host,
+com imagem existente fixada e dados em tmpfs: 3.564 objetos e seis defaults
+coincidiram integralmente após repor no laboratório um privilégio de schema
+explicitamente presente na origem. O plano offline só admite concessão ausente
+emitida pelo owner, em schema/sequência; não modifica a origem e bloqueia extras,
+donos/defaults divergentes ou outros tipos. Oito probes SQL sem identidade para
+anon/authenticated foram negados ou tiveram zero linhas; não são login real.
+
+Contagens foram conferidas contra o checksum do ponto original, encadeado ao
+mesmo dump cifrado. A origem viva ganhou três linhas em uma tabela durante as
+provas; divergência registrada, sem apagar dados ou relaxar igualdade do ponto.
+Containers próprios removidos e ausência confirmada. 81 contratos Windows/Linux
+PASS e ensaio PostgreSQL sintético PASS, incluindo replay mínimo e igualdade
+completa; não transportam gates do novo SHA. Código reutilizável, runbook e
+manifesto agregado acompanham a prova real; IDs/credenciais/chaves ficam privados.
+
+Pendências: atributos e memberships globais de papéis, recuperação Auth nativa,
+ensaio autenticado completo no restore, cópia física do Storage e RPO contínuo.
+Próxima entrega da mesma M7.E: identificar o runtime protegido do Storage ativo e
+provar cópia/restore dos bytes no destino autorizado, mantendo Auth separado.
+Sem merge da PR #572, SQL de mutação remoto, flags ou nova publicação Production
+nesta passada. CI/COST-02/Preview próprios do novo código ainda são necessários.

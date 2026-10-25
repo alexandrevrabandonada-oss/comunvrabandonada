@@ -208,3 +208,61 @@ do GitHub e a variável sensível de conexão de Production foram atualizados se
 leitura pública de valores. O deployment autorizado reutiliza somente o commit
 de Production `242f19cd`; a PR #572 permanece separada. Esse acesso comprovado
 ainda não representa exportação real, restore ou backup durável.
+
+### Complemento de proprietários e ACLs — M7.E
+
+A cópia real de dados foi seguida por um archive custom **schema-only**, sem
+`--no-owner`/`--no-acl`, dos mesmos schemas. Não reexporta linhas. Ambos os
+archives são cifrados por stream antes de persistência, enviados a destino
+externo owner-only, baixados e verificados por checksum. O catálogo normalizado
+de ACLs também é cifrado e mantido separado da chave. Auth, Storage, senhas de
+papéis e dados internos do provedor não fazem parte desses arquivos.
+
+`scripts/security/recovery-acl-catalog.sql` lê somente metadata: proprietários,
+concedentes/destinatários, privilégios/opções de repasse, ACLs de coluna e
+privilégios padrão dos schemas permitidos. Arrays ACL vazios representam nenhuma
+concessão; não são substituídos pelos defaults. Sequências usam `acldefault('s',
+owner)`: `S` maiúsculo designa servidor estrangeiro e produz uma comparação errada.
+
+`recovery-acl-contract.mjs` compara catálogos por conteúdo canônico, rejeitando
+campos extras, duplicatas e diferenças reais. O plano offline admite apenas
+reposição de concessões ausentes, emitidas pelo proprietário, em schema ou
+sequência. Bloqueia grants extras, mudança de dono/defaults, outros tipos de
+objeto e identidades SQL inválidas. Não conecta nem executa SQL. Seu consumidor
+deve confirmar owner/isolamento do laboratório e comparar **todo** o catálogo
+novamente após executar o plano. Nunca aplicar esse plano na origem/Production.
+
+O ensaio real usou archive de schema/proprietários/ACLs para pre/post-data e o
+archive cifrado original para data. Papéis ausentes foram stubs NOLOGIN no banco
+descartável; isso não clona atributos globais, memberships ou credenciais.
+O catálogo coincidiu em 3.564 objetos e seis entradas de privilégios padrão.
+Foi necessário repor no laboratório um USAGE de schema registrado na origem,
+omitido pelo archive por pressupor o baseline do banco novo. Nenhum GRANT/REVOKE
+foi executado remotamente. Oito probes SQL sem identidade em tabelas reservadas,
+com anon/authenticated, foram negados ou retornaram zero linhas. Não são prova
+de login, JWT revogado, autorização positiva ou sessão Auth recuperada.
+
+As 239 tabelas/33.493 linhas foram conferidas pelo checksum de contagens do
+mesmo ponto original, encadeado ao hash do dump cifrado. A origem viva tinha
+três linhas adicionais em uma tabela; essa divergência foi preservada, não
+apagada ou convertida em igualdade. Comparar um snapshot imutável à origem em
+movimento não mede a fidelidade daquele ponto. O manifesto novo registra o
+checksum canônico portátil para verificações futuras.
+
+Prova sintética reproduzível, em Docker com imagem existente fixada e sem rede:
+
+```text
+npm run security:test
+npm run security:acl-rehearsal
+```
+
+O segundo comando requer a imagem indicada pelo harness já carregada. Testa
+PostgreSQL real: ACL vazia, concessão de coluna, repasse, defaults e replay mínimo
+seguido de igualdade integral; não usa dados reais. Containers próprios são
+removidos e sua ausência é verificada, inclusive em falha. Falhas iniciais do
+catálogo e do restore foram preservadas. O diagnóstico cifrado antigo com o
+default incorreto foi marcado obsoleto; somente o catálogo v2 é referência ativa.
+
+Permanecem separados: atributos/memberships globais de papéis, recuperação nativa
+de Auth, ensaio autenticado completo contra o restore, bytes do Storage e RPO
+contínuo. Correspondência de ACLs e estrutura RLS não certifica essas superfícies.
