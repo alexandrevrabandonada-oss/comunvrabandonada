@@ -193,6 +193,23 @@ test("allowlist reconhece alvos Supabase diretos e pooler sem aceitar host exter
   );
 });
 
+function assertSafeArtifactBlock(block) {
+  assert.doesNotMatch(block, /\.dump|\.env|backups\/|object[_-]keys?/i);
+  const paths = [...block.matchAll(/^\s*path:\s*(.+?)\s*$/gm)];
+  assert.equal(paths.length, 1, "exactly one artifact path is required");
+  assert.ok(
+    [
+      ".security-evidence/*.json",
+      ".ci-artifacts/security-role-lab/rehearsal.json",
+    ].includes(paths[0][1]),
+    "artifact path is outside the explicit evidence allowlist",
+  );
+  assert.doesNotMatch(
+    block,
+    /^\s*(?:\.\.\/|[^\s#]+\.(?:dump|env|age|sql))\s*$/gim,
+  );
+}
+
 test("workflow nunca publica dump, env ou object keys", async () => {
   const workflow = await readFile(
     ".github/workflows/comun-security-resilience.yml",
@@ -205,9 +222,33 @@ test("workflow nunca publica dump, env ou object keys", async () => {
   ].map((match) => match[0]);
   assert.ok(artifactBlocks.length >= 1);
   for (const block of artifactBlocks) {
-    assert.doesNotMatch(block, /\.dump|\.env|backups\/|object[_-]keys?/i);
-    assert.match(block, /\.security-evidence/);
+    assertSafeArtifactBlock(block);
   }
+});
+
+test("artifact allowlist rejects unknown paths and sensitive files", () => {
+  for (const path of [
+    ".ci-artifacts/security-role-lab/**",
+    ".ci-artifacts/security-role-lab/*.age",
+    ".security-evidence/../*.json",
+    "private/*.json",
+    ".security-evidence/*.dump",
+    ".env",
+    "backups/*.json",
+    "object_keys.json",
+    "|\n          .security-evidence/*.json\n          private/dump.sql",
+  ]) {
+    assert.throws(() =>
+      assertSafeArtifactBlock(
+        `uses: actions/upload-artifact@v4\n        with:\n          path: ${path}\n`,
+      ),
+    );
+  }
+  assert.throws(() =>
+    assertSafeArtifactBlock(
+      "path: .security-evidence/*.json\npath: private/*.json\n",
+    ),
+  );
 });
 
 test("secret history gates receive full history in local and remote jobs", async () => {

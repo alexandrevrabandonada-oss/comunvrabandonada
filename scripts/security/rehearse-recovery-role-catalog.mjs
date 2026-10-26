@@ -5,6 +5,10 @@ import { readFile, writeFile, mkdir, appendFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  ROLE_IMAGE as image,
+  verifyRoleImage,
+} from "./recovery-role-image.mjs";
+import {
   canonicalRoleCatalog,
   roleCatalogDigest,
   compareRoleCatalogs,
@@ -14,8 +18,7 @@ import {
 const args = process.argv.slice(2);
 const output = args[2];
 const owner = `comun-role-${randomUUID()}`;
-const image =
-  "sha256:67f41722b7a8cbdb868a44a4995c846eddfdc2973bccb291ce937dce88ad5675";
+let actualImageId = null;
 const attempted = [];
 const checks = [];
 const env = {
@@ -95,8 +98,8 @@ try {
     new URL("./recovery-role-catalog.sql", import.meta.url),
     "utf8",
   );
-  const sourceSha = text(["image", "inspect", image, "--format", "{{.Id}}"]);
-  assert.equal(sourceSha, image);
+  const imageDetails = JSON.parse(text(["image", "inspect", image]))[0];
+  actualImageId = verifyRoleImage(imageDetails);
   for (const suffix of ["source", "target"]) {
     const name = `${owner}-${suffix}`;
     attempted.push(name);
@@ -355,7 +358,8 @@ const report = {
   checks,
   failedPhase: result === "FAIL" ? phase : null,
   cleanupVerified: cleaned,
-  imageId: image,
+  imageId: actualImageId,
+  imageReference: image,
   catalogDigest: digest ?? null,
   sourceRoleWrites: "SYNTHETIC_LAB_ONLY",
   remoteWrites: false,

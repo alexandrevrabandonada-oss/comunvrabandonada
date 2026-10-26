@@ -4876,3 +4876,31 @@ O COST-02 de 4c29284a passou. Full Surface falhou antes dos testes admin em
 supabase start, porta 55432 já ocupada; log preservado, sem rerun ou relaxamento.
 Recuperação nativa de Auth, replay revisado de papéis e RPO contínuo continuam
 pendentes. Nenhum grant, migration, plano pago ou Production foi alterado.
+
+**M7.E — gates do laboratório sintético e contrato de artefatos.**
+No HEAD 50b04ab8, o contrato de publicação rejeitou incorretamente a evidência
+JSON sanitizada do laboratório. A allowlist agora admite apenas os JSONs da
+pasta de segurança convencional e o único arquivo `rehearsal.json` do ensaio;
+casos negativos rejeitam caminhos inesperados, dumps, envs, chaves e diretórios
+alternativos. O artefato do laboratório permanece oculto e exige publicação
+explícita de arquivos ocultos, sem incluir o diretório de trabalho do ensaio.
+
+O [job do laboratório](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/40412667539/job/121890350343)
+comparou o manifesto de uma imagem multi-arquitetura ao ID local do Docker após
+baixar uma tag mutável. O laboratório e o preflight agora usam o mesmo índice
+imutável oficial PostgreSQL 17.11 `67f41722`, com manifesto Linux amd64
+`d13db94a` e configuração `7296f210`, verificados de forma fail-closed. O ensaio
+de desenvolvimento com PostgreSQL real passou em 17 verificações e comprovou
+cleanup; o novo commit exige novo resultado próprio, inclusive no CI.
+
+Em 50b04ab8, [Experience Coherence](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/40412667768/job/121887677113)
+e o [ciclo Auth M6](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/40412667290/job/121887608252)
+passaram; outros gates falharam no contrato de artefatos. A inicialização restrita
+mantém reset local, Auth, PostgreSQL, REST, saúde e E2E; Edge Runtime é excluído
+apenas na lane que não o utiliza. Resultados não são transferíveis entre SHAs.
+
+O inventário de 31 papéis/22 vínculos e a reconstrução de três papéis sintéticos
+não demonstram recuperação dos privilégios reais, Auth nativo ou RPO contínuo.
+Qualquer replay de privilégios reais requer procedimento, revisão e autorização
+próprios. Próximo passo: certificar o commit descendente nos gates e investigar
+separadamente qualquer falha remanescente sem rerun artificial.

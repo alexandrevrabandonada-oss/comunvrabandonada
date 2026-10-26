@@ -1,6 +1,31 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { ROLE_IMAGE, verifyRoleImage } from "./recovery-role-image.mjs";
+
+test("role lab pins registry reference, architecture and approved image identities", () => {
+  const base = {
+    Os: "linux",
+    Architecture: "amd64",
+    RepoDigests: [ROLE_IMAGE],
+    Id: "sha256:7296f210ae81031ec955dbad9a67a84fe958572a2153b8d0826a647522904dc1",
+  };
+  assert.equal(verifyRoleImage(base), base.Id);
+  assert.doesNotThrow(() =>
+    verifyRoleImage({ ...base, Id: ROLE_IMAGE.split("@")[1] }),
+  );
+  for (const change of [
+    { Os: "windows" },
+    { Architecture: "arm64" },
+    { RepoDigests: ["postgres:17"] },
+    { Id: "sha256:" + "0".repeat(64) },
+  ]) {
+    assert.throws(
+      () => verifyRoleImage({ ...base, ...change }),
+      /COMUN_M7E_ROLE_POSTGRES_IMAGE_PIN_MISMATCH/,
+    );
+  }
+});
 import {
   roleCatalogReadPlan,
   parseRoleCaptureArguments,
@@ -214,7 +239,8 @@ test("synthetic least-privilege reconstruction is narrower than source", () => {
   assert.equal(evidence.privilegeReplay, false);
   assert.equal(evidence.recoveryComplete, false);
   for (const mutate of [
-    (copy) => (copy.roles.find((r) => r.name === "synthetic_member").login = true),
+    (copy) =>
+      (copy.roles.find((r) => r.name === "synthetic_member").login = true),
     (copy) =>
       (copy.roles.find((r) => r.name === "synthetic_owner").bypass_rls = true),
     (copy) => (copy.roles.find((r) => r.name === "postgres").superuser = false),
@@ -222,7 +248,11 @@ test("synthetic least-privilege reconstruction is narrower than source", () => {
     (copy) => (copy.memberships[0].admin = true),
     (copy) => (copy.memberships[0].set_role = true),
     (copy) => (copy.memberships[0].grantor = "synthetic_delegate"),
-    (copy) => copy.memberships.push({ ...copy.memberships[0], member: "synthetic_delegate" }),
+    (copy) =>
+      copy.memberships.push({
+        ...copy.memberships[0],
+        member: "synthetic_delegate",
+      }),
   ]) {
     const unsafe = structuredClone(target);
     mutate(unsafe);
