@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { validateProviderAvailabilityObservation } from "./provider-availability-observation.mjs";
 import {
   sanitizedError,
   writeEvidence,
@@ -7,6 +8,13 @@ import {
 } from "./comun-security-contract.mjs";
 
 try {
+  const observationFile =
+    process.env.COMUN_PROVIDER_CAPABILITY_OBSERVATION_FILE;
+  const currentObservation = observationFile
+    ? validateProviderAvailabilityObservation(
+        JSON.parse(await readFile(observationFile, "utf8")),
+      )
+    : null;
   const checkpoint = await readFile(
     "reports/current/comun-tijolo-47-6a-remote-state-checkpoint.md",
     "utf8",
@@ -14,9 +22,15 @@ try {
   assert.match(checkpoint, /plano Free/i);
   await writeEvidence("70-provider-capability.json", {
     result: "COMUN_SECURITY_RESILIENCE_BLOCKED_PROVIDER_CAPABILITY",
-    observedPlan: "not_verified_currently",
-    observedFrom: "historical_remote_storage_capability_checkpoint",
+    observedPlan: currentObservation ? "free" : "not_verified_currently",
+    observedFrom: currentObservation
+      ? "authenticated_dashboard"
+      : "historical_remote_storage_capability_checkpoint",
     currentProviderCapacityVerified: false,
+    currentAvailabilityObservation: currentObservation,
+    verifiedCapabilityScopes: currentObservation
+      ? ["plan", "scheduled_backup_availability", "pitr_availability"]
+      : [],
     historicalObservation: {
       plan: "free",
       source: "reports/current/comun-tijolo-47-6a-remote-state-checkpoint.md",
@@ -25,8 +39,12 @@ try {
       scope: "storage_file_size_limit",
     },
     database: {
-      automaticBackups: "not_verified_currently",
-      pitr: "not_verified_currently",
+      automaticBackups: currentObservation
+        ? "unavailable_current_plan"
+        : "not_verified_currently",
+      pitr: currentObservation
+        ? "unavailable_current_plan"
+        : "not_verified_currently",
       manualLogicalBackup: "available_on_demand",
       durableRecoveryPointInsideCurrentContract: "not_proven",
     },

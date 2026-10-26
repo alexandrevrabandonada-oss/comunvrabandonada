@@ -4741,3 +4741,23 @@ não comprovados. Próxima entrega: estabelecer o contrato mínimo de recuperaç
 Auth/identidade e suas dependências autorizadas, sem novo grant, SQL remoto ou
 alteração de Production. Nenhum scheduler, merge, deploy ou nova permissão nasce
 desta cópia pontual.
+
+**M7.E — capacidade atual de Auth/recuperação delimitada em 26/10/2026.**
+Painel autenticado confirmou plano Free sem backups agendados; PITR exige
+mudança de plano. A observação anterior era histórica, não confirmação atual.
+Nenhuma compra, ativação, leitura de usuários Auth ou operação de restore remoto.
+Contrato mínimo em docs/comun-auth-recovery-contract.md: preservar identidade e
+ownership por UUID comprovado, negar reatribuição por e-mail/nome, revalidar
+revogação/suspensão e exigir login real A/B no alvo descartável antes do aceite.
+
+O auditor agora aceita observação atual estritamente limitada à disponibilidade
+bloqueada, com tempo de origem preservado, validade de 24h, projeto e digests de
+duas capturas. Dados extras, fonte inválida, evidência velha/futura ou declaração
+de restore/PASS bloqueiam. Sem arquivo, histórico continua não atualizado.
+O gate do provedor permanece bloqueado; não há novo caminho GREEN, grant ou
+importação automática dos backups pontuais. Testes de contrato não são Auth real.
+
+Próxima entrega segura da mesma estação: ensaio Auth local descartável com duas
+identidades sintéticas no restore, incluindo não reatribuição de ownership e
+sessões revogadas. Capacidade nativa da origem ainda exige decisão específica;
+nenhuma mudança de plano/custo ou exportação sensível está autorizada.
