@@ -217,6 +217,8 @@ test("synthetic least-privilege reconstruction is narrower than source", () => {
     (copy) => (copy.roles.find((r) => r.name === "synthetic_member").login = true),
     (copy) =>
       (copy.roles.find((r) => r.name === "synthetic_owner").bypass_rls = true),
+    (copy) => (copy.roles.find((r) => r.name === "postgres").superuser = false),
+    (copy) => copy.roles.push(role("unexpected_external")),
     (copy) => (copy.memberships[0].admin = true),
     (copy) => (copy.memberships[0].set_role = true),
     (copy) => (copy.memberships[0].grantor = "synthetic_delegate"),

@@ -203,6 +203,20 @@ export function assessSyntheticLeastPrivilegeReconstruction(source, target) {
     "synthetic_delegate",
   ];
   const names = new Set(syntheticNames);
+  const outsideRoles = (catalog) =>
+    catalog.roles.filter((role) => !names.has(role.name));
+  const outsideMemberships = (catalog) =>
+    catalog.memberships.filter(
+      (edge) => !names.has(edge.role) && !names.has(edge.member),
+    );
+  // The synthetic-only lab must preserve provider and unrelated privileges.
+  if (
+    JSON.stringify(outsideRoles(before)) !==
+      JSON.stringify(outsideRoles(after)) ||
+    JSON.stringify(outsideMemberships(before)) !==
+      JSON.stringify(outsideMemberships(after))
+  )
+    fail();
   const beforeRoles = before.roles.filter((role) => names.has(role.name));
   const afterRoles = after.roles.filter((role) => names.has(role.name));
   if (
@@ -242,6 +256,7 @@ export function assessSyntheticLeastPrivilegeReconstruction(source, target) {
   if (
     comparison.equal ||
     comparison.rolesMissing !== 0 ||
+    comparison.rolesExtra !== 0 ||
     comparison.attributesChanged < 1 ||
     comparison.membershipsMissing < 1 ||
     comparison.recoveryComplete !== false ||

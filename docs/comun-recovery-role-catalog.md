@@ -29,7 +29,8 @@ O workflow de segurança possui uma trilha PR própria
 a imagem PostgreSQL 17 pelo ID exato. Uma atualização do
 rótulo `postgres:17` sem o mesmo SHA-256 reprova o ensaio
 e exige revisão explícita; não permite drift silencioso.
-São exigidos ao menos 17 checks e limpeza confirmada.
+São exigidos ao menos 17 checks, limpeza confirmada e imutabilidade de
+todos os papéis e vínculos externos ao laboratório.
 Apenas o JSON sanitizado é publicado, sem inventário real.
 
 ## Captura autorizada
