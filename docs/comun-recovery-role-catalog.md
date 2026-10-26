@@ -21,7 +21,16 @@ Requer imagem PostgreSQL fixada já presente e Docker local. Cria somente dois
 containers próprios, sem rede e volumes persistentes. Atributos e memberships
 são alterados somente nesse laboratório. O relatório agrega diferenças e exige
 limpeza por owner; o ensaio de reconstrução mínima não reproduz privilégios
-nem equivale a recuperação organizacional. Não substitui recuperação nativa das contas de autenticação.
+nem equivale a recuperação organizacional. Não substitui a recuperação
+nativa das contas de autenticação.
+
+O workflow de segurança possui uma trilha PR própria
+`SOC-D10.M7.E / synthetic role reconstruction`, que exige
+a imagem PostgreSQL 17 pelo ID exato. Uma atualização do
+rótulo `postgres:17` sem o mesmo SHA-256 reprova o ensaio
+e exige revisão explícita; não permite drift silencioso.
+São exigidos ao menos 17 checks e limpeza confirmada.
+Apenas o JSON sanitizado é publicado, sem inventário real.
 
 ## Captura autorizada
 

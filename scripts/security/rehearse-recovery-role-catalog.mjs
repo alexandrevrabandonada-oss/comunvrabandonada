@@ -128,7 +128,7 @@ try {
     while (true) {
       const ready = spawnSync(
         "docker",
-        ["exec", name, "pg_isready", "-U", "postgres"],
+        ["exec", name, "pg_isready", "-h", "127.0.0.1", "-U", "postgres"],
         { stdio: "ignore", timeout: 5000, windowsHide: true },
       );
       if (ready.status === 0) break;

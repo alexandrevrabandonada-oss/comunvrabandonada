@@ -1,5 +1,21 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## SOC-D10.M7.E — CI Auth e laboratório executável (26/10/2026)
+
+No commit `f5a813e5`, o Core Journeys comprovou 26/26
+checks de identidade e limpeza no laboratório, enquanto
+V1 Launch reprovou apenas a formatação documental e
+Experience Coherence falhou na inicialização do Edge Runtime
+(SIGBUS/503 após rate limit do registry).
+
+O início local da trilha de experiência deixa de levantar
+somente o Edge Runtime, que seus E2E não exercitam; reset,
+saúde, Auth, RLS e E2E continuam obrigatórios. Acrescida
+uma trilha independente para executar o laboratório de papéis
+sintéticos no PostgreSQL 17, com imagem de SHA-256 fixado,
+comparação fail-closed e publicação somente de resumo seguro.
+Nenhum PASS é transferido ao HEAD posterior.
+
 ## SOC-D10.M7.E — correção de readiness e reconstrução mínima (26/10/2026)
 
 No SHA `7861cee1`, V1 Launch, CI/COST-02, Full Surface,
@@ -23,7 +39,6 @@ SQL do inventário capturado e exige diferença intencional da
 origem e `recoveryComplete=false`. Este incremento exige
 ensaios próprios do novo SHA; não libera a restauração nativa
 Auth, RPO, replay de papéis ou Production. PR draft sem merge.
-
 
 ## SOC-D10.M7.E — diagnóstico de gates (26/10/2026)
 

@@ -65,7 +65,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const mode = process.argv[2] ?? "reset";
   const args =
     mode === "start"
-      ? ["start"]
+      ? ["start", "-x", "edge-runtime"]
       : mode === "reset"
         ? ["db", "reset", "--local", "--yes"]
         : null;

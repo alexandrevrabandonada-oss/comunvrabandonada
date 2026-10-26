@@ -4,6 +4,10 @@ import test from "node:test";
 import { load } from "js-yaml";
 import { createHash } from "node:crypto";
 
+const startHelper = readFileSync(
+  new URL("../../scripts/run-pauta-action-cycle-local-reset.mjs", import.meta.url),
+  "utf8",
+);
 const workflow = readFileSync(
   new URL(
     "../../.github/workflows/comun-experience-coherence.yml",
@@ -34,6 +38,8 @@ function verifyLocalResetContract(source) {
   const browser = source.indexOf("npm run test:e2e:experience-coherence");
   assert.ok(start >= 0 && reset > start && browser > reset);
   assert.equal(source.match(/local-reset\.mjs reset/g)?.length, 2);
+  assert.match(startHelper, /\["start", "-x", "edge-runtime"\]/);
+  assert.doesNotMatch(startHelper, /--ignore-health-check|continue-on-error/);
   assert.match(
     source,
     /if \(\(reset_status != 0\)\) && grep -q "Error status 502"/,

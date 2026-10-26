@@ -89,6 +89,63 @@ jobs:
           include-hidden-files: true
           retention-days: 7
 
+  role-catalog-disposable:
+    name: SOC-D10.M7.E / synthetic role reconstruction (no provider replay)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+      - name: Prepare sanitized artifact folder
+        run: mkdir -p .ci-artifacts/security-role-lab
+      - name: Verify role metadata capture contract without project credentials
+        run: node --test scripts/security/recovery-role-contract.node-test.mjs
+      - name: Verify the exact PostgreSQL image ID and refuse drift
+        run: |
+          docker pull postgres:17
+          observed="$(docker image inspect postgres:17 --format '{{.Id}}')"
+          expected='sha256:67f41722b7a8cbdb868a44a4995c846eddfdc2973bccb291ce937dce88ad5675'
+          if [ "$observed" != "$expected" ]; then
+            echo COMUN_M7E_ROLE_POSTGRES_IMAGE_PIN_MISMATCH
+            exit 1
+          fi
+      - name: Reconstruct only fixed synthetic least-privilege roles in isolated Docker
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          output="$RUNNER_TEMP/comun-role-lab-$GITHUB_RUN_ID"
+          node scripts/security/rehearse-recovery-role-catalog.mjs --run-disposable --output "$output"
+          node -e "
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const x = JSON.parse(fs.readFileSync(path.join(process.argv[1], 'role-catalog-rehearsal.json'), 'utf8'));
+          if (x.sha !== process.env.EXPECTED_SHA || x.result !== 'PASS' ||
+              x.checks.length < 17 || x.checks.some(c => c.result !== 'PASS') ||
+              x.cleanupVerified !== true || x.remoteWrites !== false ||
+              x.credentialsRead !== false || x.recoveryComplete !== false ||
+              x.sourceRoleWrites !== 'SYNTHETIC_LAB_ONLY' ||
+              x.kind !== 'ROLE_CATALOG_SYNTHETIC_MINIMAL_RECONSTRUCTION_NOT_PROVIDER_RESTORE')
+            throw new Error('COMUN_M7E_SYNTHETIC_ROLE_LAB_NOT_CERTIFIED');
+          fs.copyFileSync(path.join(process.argv[1], 'role-catalog-rehearsal.json'),
+            '.ci-artifacts/security-role-lab/rehearsal.json');
+          " "$output"
+      - name: Publish only sanitized metadata and checks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comun-m7e-synthetic-role-reconstruction-${{ github.run_id }}
+          path: .ci-artifacts/security-role-lab/*.json
+          if-no-files-found: warn
+          retention-days: 14
+
   pr-lane:
     if: github.event_name == 'pull_request' || inputs.mode == 'local'
     runs-on: ubuntu-24.04
