@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { Readable } from "node:stream";
 import tar from "tar-stream";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import {
   storageTarStream,
   verifyStorageTar,
@@ -108,4 +110,24 @@ test("reject empty archive without manifest", async () => {
   const pack = tar.pack();
   pack.finalize();
   await assert.rejects(verifyStorageTar(pack));
+});
+
+test("replay CLI rejects execution without its disposable tmpfs", () => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(
+        new URL("./replay-storage-archive-tmpfs.mjs", import.meta.url),
+      ),
+    ],
+    {
+      input: Buffer.alloc(0),
+      encoding: "utf8",
+      timeout: 10000,
+      windowsHide: true,
+    },
+  );
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr.trim(), "COMUN_STORAGE_TMPFS_RESTORE_FAILED");
 });

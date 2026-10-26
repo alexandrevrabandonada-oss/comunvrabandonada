@@ -4709,3 +4709,35 @@ readback e restauração dos bytes/metadados em destino descartável autorizado.
 Verificar archive não equivale a restore no provedor. Segunda listagem não é
 snapshot atômico. CI/COST-02/Preview do novo SHA exigem certificação própria.
 Permanece na M7.E, com Auth nativa e RPO contínuo também pendentes.
+
+**M7.E — cópia real do Storage e restore local verificados em 26/10/2026.**
+Este readback atualiza o bloqueio histórico acima. Exceção humana específica:
+uma credencial separada Object Read only nos dois buckets existentes, TTL24h,
+revogada após a cópia. Segredos da Vercel e token de Production preservados.
+Código `cf4c9ea9` exportou um objeto real/174.445 bytes por stream; inventário
+reconferido e bucket público vazio. Cifra de 177.896 bytes no destino privado
+autorizado, owner-only conferido; download, checksum e manifesto idênticos e
+verificação age PASS. Nenhuma gravação nos buckets de origem ou dump em claro.
+
+Revogação confirmada pela ausência no painel e negação HTTP401. O primeiro probe
+esperava somente 403 e falhou; evidência preservada, sem chamar a leitura negada
+de sucesso de acesso. Arquivo da credencial removido; token de Production ativo.
+
+Restore dos bytes baixados em container novo sem rede, root readonly, destino
+tmpfs e swap desabilitado: bytes/checksums e índice de identidade lógica/metadados
+coincidiram, cleanup e ausência do container confirmados. Script reutilizável
+adicionado com gate Linux/tmpfs, orçamento de 16MiB e rejeição fora do laboratório.
+Não é restore no provedor R2 nem teste de login Auth. Provas agregadas públicas;
+chaves, nomes de objetos e referências privadas do backup ficam fora da PR.
+
+Docker recuperado pelo isolamento de sockets residuais, sem reset ou remoção de
+volumes: quatro bancos protegidos e 52 containers preservados. Essa manutenção
+não é funcionalidade de produto. `cf4c9ea9` tem CI/COST-02 PASS e Preview READY
+com health autenticado no SHA exato; checks do novo commit exigem prova própria.
+
+M7.E permanece aberta: capacidade de recuperação Auth nativa, atributos/memberships
+globais de papéis, ensaio autenticado do ambiente restaurado e RPO contínuo ainda
+não comprovados. Próxima entrega: estabelecer o contrato mínimo de recuperação
+Auth/identidade e suas dependências autorizadas, sem novo grant, SQL remoto ou
+alteração de Production. Nenhum scheduler, merge, deploy ou nova permissão nasce
+desta cópia pontual.

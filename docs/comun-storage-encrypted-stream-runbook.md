@@ -41,6 +41,35 @@ binário age, checksum, age-keygen e diretório de evidência absolutos. Gera id
 descartável, cifra bytes binários/objeto vazio, verifica hashes, colisão de saída e
 cifra corrompida; remove identidade e arquivos. Não consulta R2 real.
 
-Estado: mecanismo local preparado. Execução real bloqueada pela ausência de um
-caminho de execução aprovado no runtime que detém credenciais R2. Não instalar
-endpoint, decrypt de variáveis ou código de Production para contornar o bloqueio.
+## Prova real de 26/10/2026
+
+A autorização humana específica permitiu uma credencial de usuário separada
+Object Read only, restrita aos dois buckets existentes, com TTL de 24h. Não foram
+extraídas ou rotacionadas credenciais de Production. A cópia real com o código
+`cf4c9ea9` leu um objeto (174.445 bytes); o bucket público estava vazio. Inventário
+reconferido; nenhum Put/Delete na origem. Cifra de 177.896 bytes enviada à pasta
+privada durável aprovada, com acesso owner-only conferido. Download retornou o
+mesmo checksum e manifesto; age e validação interna PASS.
+
+Token temporário removido após exportação, token de Production preservado.
+Probe posterior foi negado com HTTP401; expectativa inicial restrita a 403 foi
+registrada como falha do probe, preservada e corrigida na interpretação. Arquivo
+local da credencial revogada removido. Nenhuma credencial nova permanece ativa.
+
+Bytes reais baixados do destino foram restaurados em container próprio sem rede,
+root filesystem readonly, swap desabilitado e destino tmpfs. Readback de bytes,
+checksums, identidade lógica e índice de metadados coincidiu; ausência do container
+após cleanup confirmada. Isso não certifica replay S3/R2, Auth ou RPO contínuo.
+
+O replay reutilizável está em `scripts/security/replay-storage-archive-tmpfs.mjs`.
+Recebe TAR decifrado por stdin, valida o archive antes de escrever, exige Linux
+e `/restore` realmente tmpfs, limita entrada a 16MiB e nunca usa chaves de objetos
+como paths. Montar o repositório readonly, fixar a imagem existente, usar container
+novo `--rm -i --network none --read-only --memory 256m --memory-swap 256m
+--tmpfs /restore:rw,noexec,nosuid,size=16m`, executar o script com Node e transmitir
+stdout do age diretamente ao stdin. Nenhuma identidade privada montada no
+container. Conferir receipt e ausência do container independentemente do exit.
+
+Não instalar endpoint, decrypt de variáveis ou código de Production como caminho
+de backup. Esta prova pontual não cria scheduler nem autoriza renovação recorrente
+de credenciais/cópias. Novos pontos de recuperação precisam de escopo próprio.
