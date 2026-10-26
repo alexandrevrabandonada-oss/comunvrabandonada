@@ -65,3 +65,49 @@ as cópias pontuais de banco/R2 para o coletor nem renova sua idade.
 Próximo incremento seguro: ensaio de reautenticação e não reatribuição de ownership
 no restore com duas identidades totalmente sintéticas e Auth local descartável.
 Isso testa o contrato da aplicação; não substituirá a prova nativa da origem.
+
+## Ensaio autenticado descartável implementado
+
+```powershell
+node scripts/security/rehearse-auth-identity-restore.mjs --run-disposable --output <diretorio-absoluto-novo>
+```
+
+O harness cria seis containers e uma rede interna próprios, sem portas publicadas
+ou volumes persistentes. Reutiliza imagens locais por ID, sem pull: PostgreSQL17,
+GoTrue2.196.0, PostgREST16.2 e Node22.19.0. Recusa contexto Docker remoto e não
+aceita URL, env-file, UUID ou conta externos. Configurações são exclusivamente
+sintéticas, temporárias e restritas; só o driver HTTP é montado readonly.
+
+Origem e destino usam bancos distintos no mesmo PostgreSQL descartável em tmpfs.
+Contas A/B fazem login real. O dump em memória inclui somente schemas da fixture
+da aplicação e da barreira de sessão, nunca dados do schema Auth. O destino inicia
+com zero contas/sessões e recebe os dados restaurados. Uma conta nova usa o e-mail
+sintético de A, mas outro UUID; outra identidade de teste é recriada por operação
+administrativa local com o UUID sintético conhecido. Essa recriação controlada
+não é mecanismo de associação de contas reais nem prova de recuperação nativa.
+
+Mantém-se a mesma chave de assinatura sintética entre os dois bancos para provar
+a barreira de sessão, sem atribuir a negação a uma troca de chave. JWT válido na
+origem não pode ler dados reservados no destino; e-mail igual não herda ownership.
+Somente o UUID conhecido, com nova sessão, acessa sua linha restaurada. O ensaio
+inclui logout, refresh negado, novo login sem ressuscitar JWT anterior, perfil
+suspenso e banimento nativo com perfil ativo como controle positivo.
+
+A fixture relacional é a mínima existente do M6. A migration
+`20261024174838_comun_legacy_private_live_session.sql` é carregada literalmente
+apenas no laboratório. Não equivale ao schema completo instalado, a teste da
+Mesa/Next no browser ou à aplicação remota da migration. O helper SECURITY DEFINER
+mantém sua exceção restrita já autorizada; este trabalho não amplia grants.
+
+Intenções de criação identificam owner e nomes antes de cada operação Docker.
+Limpeza exige label do owner, rede correta e ausência independente dos recursos;
+verifica também zero contas sintéticas antes de destruir o banco e ausência das
+configurações temporárias. Não usa prune/reset. Falha de readiness inicial ficou
+preservada; o namespace foi encurtado para respeitar o limite DNS. O ciclo de
+desenvolvimento seguinte passou com 24 verificações antes dos controles positivos
+adicionais; a certificação do candidato inclui esses controles e hashes próprios.
+
+Os testes de contrato cobrem rejeição de alvos externos e proteção de limpeza de
+recursos alheios. Os resultados HTTP/SQL reais ficam no receipt separado, com SHA,
+hashes dos fontes, IDs das imagens e cleanup. Não promover esse receipt a GREEN
+do provedor: contas reais, MFA, chaves, recuperação nativa e RPO seguem pendentes.

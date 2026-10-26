@@ -4761,3 +4761,25 @@ Próxima entrega segura da mesma estação: ensaio Auth local descartável com d
 identidades sintéticas no restore, incluindo não reatribuição de ownership e
 sessões revogadas. Capacidade nativa da origem ainda exige decisão específica;
 nenhuma mudança de plano/custo ou exportação sensível está autorizada.
+
+**M7.E — ciclo de identidade no restore com Auth real descartável.**
+Novo harness reutiliza a fixture mínima M6, GoTrue/PostgREST reais e a migration
+canônica de sessão literalmente em laboratório próprio. Dump em memória da
+aplicação, sem Auth, é restaurado em banco distinto inicialmente sem contas ou
+sessões. Testa JWT válido na origem negado no destino, conta nova com mesmo e-mail
+sem herdar UUID/ownership, reautenticação controlada da identidade sintética,
+logout, refresh revogado, novo login, suspensão de perfil e banimento nativo.
+
+Seis containers/rede interna sem portas ou volumes persistentes; PostgreSQL e
+estado do driver em tmpfs. Sem URL/env-file/UUID externos, pull, conta real ou
+notificações. Intenções antes de criar recursos e cleanup por owner com readback
+de ausência; credenciais só sintéticas e temporárias. Falha inicial de readiness
+preservada, namespace encurtado; ensaio de desenvolvimento seguinte teve 24 PASS
+e limpeza confirmada. Candidato acrescenta controles positivos e exige prova no
+próprio SHA; testes de contrato não substituem esse ciclo autenticado.
+
+Escopo: fixture mínima e barreira SQL da PR, sem prova de schema completo,
+browser/Mesa ou recuperação nativa de contas de Production. O gate do provedor
+permanece bloqueado. Próxima entrega necessária: decidir o contrato de capacidade
+nativa de recuperação de identidade com escopo/consentimento próprios; ensaios
+sintéticos não resolvem a indisponibilidade de backups Auth no plano observado.
