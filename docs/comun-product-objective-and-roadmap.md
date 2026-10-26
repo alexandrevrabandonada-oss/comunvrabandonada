@@ -21,7 +21,6 @@ Production ou alterações em permissões.
   papéis. A captura cifrada de 31 papéis/22 vínculos não autoriza
   replay de privilégios do provedor.
 
-
 ## Estado atual — 21/10/2026
 
 **Entregue:** o roadmap #570 e o catálogo de Jogos #571 foram
