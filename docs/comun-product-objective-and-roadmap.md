@@ -4783,3 +4783,10 @@ browser/Mesa ou recuperação nativa de contas de Production. O gate do provedor
 permanece bloqueado. Próxima entrega necessária: decidir o contrato de capacidade
 nativa de recuperação de identidade com escopo/consentimento próprios; ensaios
 sintéticos não resolvem a indisponibilidade de backups Auth no plano observado.
+
+O ciclo autenticado foi incorporado ao job M6 já existente no workflow de Core
+Journeys, sem novo job/cron/dispatch. Seu gate exige SHA exato, 26 verificações
+PASS e ausência comprovada de contas/configurações/recursos; preserva o gate de
+capacidade nativa bloqueado. O ensaio local do candidato e3a8fee1 passou em 26
+verificações reais e 134 contratos Windows/Linux, com lint/TypeScript PASS. A
+integração CI descendente exige nova certificação própria, sem herdar esses verdes.

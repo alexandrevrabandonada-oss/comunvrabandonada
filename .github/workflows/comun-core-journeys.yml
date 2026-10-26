@@ -9,6 +9,10 @@ on:
       - "lib/**"
       - "scripts/journeys/**"
       - "scripts/organization/**"
+      - "scripts/security/rehearse-auth-identity-restore.mjs"
+      - "scripts/security/auth-restore-domain.mjs"
+      - "scripts/security/auth-identity-restore.node-test.mjs"
+      - "supabase/migrations/20261024174838_comun_legacy_private_live_session.sql"
       - "supabase/migrations/*comun_collective*"
       - "tests/core-journeys/**"
       - "playwright.core-journeys.config.ts"
@@ -55,7 +59,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(scripts/organization/|supabase/migrations/[^/]*comun_collective|lib/(community-(mesa|membership|administration)|collective-action)|app/comun/(acoes/|minha-participacao/)|components/community-participation-onboarding|\.github/workflows/comun-core-journeys.yml)'; then
+          if git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(scripts/organization/|scripts/security/(rehearse-auth-identity-restore|auth-restore-domain|auth-identity-restore\.node-test)\.mjs|supabase/migrations/(20261024174838_comun_legacy_private_live_session.sql|[^/]*comun_collective)|lib/(community-(mesa|membership|administration)|collective-action)|app/comun/(acoes/|minha-participacao/)|components/community-participation-onboarding|\.github/workflows/comun-core-journeys.yml)'; then
             echo 'run=true' >> "$GITHUB_OUTPUT"
           fi
       - uses: actions/setup-node@v4
@@ -93,12 +97,25 @@ jobs:
           EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           node -e "const x=require('./.ci-artifacts/organization-m6/authenticated-cycle.json');const m7=x.results.filter(r=>r.scope==='M7C_REAL_AUTH_POSTGRES_RLS_PROPOSAL_NOT_PRODUCT');if(x.result!=='PASS'||x.source.sha!==process.env.EXPECTED_SHA||x.source.dirty||m7.length<13||m7.some(r=>r.result!=='PASS')||!x.cleanup.length||x.cleanup.some(r=>!r.absent))throw new Error('M6_M7_AUTHENTICATED_CONTINUITY_NOT_CERTIFIED:'+x.result)"
+      - name: Identidade e revogação após restore sintético da aplicação
+        if: steps.scope.outputs.run == 'true'
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node_image='node@sha256:4a4884e8a44826194dff92ba316264f392056cbe243dcc9fd3551e71cea02b90'
+          docker image inspect "$node_image" >/dev/null 2>&1 || docker pull "$node_image"
+          docker tag "$node_image" node:22.19.0-bookworm-slim
+          node --test scripts/security/auth-identity-restore.node-test.mjs
+          node scripts/security/rehearse-auth-identity-restore.mjs --run-disposable --output "$GITHUB_WORKSPACE/.ci-artifacts/auth-identity-restore"
+          node -e "const x=require('./.ci-artifacts/auth-identity-restore/auth-identity-restore.json');if(x.result!=='PASS'||x.sha!==process.env.EXPECTED_SHA||x.results.length<26||x.results.some(r=>r.result!=='PASS')||!x.cleanup.resourcesAbsent||!x.cleanup.syntheticAccountsAbsentBeforeDatabaseRemoval||!x.cleanup.ephemeralConfigurationRemoved||x.nativeProviderRecoveryVerified!==false)throw new Error('AUTH_IDENTITY_RESTORE_NOT_CERTIFIED')"
       - name: Preservar somente prova sanitizada
         if: always() && steps.scope.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: comun-m6-authenticated-${{ github.run_id }}
-          path: .ci-artifacts/organization-m6/*.json
+          path: |
+            .ci-artifacts/organization-m6/*.json
+            .ci-artifacts/auth-identity-restore/*.json
           if-no-files-found: warn
           retention-days: 14
 

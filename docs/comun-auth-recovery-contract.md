@@ -111,3 +111,11 @@ Os testes de contrato cobrem rejeição de alvos externos e proteção de limpez
 recursos alheios. Os resultados HTTP/SQL reais ficam no receipt separado, com SHA,
 hashes dos fontes, IDs das imagens e cleanup. Não promover esse receipt a GREEN
 do provedor: contas reais, MFA, chaves, recuperação nativa e RPO seguem pendentes.
+
+O job M6 existente de Core Journeys executa também esse ciclo em PRs do escopo,
+após preparar suas imagens locais. Exige SHA próprio, ao menos 26 verificações
+PASS e cleanup integral, mantendo `nativeProviderRecoveryVerified=false`.
+Preserva somente JSON agregado como artifact; não adiciona job, scheduler,
+dispatch manual, secrets do projeto ou autorização de restore remoto.
+O preparo CI fixa o digest da imagem Node já usada no laboratório; o harness
+continua recusando pull e registra os IDs efetivamente utilizados.
