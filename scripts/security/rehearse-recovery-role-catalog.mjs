@@ -8,6 +8,7 @@ import {
   canonicalRoleCatalog,
   roleCatalogDigest,
   compareRoleCatalogs,
+  assessSyntheticLeastPrivilegeReconstruction,
 } from "./recovery-role-contract.mjs";
 
 const args = process.argv.slice(2);
@@ -286,6 +287,33 @@ try {
       !comparison.equal &&
       comparison.recoveryComplete === false,
   );
+  phase = "synthetic-minimal-role-reconstruction";
+  // Reviewed, literal lab-only fixture: never generate SQL from the catalog,
+  // replay provider roles, or duplicate the source's elevated grant options.
+  for (const name of [
+    "synthetic_owner",
+    "synthetic_member",
+    "synthetic_delegate",
+  ])
+    sql(
+      "target",
+      `create role ${name} nologin nosuperuser noinherit nocreaterole nocreatedb noreplication nobypassrls;`,
+    );
+  sql(
+    "target",
+    "grant synthetic_owner to synthetic_member with admin false, inherit false, set false;",
+  );
+  const minimal = assessSyntheticLeastPrivilegeReconstruction(
+    source,
+    snapshot("target"),
+  );
+  check(
+    "synthetic_reconstruction_denies_privilege_replay",
+    minimal.syntheticRoles === 3 &&
+      minimal.restrictedGrants === 1 &&
+      minimal.providerRolesRestored === false &&
+      minimal.recoveryComplete === false,
+  );
   digest = roleCatalogDigest(source);
   result = "PASS";
 } catch (error) {
@@ -322,7 +350,7 @@ try {
 }
 if (!cleaned) result = "FAIL";
 const report = {
-  kind: "ROLE_CATALOG_SYNTHETIC_REHEARSAL_NOT_ROLE_RESTORE",
+  kind: "ROLE_CATALOG_SYNTHETIC_MINIMAL_RECONSTRUCTION_NOT_PROVIDER_RESTORE",
   result,
   checks,
   failedPhase: result === "FAIL" ? phase : null,

@@ -292,14 +292,39 @@ export async function rehearseAuthIdentityRestore({ output }) {
       "--tmpfs",
       "/var/lib/postgresql/data:rw,nosuid,size=256m",
     ]);
-    stage = "postgres-readiness";
+    stage = "postgres-final-tcp-readiness";
+    // The official PostgreSQL image starts a temporary socket-only server
+    // during initdb. Socket pg_isready may succeed before its shutdown.
+    // Only the final network-listening server may pass this preflight.
     await wait(async () =>
       (
-        await text(["exec", `${owner}-pg`, "pg_isready", "-U", "postgres"])
+        await text([
+          "exec",
+          `${owner}-pg`,
+          "pg_isready",
+          "-h",
+          "127.0.0.1",
+          "-p",
+          "5432",
+          "-U",
+          "postgres",
+        ])
       ).includes("accepting"),
     );
-    stage = "database-create";
-    await sql("postgres", "create database source; create database recovered;");
+    stage = "postgres-final-sql-readiness";
+    await wait(async () => (await sql("postgres", "select 1;")) === "1");
+    stage = "database-create-source";
+    await sql("postgres", "create database source;");
+    stage = "database-create-recovered";
+    await sql("postgres", "create database recovered;");
+    stage = "database-verify";
+    assert.equal(
+      await sql(
+        "postgres",
+        "select count(*) from pg_database where datname in ('source','recovered');",
+      ),
+      "2",
+    );
     const fixture = await readFile(
       path.join(root, "scripts/organization/disposable-cycle-fixture.sql"),
       "utf8",

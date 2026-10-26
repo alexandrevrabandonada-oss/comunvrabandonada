@@ -189,3 +189,70 @@ export function compareRoleCatalogs(source, restored) {
     applySql: false,
   };
 }
+
+/**
+ * Audit a deliberately restricted laboratory reconstruction.
+ * This never generates DDL or authorizes replay of provider or captured roles.
+ */
+export function assessSyntheticLeastPrivilegeReconstruction(source, target) {
+  const before = canonicalRoleCatalog(source);
+  const after = canonicalRoleCatalog(target);
+  const syntheticNames = [
+    "synthetic_owner",
+    "synthetic_member",
+    "synthetic_delegate",
+  ];
+  const names = new Set(syntheticNames);
+  const beforeRoles = before.roles.filter((role) => names.has(role.name));
+  const afterRoles = after.roles.filter((role) => names.has(role.name));
+  if (
+    beforeRoles.length !== syntheticNames.length ||
+    afterRoles.length !== syntheticNames.length
+  )
+    fail();
+  if (
+    afterRoles.some(
+      (role) =>
+        role.superuser ||
+        role.inherit ||
+        role.create_role ||
+        role.create_database ||
+        role.login ||
+        role.replication ||
+        role.bypass_rls ||
+        role.connection_limit !== -1 ||
+        role.valid_until !== null,
+    )
+  )
+    fail();
+  const affectedEdges = after.memberships.filter(
+    (edge) => names.has(edge.role) || names.has(edge.member),
+  );
+  if (
+    affectedEdges.length !== 1 ||
+    affectedEdges[0].role !== "synthetic_owner" ||
+    affectedEdges[0].member !== "synthetic_member" ||
+    affectedEdges[0].grantor !== "postgres" ||
+    affectedEdges[0].admin ||
+    affectedEdges[0].inherit ||
+    affectedEdges[0].set_role
+  )
+    fail();
+  const comparison = compareRoleCatalogs(before, after);
+  if (
+    comparison.equal ||
+    comparison.rolesMissing !== 0 ||
+    comparison.attributesChanged < 1 ||
+    comparison.membershipsMissing < 1 ||
+    comparison.recoveryComplete !== false ||
+    comparison.applySql !== false
+  )
+    fail();
+  return {
+    syntheticRoles: syntheticNames.length,
+    restrictedGrants: affectedEdges.length,
+    privilegeReplay: false,
+    providerRolesRestored: false,
+    recoveryComplete: false,
+  };
+}

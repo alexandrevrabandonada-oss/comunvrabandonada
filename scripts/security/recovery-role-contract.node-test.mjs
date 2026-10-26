@@ -38,6 +38,7 @@ import {
   canonicalRoleCatalog,
   roleCatalogDigest,
   compareRoleCatalogs,
+  assessSyntheticLeastPrivilegeReconstruction,
 } from "./recovery-role-contract.mjs";
 
 const role = (name) => ({
@@ -157,4 +158,75 @@ test("query reads no credential/configuration/account catalogs and does not muta
     sql,
     /\b(pg_authid|rolpassword|rolconfig|auth\.users|auth\.sessions|insert|update|delete|grant|revoke|alter|create|drop)\b/i,
   );
+});
+
+test("synthetic least-privilege reconstruction is narrower than source", () => {
+  const source = fixture();
+  source.roles = [
+    { ...role("postgres"), superuser: true },
+    ...source.roles.map((r) => ({
+      ...r,
+      name: `synthetic_${r.name}`,
+    })),
+  ];
+  source.memberships = [
+    {
+      role: "synthetic_owner",
+      member: "synthetic_member",
+      grantor: "synthetic_grantor",
+      admin: false,
+      inherit: true,
+      set_role: true,
+    },
+    {
+      role: "synthetic_owner",
+      member: "synthetic_grantor",
+      grantor: "postgres",
+      admin: true,
+      inherit: true,
+      set_role: true,
+    },
+  ];
+  const target = structuredClone(source);
+  target.roles = target.roles.map((r) =>
+    r.name.startsWith("synthetic_") ? { ...r, inherit: false } : r,
+  );
+  target.memberships = [
+    {
+      role: "synthetic_owner",
+      member: "synthetic_member",
+      grantor: "postgres",
+      admin: false,
+      inherit: false,
+      set_role: false,
+    },
+  ];
+  // The approved fixture uses delegate, not grantor, as its third name.
+  source.roles.find((r) => r.name === "synthetic_grantor").name =
+    "synthetic_delegate";
+  source.memberships[0].grantor = "synthetic_delegate";
+  source.memberships[1].member = "synthetic_delegate";
+  target.roles.find((r) => r.name === "synthetic_grantor").name =
+    "synthetic_delegate";
+  const evidence = assessSyntheticLeastPrivilegeReconstruction(source, target);
+  assert.equal(evidence.syntheticRoles, 3);
+  assert.equal(evidence.restrictedGrants, 1);
+  assert.equal(evidence.privilegeReplay, false);
+  assert.equal(evidence.recoveryComplete, false);
+  for (const mutate of [
+    (copy) => (copy.roles.find((r) => r.name === "synthetic_member").login = true),
+    (copy) =>
+      (copy.roles.find((r) => r.name === "synthetic_owner").bypass_rls = true),
+    (copy) => (copy.memberships[0].admin = true),
+    (copy) => (copy.memberships[0].set_role = true),
+    (copy) => (copy.memberships[0].grantor = "synthetic_delegate"),
+    (copy) => copy.memberships.push({ ...copy.memberships[0], member: "synthetic_delegate" }),
+  ]) {
+    const unsafe = structuredClone(target);
+    mutate(unsafe);
+    assert.throws(
+      () => assessSyntheticLeastPrivilegeReconstruction(source, unsafe),
+      { message: "RECOVERY_ROLE_CATALOG_REJECTED" },
+    );
+  }
 });

@@ -1,5 +1,30 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## SOC-D10.M7.E — correção de readiness e reconstrução mínima (26/10/2026)
+
+No SHA `7861cee1`, V1 Launch, CI/COST-02, Full Surface,
+Security e Coherence terminaram SUCCESS; Core Journeys falhou
+no estágio `database-create` após um PASS no SHA anterior.
+O artefato classificou `DOCKER_COMMAND_FAILED`, com limpeza
+de recursos comprovada. Quality ainda não estava certificado.
+
+A imagem oficial PostgreSQL usa durante initdb um servidor
+temporário apenas via Unix socket; o antigo `pg_isready` por
+socket podia aceitar esse estágio antes do shutdown. O laboratório
+passa a aguardar o servidor final por TCP e confirmar SQL real,
+com criação e verificação separadas dos dois bancos. Essa
+correção é uma hipótese testável, não prova retroativa da causa.
+
+A reconstrução revisada de papéis executa apenas três nomes
+sintéticos fixos em Docker local, sempre sem LOGIN, SUPERUSER,
+CREATEROLE, CREATEDB, REPLICATION, BYPASSRLS ou INHERIT,
+e uma membership com ADMIN/INHERIT/SET falsos. Não importa
+SQL do inventário capturado e exige diferença intencional da
+origem e `recoveryComplete=false`. Este incremento exige
+ensaios próprios do novo SHA; não libera a restauração nativa
+Auth, RPO, replay de papéis ou Production. PR draft sem merge.
+
+
 ## SOC-D10.M7.E — diagnóstico de gates (26/10/2026)
 
 Checkpoint após `6c854eec`, sem transportar PASS para novo HEAD.

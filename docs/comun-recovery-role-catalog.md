@@ -1,6 +1,15 @@
 # Catálogo global de papéis da recuperação
 
-Este incremento da SOC-D10.M7.E inventaria metadados; não restaura permissões.
+Este incremento da SOC-D10.M7.E inventaria metadados; não restaura
+permissões do provedor ou da aplicação real. A extensão de laboratório
+reconstitui somente três papéis sintéticos com atributos restritos
+(NOLOGIN, NOSUPERUSER, NOINHERIT, NOCREATEROLE, NOCREATEDB,
+NOREPLICATION, NOBYPASSRLS), e uma membership sem ADMIN, INHERIT
+ou SET. Os nomes e comandos são literais e isolados no Docker local:
+não vêm do catálogo cifrado. O comparador deve continuar apontando
+divergência proposital em relação aos privilégios da origem e
+`recoveryComplete=false`. Nenhum `pg_dumpall --globals-only` ou
+replay de grants do provedor está autorizado.
 Use o mesmo roadmap e o mesmo PR. Nenhum comando abaixo concede autorização
 para criar papéis, executar SQL remoto de escrita ou mudar planos.
 
@@ -11,7 +20,8 @@ para criar papéis, executar SQL remoto de escrita ou mudar planos.
 Requer imagem PostgreSQL fixada já presente e Docker local. Cria somente dois
 containers próprios, sem rede e volumes persistentes. Atributos e memberships
 são alterados somente nesse laboratório. O relatório agrega diferenças e exige
-limpeza por owner. Não substitui recuperação nativa das contas de autenticação.
+limpeza por owner; o ensaio de reconstrução mínima não reproduz privilégios
+nem equivale a recuperação organizacional. Não substitui recuperação nativa das contas de autenticação.
 
 ## Captura autorizada
 
