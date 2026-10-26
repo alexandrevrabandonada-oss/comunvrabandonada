@@ -15,6 +15,26 @@ import os from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
+export function classifyAuthRestoreDockerFailure(stderr) {
+  const message = typeof stderr === "string" ? stderr : "";
+  for (const [pattern, category] of [
+    [/no space left on device/i, "LAB_SPACE_EXHAUSTED"],
+    [/out of memory|cannot allocate memory|oom.?kill/i, "LAB_MEMORY_EXHAUSTED"],
+    [/address already in use|port is already allocated/i, "LAB_PORT_COLLISION"],
+    [/permission denied/i, "LAB_PERMISSION_DENIED"],
+    [/does not exist/i, "MISSING_DATABASE_OBJECT"],
+    [/already exists/i, "DUPLICATE_DATABASE_OBJECT"],
+    [/syntax error/i, "SQL_SYNTAX"],
+    [
+      /container .* (not running|exited)|container is not running/i,
+      "LAB_CONTAINER_UNAVAILABLE",
+    ],
+  ]) {
+    if (pattern.test(message)) return category;
+  }
+  return "DOCKER_COMMAND_FAILED";
+}
+
 export function parseAuthRestoreArguments(args) {
   assert.equal(args.length, 3, "COMUN_AUTH_RESTORE_OPTIONS_INVALID");
   assert.equal(
@@ -104,14 +124,10 @@ export async function rehearseAuthIdentityRestore({ output }) {
                 lastHttpStatus: diagnostic.lastHttpStatus,
               };
           } catch {}
-          const message = stderr.toString();
-          for (const [pattern, category] of [
-            [/does not exist/, "MISSING_DATABASE_OBJECT"],
-            [/already exists/, "DUPLICATE_DATABASE_OBJECT"],
-            [/syntax error/, "SQL_SYNTAX"],
-            [/No space left/, "LAB_SPACE_EXHAUSTED"],
-          ])
-            if (pattern.test(message)) failure.safeDiagnostic = { category };
+          if (!failure.safeDiagnostic)
+            failure.safeDiagnostic = {
+              category: classifyAuthRestoreDockerFailure(stderr.toString()),
+            };
           reject(failure);
         },
       );
@@ -267,7 +283,7 @@ export async function rehearseAuthIdentityRestore({ output }) {
       assert(inspect.Mounts.every((mount) => mount.Type !== "volume"));
       return id;
     };
-    stage = "database-bootstrap";
+    stage = "postgres-container-create";
     await run("pg", "pg", { POSTGRES_PASSWORD: password }, [
       "--memory",
       "512m",
@@ -276,17 +292,20 @@ export async function rehearseAuthIdentityRestore({ output }) {
       "--tmpfs",
       "/var/lib/postgresql/data:rw,nosuid,size=256m",
     ]);
+    stage = "postgres-readiness";
     await wait(async () =>
       (
         await text(["exec", `${owner}-pg`, "pg_isready", "-U", "postgres"])
       ).includes("accepting"),
     );
+    stage = "database-create";
     await sql("postgres", "create database source; create database recovered;");
     const fixture = await readFile(
       path.join(root, "scripts/organization/disposable-cycle-fixture.sql"),
       "utf8",
     );
     // Password is synthetic and stays in stdin, not SQL command arguments.
+    stage = "source-fixture";
     await sql(
       "source",
       fixture.replace("password :'rest_password'", `password '${password}'`),
@@ -295,7 +314,9 @@ export async function rehearseAuthIdentityRestore({ output }) {
       fixture.indexOf("create schema if not exists auth"),
       fixture.indexOf("create table public.comun_communities"),
     );
+    stage = "restored-auth-bootstrap";
     await sql("recovered", authBootstrap);
+    stage = "postgres-search-path";
     await sql("postgres", "alter role postgres set search_path=auth,public;");
     const authEnv = (database) => ({
       GOTRUE_API_HOST: "0.0.0.0",
@@ -493,7 +514,11 @@ export async function rehearseAuthIdentityRestore({ output }) {
     result.result = "PASS";
   } catch (error) {
     result.failedStage = stage;
-    if (error.safeDiagnostic) result.failureDiagnostic = error.safeDiagnostic;
+    result.failureDiagnostic =
+      error.safeDiagnostic ??
+      (error.message === "COMUN_AUTH_RESTORE_READINESS_FAILED"
+        ? { category: "LAB_READINESS_TIMEOUT" }
+        : { category: "INTERNAL_STAGE_FAILED" });
     result.result = "FAIL";
   } finally {
     for (const resource of resources.reverse()) {

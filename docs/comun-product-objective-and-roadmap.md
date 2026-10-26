@@ -1,5 +1,27 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## SOC-D10.M7.E — diagnóstico de gates (26/10/2026)
+
+Checkpoint após `6c854eec`, sem transportar PASS para novo HEAD.
+PR #572 continua draft; sem merge, migrations remotas,
+Production ou alterações em permissões.
+
+- Preview READY e COST-02 SUCCESS em `6c854eec`. Full Surface,
+  Security e Experience SUCCESS; Core Journeys e Quality FAILURE.
+- Core: matriz organizativa Auth/RLS/Next passou; ensaio independente
+  de restauração Auth parou antes dos cenários em `database-bootstrap`.
+  Instrumentação divide etapas e publica somente diagnósticos
+  sanitizados, sem conteúdo de logs, SQL ou credenciais.
+- Quality pr-lane: CLI 2.113.0 recebeu `toomanyrequests` no pull e
+  registrou `Bus error` no Edge Runtime, status 503. Somente esta
+  trilha exclui o Edge Runtime, preservando assertions obrigatórias.
+  A porta local 55432 recebe um preflight não destrutivo.
+- Próxima prova: CI/COST-02/Preview próprios do novo SHA. Permanecem
+  abertas a recuperação nativa Auth e a restauração revisada de
+  papéis. A captura cifrada de 31 papéis/22 vínculos não autoriza
+  replay de privilégios do provedor.
+
+
 ## Estado atual — 21/10/2026
 
 **Entregue:** o roadmap #570 e o catálogo de Jogos #571 foram

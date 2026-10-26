@@ -194,8 +194,16 @@ jobs:
           npm run security:secrets
           npm run quality:test
           npm run quality:load
+      - name: Detectar colisão PostgreSQL local sem alterar processos
+        run: |
+          if ss -ltnH '( sport = :55432 )' | grep -q .; then
+            echo COMUN_QUALITY_LOCAL_DB_PORT_55432_OCCUPIED
+            exit 1
+          fi
       - name: Supabase descartável — start
-        run: supabase start
+        # pr-lane does not exercise Edge Functions; keep all database, Auth,
+        # REST, Storage and end-to-end assertions mandatory.
+        run: supabase start -x edge-runtime
       - name: Supabase descartável — reset local
         run: supabase db reset --local --yes
       - name: Supabase descartável — health local

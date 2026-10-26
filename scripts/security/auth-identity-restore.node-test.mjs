@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import {
+  classifyAuthRestoreDockerFailure,
   parseAuthRestoreArguments,
   removeAuthRestoreResource,
 } from "./rehearse-auth-identity-restore.mjs";
@@ -65,4 +66,33 @@ test("cleanup rejects a network without internal isolation", async () => {
     }),
   );
   assert.equal(calls.length, 1);
+});
+
+test("bootstrap diagnostics publish bounded categories and never raw stderr", () => {
+  assert.equal(
+    classifyAuthRestoreDockerFailure(
+      "Error response from daemon: address already in use: SECRET_EXAMPLE",
+    ),
+    "LAB_PORT_COLLISION",
+  );
+  assert.equal(
+    classifyAuthRestoreDockerFailure(
+      "psql: ERROR: relation synthetic_private does not exist",
+    ),
+    "MISSING_DATABASE_OBJECT",
+  );
+  assert.equal(
+    classifyAuthRestoreDockerFailure(
+      "Error: password=SECRET_EXAMPLE unknown Docker problem",
+    ),
+    "DOCKER_COMMAND_FAILED",
+  );
+  assert.equal(
+    classifyAuthRestoreDockerFailure("out of memory while starting database"),
+    "LAB_MEMORY_EXHAUSTED",
+  );
+  assert.equal(
+    classifyAuthRestoreDockerFailure(null),
+    "DOCKER_COMMAND_FAILED",
+  );
 });
