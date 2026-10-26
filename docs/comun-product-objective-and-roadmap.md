@@ -4790,3 +4790,28 @@ PASS e ausência comprovada de contas/configurações/recursos; preserva o gate 
 capacidade nativa bloqueado. O ensaio local do candidato e3a8fee1 passou em 26
 verificações reais e 134 contratos Windows/Linux, com lint/TypeScript PASS. A
 integração CI descendente exige nova certificação própria, sem herdar esses verdes.
+
+**M7.E — inventário verificável de papéis globais, sem replay.**
+O catálogo de recuperação agora possui consulta fixa read-only dos atributos de
+papéis PostgreSQL e do grafo de memberships (incluindo grantor e opções ADMIN,
+INHERIT e SET). Contrato estrito rejeita campos inesperados, credenciais, GUCs,
+referências ausentes e ciclos. Comparador só produz diferenças agregadas; não
+gera CREATE ROLE, GRANT ou restauração automática de privilégios.
+
+Ensaio PostgreSQL 17 isolado passou em 16 verificações: diferenças de atributos,
+validade, opções e grantor são detectadas; dump da aplicação restaurado em outro
+cluster não contém os três papéis sintéticos. Containers sem rede/portas/volumes,
+dados em tmpfs e ausência final confirmada. Falhas iniciais do harness foram
+preservadas; opção de codificação inválida foi corrigida, sem alterar o SQL.
+
+Coletor autorizado restringe a origem existente, TLS com CA fixada, transação
+read-only e query hash; exige código versionado limpo, intenção durável, limites
+de tempo/saída e cifragem age antes de persistir. Nomes de papéis não vão para
+evidências públicas. Captura e readback offsite precisam de provas próprias;
+preparar o coletor não equivale a realizá-los. Uma observação atual também não
+torna atômico nem amplia retroativamente o backup da aplicação de 25/10.
+
+O COST-02 de 4c29284a passou. Full Surface falhou antes dos testes admin em
+supabase start, porta 55432 já ocupada; log preservado, sem rerun ou relaxamento.
+Recuperação nativa de Auth, replay revisado de papéis e RPO contínuo continuam
+pendentes. Nenhum grant, migration, plano pago ou Production foi alterado.
