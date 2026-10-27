@@ -237,7 +237,10 @@ function ExploreAppV2({
 
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <p role="status" className="text-sm font-bold">
-            {activeCategories.length} grupos de resultados
+            {activeCategories.length}{" "}
+            {activeCategories.length === 1
+              ? "categoria para explorar"
+              : "categorias para explorar"}
           </p>
           <details className="relative">
             <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-[var(--comun-radius-control)] px-2 font-black">

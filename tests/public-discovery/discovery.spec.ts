@@ -83,6 +83,14 @@ test("successful empty sources preserve existing category navigation", async ({
   await expect(
     page.getByRole("link", { name: /Acervo/ }).first(),
   ).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({
+      hasText: "Não encontramos itens públicos verificáveis",
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({ hasText: "categorias para explorar" }),
+  ).toBeVisible();
 });
 test("a failed source leaves the others usable and states its limitation", async ({
   context,
