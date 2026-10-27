@@ -36,10 +36,7 @@ export function ComunPublicDiscovery({
   if (state === "not_applicable") return null;
   if (state !== "ready")
     return (
-      <p
-        role="status"
-        className="my-7 border-y border-current/25 py-6 text-sm"
-      >
+      <p role="status" className="my-7 border-y border-current/25 py-6 text-sm">
         {state === "unavailable"
           ? "Não foi possível verificar as fontes deste recorte agora. Tente novamente mais tarde; os caminhos de exploração continuam disponíveis."
           : "Não encontramos itens públicos verificáveis neste recorte por enquanto. Você ainda pode explorar as categorias abaixo."}

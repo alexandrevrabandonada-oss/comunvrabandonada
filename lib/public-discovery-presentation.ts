@@ -8,10 +8,9 @@ export type DiscoveryPresentationSource = {
   items: readonly unknown[];
 };
 
-export function summarizeDiscoveryPresentation<T extends DiscoveryPresentationSource>(
-  sources: readonly T[],
-  category?: unknown,
-) {
+export function summarizeDiscoveryPresentation<
+  T extends DiscoveryPresentationSource,
+>(sources: readonly T[], category?: unknown) {
   const relevant = sources.filter(
     (source) =>
       category == null || category === "tudo" || category === source.kind,

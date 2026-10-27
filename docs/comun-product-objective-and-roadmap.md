@@ -5092,8 +5092,10 @@ projeto; não constitui prova de conteúdo real, RLS ou aceite humano. O build
 local encontrou arquivos ilegíveis no pacote `caniuse-lite` do volume E:. Para
 testar, o processo isolado resolve esse pacote usando cópia oficial de mesma
 versão e integridade do lockfile, sem substituir arquivos do checkout. Resultados
-do candidato, CI e Preview devem ser registrados em evidência própria do SHA;
-nenhuma prova anterior autoriza afirmar que passaram neste incremento.
+locais de desenvolvimento: 22 testes Vitest e 22 percursos Playwright PASS em
+mobile/desktop, incluindo Axe, retorno, indisponibilidade parcial, retirada e
+entrada direta. CI e Preview exigem provas próprias do SHA final; a fixture não
+substitui validação com pessoas reais nem prova acesso a dados de Production.
 
 **Auditoria comparativa P6C-B1 — registros históricos, sem novo ensaio.**
 
