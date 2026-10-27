@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { summarizeDiscoveryPresentation } from "./public-discovery-presentation";
 import {
   archiveDiscovery,
   radioDiscovery,
@@ -155,5 +156,63 @@ describe("SOC-D09 public discovery contract", () => {
     expect(
       discoveryReturnHref({ origem: "descoberta", categoria: "radio" }),
     ).toBe("/comun/explorar?categoria=radio");
+  });
+});
+
+describe("SOC-D10 first-visit public discovery status", () => {
+  const source = (
+    kind: "acervo" | "radio" | "feirinha",
+    state: "ready" | "empty" | "unavailable",
+  ) => ({
+    kind,
+    state,
+    items: state === "ready" ? [{ title: "Conteúdo elegível" }] : [],
+  });
+
+  it("reports honest emptiness when all verified sources are empty", () => {
+    const summary = summarizeDiscoveryPresentation([
+      source("acervo", "empty"),
+      source("radio", "empty"),
+      source("feirinha", "empty"),
+    ]);
+    expect(summary.state).toBe("empty");
+    expect(summary.unavailable).toBe(false);
+    expect(summary.groups).toEqual([]);
+  });
+
+  it("does not turn unavailable sources into an empty catalogue", () => {
+    const summary = summarizeDiscoveryPresentation([
+      source("acervo", "unavailable"),
+      source("radio", "unavailable"),
+      source("feirinha", "empty"),
+    ]);
+    expect(summary.state).toBe("unavailable");
+    expect(summary.groups).toEqual([]);
+  });
+
+  it("preserves verified content and explicitly flags partial unavailability", () => {
+    const summary = summarizeDiscoveryPresentation([
+      source("acervo", "ready"),
+      source("radio", "unavailable"),
+    ]);
+    expect(summary.state).toBe("ready");
+    expect(summary.groups).toHaveLength(1);
+    expect(summary.unavailable).toBe(true);
+  });
+
+  it("scopes availability to the selected public source only", () => {
+    const sources = [source("acervo", "ready"), source("radio", "unavailable")];
+    expect(summarizeDiscoveryPresentation(sources, "radio").state).toBe(
+      "unavailable",
+    );
+    expect(summarizeDiscoveryPresentation(sources, "acervo").state).toBe(
+      "ready",
+    );
+    expect(summarizeDiscoveryPresentation(sources, "jogos").state).toBe(
+      "not_applicable",
+    );
+    expect(summarizeDiscoveryPresentation(sources, "tudo").groups).toHaveLength(
+      1,
+    );
   });
 });
