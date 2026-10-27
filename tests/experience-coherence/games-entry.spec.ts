@@ -38,7 +38,7 @@ test("@a11y Jogos oferece beta real sem carregar Unity no COMUN", async ({
   expect(externalRequests).toEqual([]);
 
   await expect(
-    page.getByRole("link", { name: /Voltar a Explorar/ }),
+    page.getByRole("link", { name: /Explorar mais conteúdos/ }),
   ).toHaveAttribute("href", "/comun/explorar");
   expect(
     await page.evaluate(
@@ -63,7 +63,7 @@ test("Explorar preserva Jogos na experiência App V2", async ({ page }) => {
   await category.click();
   await expect(page).toHaveURL(/\/comun\/jogos$/);
   await expect(
-    page.getByRole("link", { name: /Voltar a Explorar/ }),
+    page.getByRole("link", { name: /Explorar mais conteúdos/ }),
   ).toHaveAttribute("href", "/comun/explorar");
 });
 

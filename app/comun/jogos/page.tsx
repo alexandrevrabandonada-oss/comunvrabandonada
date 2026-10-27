@@ -45,21 +45,17 @@ export default async function GamesPage({
             href={exploreHref}
             className="inline-flex min-h-11 items-center font-bold underline"
           >
-            ← Voltar a Explorar
+            Explorar mais conteúdos
           </Link>
-          <p
-            className="mt-5 text-xs font-black uppercase tracking-wider text-comun-yellow"
-          >
+          <p className="mt-5 text-xs font-black uppercase tracking-wider text-comun-yellow">
             Jogar também é conviver
           </p>
-          <h1
-            className="mt-2 text-4xl font-black uppercase text-comun-paper sm:text-5xl"
-          >
+          <h1 className="mt-2 text-4xl font-black uppercase text-comun-paper sm:text-5xl">
             Jogos
           </h1>
           <p className="mt-3 max-w-3xl text-comun-paper/80">
-            Um lugar para descobrir aventuras, divertir-se e conhecer quem
-            cria. Jogar não exige participar de uma pauta ou atividade política.
+            Um lugar para descobrir aventuras, divertir-se e conhecer quem cria.
+            Jogar não exige participar de uma pauta ou atividade política.
           </p>
 
           <section
@@ -88,8 +84,8 @@ export default async function GamesPage({
                 </p>
                 <p className="mt-3 text-sm">
                   O jogo está em outra página e mantém seu progresso no
-                  navegador e no domínio onde é executado. Não há
-                  sincronização automática com a conta COMUN.
+                  navegador e no domínio onde é executado. Não há sincronização
+                  automática com a conta COMUN.
                 </p>
                 <a
                   href={cityGame.url}
@@ -103,8 +99,8 @@ export default async function GamesPage({
                   <span className="sr-only">(abre em nova aba)</span>
                 </a>
                 <p className="mt-3 text-xs">
-                  Abre em outra aba, fora do COMUN. O jogo pode precisar
-                  de tempo para carregar e de controles próprios.
+                  Abre em outra aba, fora do COMUN. O jogo pode precisar de
+                  tempo para carregar e de controles próprios.
                 </p>
               </div>
             </div>
