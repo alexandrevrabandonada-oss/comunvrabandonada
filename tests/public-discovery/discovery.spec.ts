@@ -7,6 +7,35 @@ test.beforeEach(async ({ page }) => {
     return u.origin === base ? route.continue() : route.abort();
   });
 });
+test("descoberta e retorno funcionam sem JavaScript", async ({
+  browser,
+}, testInfo) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: testInfo.project.use.viewport || { width: 390, height: 844 },
+  });
+  try {
+    const page = await context.newPage();
+    await page.route("**/*", (route) =>
+      new URL(route.request().url()).origin === base
+        ? route.continue()
+        : route.abort(),
+    );
+    await page.goto("/comun/explorar?experiencia=app-v2");
+    const rail = page.getByRole("region", { name: "Para conhecer com calma" });
+    await expect(rail).toBeVisible();
+    await rail.getByRole("link").first().click();
+    await expect(
+      page.getByRole("link", { name: "Voltar à descoberta" }),
+    ).toBeVisible();
+    await page.getByRole("link", { name: "Voltar à descoberta" }).click();
+    await expect(
+      page.getByRole("region", { name: "Para conhecer com calma" }),
+    ).toBeVisible();
+  } finally {
+    await context.close();
+  }
+});
 test("Jogos tem destino público real no laboratório, sem fixture 404", async ({
   page,
   request,
