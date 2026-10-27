@@ -5154,6 +5154,12 @@ projetos Playwright: os nomes mobile e desktop não comprovavam dois viewports.
 O teste foi corrigido para aplicar explicitamente 390×844 e 1366×768 e bloquear
 requisições externas; ambos os casos passaram novamente no laboratório local.
 
+**Descoberta — Feirinha sem JavaScript.** A rota real de organização foi
+ensaiada anonimamente com oferta sintética, em 390×844 e 1366×768, sem chamadas
+externas. O aviso identificou a oferta escolhida e o link retornou a Explorar.
+O ensaio não acessou nem certificou as áreas privadas ou os formulários de
+vínculo e não representa conteúdo publicado de uma organização real.
+
 **Auditoria comparativa P6C-B1 — registros históricos, sem novo ensaio.**
 
 | Aspecto                  | Execução bem-sucedida                                                                                                                | Execução malsucedida                                                                                                                 |

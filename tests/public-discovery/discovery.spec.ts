@@ -1,6 +1,33 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 const base = "http://127.0.0.1:3150";
+test("Feirinha mantém descoberta pública sem JavaScript", async ({
+  browser,
+}, testInfo) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    baseURL: base,
+    viewport: testInfo.project.use.viewport || { width: 390, height: 844 },
+  });
+  try {
+    await context.route("**/*", (route) =>
+      new URL(route.request().url()).origin === base
+        ? route.continue()
+        : route.abort(),
+    );
+    const page = await context.newPage();
+    await page.goto(
+      "/comun/cooperativas/roda-local?oferta=troca-local&origem=descoberta&categoria=feirinha&experiencia=app-v2",
+    );
+    await expect(
+      page.getByRole("status").filter({ hasText: "Você veio conhecer" }),
+    ).toContainText("Troca de livros");
+    await page.getByRole("link", { name: "Voltar à descoberta" }).click();
+    await expect(page).toHaveURL(/\/comun\/explorar/);
+  } finally {
+    await context.close();
+  }
+});
 test.beforeEach(async ({ page }) => {
   await page.route("**/*", (route) => {
     const u = new URL(route.request().url());
