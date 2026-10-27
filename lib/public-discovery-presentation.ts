@@ -19,9 +19,7 @@ export function summarizeDiscoveryPresentation<T extends DiscoveryPresentationSo
   const groups = relevant.filter(
     (source) => source.state === "ready" && source.items.length > 0,
   );
-  const unavailable = relevant.some(
-    (source) => source.state === "unavailable",
-  );
+  const unavailable = relevant.some((source) => source.state === "unavailable");
   const state =
     relevant.length === 0
       ? "not_applicable"
