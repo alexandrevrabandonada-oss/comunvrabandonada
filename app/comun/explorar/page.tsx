@@ -130,7 +130,7 @@ export default async function ExplorarPage({
       />
     );
   return (
-    <ComunShell>
+    <ComunShell publicReadOnlyFallback>
       <Section>
         <h1 className="text-4xl font-black uppercase text-comun-yellow">
           Explorar
@@ -200,7 +200,7 @@ function ExploreAppV2({
       ? availableCategories
       : availableCategories.filter((item) => item[3] === category);
   return (
-    <ComunShell>
+    <ComunShell publicReadOnlyFallback>
       <div className="comun-v2-page" data-comun-app-v2-page="explore">
         <h1 className="sr-only">Explorar</h1>
         <form

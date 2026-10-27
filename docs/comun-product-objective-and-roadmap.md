@@ -5097,6 +5097,15 @@ mobile/desktop, incluindo Axe, retorno, indisponibilidade parcial, retirada e
 entrada direta. CI e Preview exigem provas próprias do SHA final; a fixture não
 substitui validação com pessoas reais nem prova acesso a dados de Production.
 
+No teste sem JavaScript, Explorar inicialmente permaneceu em “Carregando
+experiência…” por causa do fallback do shell; o erro foi preservado. A correção
+ativa o fallback público somente de leitura existente em Explorar e no detalhe
+do Acervo, após sua consulta pública e `notFound`, sem alterar a autorização
+editorial. O percurso sintético Explorar → Acervo → retorno passou nos dois
+viewports sem JavaScript no teste de desenvolvimento; o candidato final precisa
+de nova prova própria. A condição de fallback não prova publicação real nem
+RLS e não substitui ensaio humano.
+
 **Auditoria comparativa P6C-B1 — registros históricos, sem novo ensaio.**
 
 | Aspecto                  | Execução bem-sucedida                                                                                                                | Execução malsucedida                                                                                                                 |

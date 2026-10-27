@@ -91,6 +91,7 @@ export default async function ArchiveItemPage(props: {
     });
     return (
       <ComunShell
+        publicReadOnlyFallback
         appBar={{
           title: item.title,
           contextLabel: `Acervo · ${item.item_type}`,
@@ -179,7 +180,7 @@ export default async function ArchiveItemPage(props: {
     );
   }
   return (
-    <ComunShell>
+    <ComunShell publicReadOnlyFallback>
       <Section>
         <DiscoveryReturn query={discoveryQuery} />
         <Link
