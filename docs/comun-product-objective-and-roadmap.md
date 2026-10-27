@@ -4904,3 +4904,241 @@ não demonstram recuperação dos privilégios reais, Auth nativo ou RPO contín
 Qualquer replay de privilégios reais requer procedimento, revisão e autorização
 próprios. Próximo passo: certificar o commit descendente nos gates e investigar
 separadamente qualquer falha remanescente sem rerun artificial.
+
+**P6C-B1 — diagnóstico de inicialização, ciclo bloqueado.**
+Análise do SHA `804a1095291cb495bf515e2dc64959591d973bd6`, no worktree
+`E:/COMUN-M6-20261022` destacado; PR #572 draft na branch existente, mesmo
+HEAD remoto. O checkout `E:/COMUN-SEARCH-CONTEXT-20261015` permanece em sua
+própria branch e não foi alterado. `.playwright-cli/` permanece não rastreado.
+
+O [job Education](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/40417399129/job/121903030739)
+recebeu `toomanyrequests`, depois baixou a imagem por GHCR, carregou migrations
+e seed descartáveis e falhou no health do Edge Runtime com `Bus error`/503,
+antes do E2E. A ligação causal entre rate limit e erro continua inconclusiva.
+O mesmo índice `c5240500` foi usado em outra falha CI e no teste local mínimo,
+que respondeu HTTP 200 e teve cleanup; não se tratava do wrapper da CLI.
+
+Plano discriminante, **não executado**: A) manter plataforma e wrapper e variar
+a imagem fixada; falha somente com uma imagem apoiaria causa da imagem, sujeita
+ao controle inverso. B) manter imagem e wrapper e variar o runner; falha somente
+no runner de CI apoiaria dependência ambiental. C) manter runner e imagem e
+variar uma versão de CLI ou configuração por vez; falha associada apenas a uma
+combinação apoiaria incompatibilidade. D) manter runtime e host e comparar um
+serviço mínimo com o wrapper oficial e dependências sintéticas; falha somente
+no wrapper apoiaria o processo de bootstrap. Um resultado igual entre variantes
+enfraquece a hipótese correspondente, mas não identifica sozinho outra causa.
+
+Cada variante exige ambiente descartável, recursos próprios, sem rede externa,
+dados ou credenciais reais; parar em falha de isolamento, resultado ambíguo,
+erro de infraestrutura ou limite de tentativas. A revisão automática bloqueou a
+criação do container para o wrapper oficial e informou apenas `blocked by
+policy`; ausência do container foi verificada. Não contornar nem repetir a ação.
+Decisão **BLOQUEADO**: causa ainda inconclusiva, sem correção ou commit de código.
+Evidência local sanitizada: `edge-manifest-comparison-804a1095.md` e
+`edge-wrapper-result-2113.json` no diretório de recuperação da sessão. Próximo:
+obter um meio permitido para o ensaio discriminante, preservando todos os gates.
+
+Comparador de leitura no mesmo SHA: o [job administrativo](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/40417398755/job/121903029739)
+iniciou Supabase e executou 35 testes PASS com CLI 2.109.1 e Edge Runtime 1.74.2
+(`a8267627`); Educação falhou no start com CLI 2.113.0 e Edge Runtime 1.74.3
+(`c5240500`). Os jobs e ambientes diferem; a observação não comprova regressão
+de uma versão nem autoriza trocar versões sem experimento controlado. O teste
+discriminante do wrapper permanece bloqueado; nenhum workflow foi repetido.
+
+**Hipótese específica identificada em fonte oficial.** O [relato upstream #746](https://github.com/supabase/edge-runtime/issues/746)
+documenta `SIGBUS` intermitente no cache SQLite do Deno em inicialização fria,
+inclusive em Ubuntu 24.04 x64; também relata ocorrência em `start`. A fonte da
+v1.74.3 contém os dois padrões relacionados: criação repetida de caches em
+`EmitterFactory::caches()` e remoção de arquivo de cache após falhas de abertura.
+A [release v1.77.1](https://github.com/supabase/edge-runtime/releases/tag/v1.77.1)
+incorpora correções para esses padrões. O `startup.log` do COMUN não contém
+stack trace ou rastreio do cache que vincule seu `Bus error` a esse defeito.
+Portanto a hipótese é plausível, mas continua **não comprovada**; não trocar
+versão nem declarar correção com base apenas na semelhança dos sintomas.
+
+Os blobs oficiais `deno/cache/cache_db.rs` e `crates/deno_facade/emitter.rs`
+são idênticos entre v1.74.2 e v1.74.3 (respectivamente `80357dd6` e
+`2204c9dc`). Assim, o sucesso administrativo com v1.74.2 não elimina um
+defeito intermitente já presente em ambas; a comparação também não comprova
+que esse defeito produziu a falha do COMUN. O artefato Education contém somente
+`startup.log`, sem core dump ou rastreio do cache para confirmar a hipótese.
+
+Próxima prova necessária: em ambiente descartável permitido, capturar sinal e
+stack ou sequência de inicialização/remoção do cache, comparar com controle
+que incorpore a correção upstream e preservar a falha original. A revisão
+automática continua bloqueando o ensaio do wrapper; não houve novo container,
+rerun, alteração de workflow, Production ou dado real nesta investigação.
+
+**Matriz de hipóteses SIGBUS — 26/10/2026, SHA 804a1095.**
+
+| Hipótese                                           | Classificação             | Evidência e limite                                                                                                                   |
+| -------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Memória mapeada ou arquivo truncado                | Sustentada indiretamente  | O relato upstream #746 mostra esse mecanismo em outro ensaio; o log COMUN não inclui stack, endereço de sinal ou eventos de arquivo. |
+| Corrida de inicialização ou cache corrompido       | Sustentada indiretamente  | Os padrões upstream existem em 1.74.2/1.74.3; não há rastreio local que demonstre corrida ou corrupção no job.                       |
+| Falta de memória, disco ou recursos compartilhados | Ainda não testada         | O artefato não contém métricas nem estado OOM do container; rate limit de registro não mede esses recursos.                          |
+| Imagem, arquitetura ou runtime                     | Sustentada parcialmente   | O mesmo digest falhou no CI e iniciou um servidor mínimo local; wrapper e ambiente diferem, sem prova de defeito da imagem.          |
+| Interrupção durante inicialização                  | Sustentada como sequência | `Bus error` e health 503 precedem o E2E; isso descreve o ponto de parada, não sua causa.                                             |
+| Ambiente específico do runner                      | Ainda não testada         | Ubuntu do CI e Docker Desktop local diferem; não há experimento pareado que isole essa variável.                                     |
+
+**Protocolo proposto para aprovação — NÃO EXECUTADO.**
+
+1. Antes de criar recursos, registrar autorização aplicável, SHA, owner,
+   finalidade e política de parada. Usar somente ambiente Linux amd64
+   descartável, isolado de redes externas, projetos e bancos reais; registrar
+   versão de kernel/Docker, CPU, cgroups e limites de RAM, swap, disco e `/dev/shm`.
+   Se o isolamento ou a política não forem confirmados, parar antes de iniciar.
+2. Fixar o índice OCI original
+   `sha256:c52405002a890ca9fcf77978671c57f3a988e03174afb277f84ac65bc917013c`
+   (v1.74.3; manifesto amd64 `cc355c3d`) e o controle corrigido upstream
+   `sha256:645d0e45446181f3e9d87efeef637b494615f32365befff00e2d2b0fe8535fef`
+   (v1.77.1; manifesto amd64 `86b538ff`). Conferir identidade e plataforma
+   antes de qualquer execução; a comparação não autoriza trocar a versão do CI.
+3. Com wrapper oficial de blob `3ed2811dca4e09a288851b76fa53e366c6785f95`
+   e configuração inteiramente sintética, comparar pares com cache novo e
+   limites iguais, variando somente a imagem. Máximo de duas tentativas por
+   condição; registrar também um controle de serviço mínimo. Não executar o
+   workflow Education nem tratar ausência de falha em poucas amostras como cura.
+4. Registrar UTC e tempo monotônico de criação, início, prontidão, requisição,
+   saída e cleanup; capturar exit code/sinal e estado OOM. Antes e depois,
+   medir memória/cgroup, espaço e inodes do filesystem e `/dev/shm`. Coletar
+   apenas metadados dos arquivos de cache sintéticos: existência, tamanho e
+   eventos de criação, remoção e truncamento; sem ler dados privados.
+5. Preservar logs sanitizados de ambas as condições, inclusive falhas e tempos;
+   não copiar ambientes, tokens, headers, dados de usuários nem catálogos reais.
+   Core dumps ficam desabilitados: coleta, retenção e inspeção de qualquer dump
+   exigem autorização específica prévia, destino privado e prazo definidos.
+6. **PASS** significa inicialização, resposta sintética e cleanup comprovados
+   para aquela tentativa, não recuperação de Educação. **FAIL** significa
+   erro de inicialização, resposta ou isolamento observado e preservado.
+   **INCONCLUSIVO** inclui bloqueio, infraestrutura indisponível, amostra sem
+   ocorrência ou ausência de rastreio que ligue SIGBUS a arquivo truncado.
+   Nenhuma hipótese vira causa apenas porque o controle passou.
+7. Em `finally`, remover somente recursos descartáveis identificados pelo owner,
+   após conferir identidade e escopo, e verificar ausência por leitura; nunca
+   remover worktrees, volumes ou containers alheios. Interromper em vazamento,
+   falha de isolamento, escrita remota, erro de infraestrutura ou limite de
+   tentativas. O bloqueio automático do wrapper permanece vigente.
+
+**Solicitação preparada ao responsável pelo ambiente — NÃO ENVIADA.**
+
+Favor informar a razão específica da rejeição `blocked by policy`, qual política
+se aplica, quem pode revisá-la e o procedimento oficial para solicitar avaliação
+do ensaio abaixo. Não existe nesta sessão um canal ou ferramenta autorizada para
+enviar essa solicitação ao responsável; a aprovação do usuário não substitui uma
+decisão da política. Até resposta verificável, o ensaio permanece **NOT_RUN**.
+
+Finalidade: investigar se o wrapper da CLI, o runtime ou sua interação com cache
+novo explicam SIGBUS; não testar usuários, autenticação real ou Production.
+O menor comando de inicialização proposto a avaliar, não autorizado para execução,
+é o seguinte (PowerShell, Docker local; diretório contém apenas o wrapper público
+da CLI 2.113.0, blob `3ed2811dca4e09a288851b76fa53e366c6785f95`):
+
+```powershell
+docker run -d --rm --pull=never --platform linux/amd64 --name comun-sigbus-review-1743 --label comun.probe.owner=comun-sigbus-review-1743 --network none --read-only --tmpfs /tmp:rw,nosuid,nodev,size=64m --cap-drop=ALL --security-opt=no-new-privileges --cpus=1 --memory=512m --memory-swap=512m --pids-limit=128 --ulimit core=0 -e DENO_DIR=/tmp/deno -e SUPABASE_URL=http://127.0.0.1:54321 --mount type=bind,source=C:/Users/Micro/AppData/Local/Temp/comun-edge-wrapper-13bcac44609b425582b0d1652952178d,target=/service,readonly sha256:c52405002a890ca9fcf77978671c57f3a988e03174afb277f84ac65bc917013c start --main-service=/service --port=8081 --policy=per_worker
+```
+
+`--pull=never` usa somente imagem já identificada; `--platform` fixa arquitetura;
+`--network none` impede rede externa e não há porta publicada. A raiz é somente
+leitura; o único bind é o wrapper público e `/tmp` é efêmero e limitado. Capabilities
+removidas e `no-new-privileges` reduzem poderes; CPU, RAM, swap, PIDs, tmpfs e core
+limitam recursos. O endereço e a configuração são sintéticos; não fornecer chaves,
+credenciais ou dados privados. Identidade e isolamento devem ser lidos antes do
+cleanup por owner, seguido de verificação de ausência; não tocar recursos alheios.
+
+Esse comando isolado prova somente o bootstrap, não identifica a causa nem executa
+Education. Para o ensaio pareado, pedir avaliação separada da instrumentação mínima
+de eventos de cache e do controle v1.77.1 indicado acima, com configuração e limites
+iguais e no máximo duas tentativas por condição. Não coletar conteúdo dos caches,
+logs brutos ou segredos; core dump exige autorização separada e destino privado.
+Parar imediatamente se faltar isolamento, houver dados reais, rede externa, erro
+de infraestrutura ou limite de tentativas. PASS: inicialização, resposta sintética
+e cleanup daquela tentativa; FAIL: erro observado e preservado; INCONCLUSIVO:
+bloqueio, falha de infraestrutura, ausência de evento causal ou amostra sem falha.
+Esses resultados não certificam o E2E Education nem permitem inferir causalidade.
+
+O analisador local `scripts/security/edge-sigbus-log-analysis.mjs` apenas transforma
+texto fornecido em categorias e horários, sem executar processos ou devolver linhas
+brutas; compara resultados sem atribuir causa. Seus testes sintéticos não são
+reprodução de SIGBUS. A análise de logs existentes identificou SIGBUS/503 no
+Education, sucesso no job administrativo e evidência de cache insuficiente em ambos.
+
+**Comparação histórica adicional — somente leitura.** O próprio [E2E Education](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/40412667360/job/121887041015)
+passou no SHA `50b04ab8` com CLI 2.113.0 e imagem Edge Runtime v1.74.3, índice
+`c5240500`, antes da falha no SHA `804a1095`. O artefato anterior registra
+health e E2E concluídos, sem requisições externas ou exclusões definitivas.
+O diff entre os SHAs não altera o workflow Education, `supabase/config.toml` ou
+o script do ensaio; os demais arquivos alterados dizem respeito ao laboratório
+de segurança e documentação. Os runners são instâncias distintas e outros
+fatores podem variar. A comparação é compatível com falha intermitente, mas
+não comprova a hipótese do cache, não certifica o SHA atual e não autoriza rerun.
+
+**SOC-D10 — descoberta pública com estado honesto e entrada direta em Jogos.**
+O incremento originário da branch `codex/comun-public-discovery-honest-status-20261026`
+(`7ef95cf4`, baseado em `804a1095`) distingue fontes indisponíveis de fontes
+verificadas sem itens, preserva conteúdos de fontes disponíveis em falha parcial
+e descreve filtros como categorias em vez de contá-los como resultados reais.
+Integra somente `app/comun/explorar/page.tsx`,
+`components/comun-public-discovery.tsx`, `lib/public-discovery-presentation.ts`,
+`lib/comun-public-discovery.test.ts` e `tests/public-discovery/discovery.spec.ts`.
+
+Na entrada direta de Jogos, o link antes dizia “Voltar a Explorar” sem evidência
+de origem; agora oferece “Explorar mais conteúdos” com o mesmo destino. A mudança
+está em `app/comun/jogos/page.tsx`, com os contratos de navegação atualizados em
+`tests/experience-coherence/games-entry.spec.ts` e teste de entrada direta na
+fixture de descoberta. Isso não altera jogos, participação ou dados.
+
+O ensaio usa fontes sintéticas somente na fixture local, sem credenciais de
+projeto; não constitui prova de conteúdo real, RLS ou aceite humano. O build
+local encontrou arquivos ilegíveis no pacote `caniuse-lite` do volume E:. Para
+testar, o processo isolado resolve esse pacote usando cópia oficial de mesma
+versão e integridade do lockfile, sem substituir arquivos do checkout. Resultados
+do candidato, CI e Preview devem ser registrados em evidência própria do SHA;
+nenhuma prova anterior autoriza afirmar que passaram neste incremento.
+
+**Auditoria comparativa P6C-B1 — registros históricos, sem novo ensaio.**
+
+| Aspecto                  | Execução bem-sucedida                                                                                                                | Execução malsucedida                                                                                                                 |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Job e SHA                | [121887041015](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/40412667360/job/121887041015), `50b04ab8` | [121903030739](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/actions/runs/40417399129/job/121903030739), `804a1095` |
+| Horário do job, UTC      | 22:35:30–22:40:59                                                                                                                    | 23:07:25–23:11:33                                                                                                                    |
+| Etapa start/E2E, UTC     | 22:35:57–22:40:53, 296 s, SUCCESS                                                                                                    | 23:07:56–23:11:29, 213 s, FAILURE                                                                                                    |
+| CLI e imagem             | CLI 2.113.0, Edge 1.74.3, índice `c5240500`                                                                                          | Mesma CLI, versão e índice de imagem                                                                                                 |
+| Ambiente registrado      | Ubuntu 24.04.5, imagem `20261012.334.1`, runner `2.338.0`, x64; runner 1000045899                                                    | Mesma versão de OS/imagem/runner e arquitetura; instância 1000045979                                                                 |
+| Artefatos de startup     | Rate limit e retries, download, migrations e seed, health e stack pronto                                                             | Rate limit e retries, download, migrations e seed, depois `Bus error` e health 503                                                   |
+| Contadores observáveis   | 36 mensagens `toomanyrequests`, duas menções de retry da imagem Edge                                                                 | Mesmos contadores; não demonstram causalidade                                                                                        |
+| Resultado funcional      | E2E GREEN, `externalRequests=0`, `hardDeletes=0`                                                                                     | E2E não iniciado; nenhum PASS funcional                                                                                              |
+| Cache, recursos e estado | Sem rastreio de cache, métricas RAM/disco/`shm` ou estado OOM no artefato                                                            | Mesmas informações ausentes; sem core ou stack preservado                                                                            |
+
+As etapas anteriores ao start aparecem SUCCESS em ambos os jobs; setup e
+`npm ci --ignore-scripts` mantiveram sequência equivalente. Os arquivos do
+workflow, configuração Supabase e script E2E não mudaram entre os SHAs; nomes
+de variáveis configuradas no workflow são iguais, mas valores em runtime e
+condições ocultas dos runners não foram comparados. As entradas de `startup.log`
+não têm timestamps por evento. A primeira diferença **textual** é a linha 2:
+retry de vector no sucesso versus mailpit na falha. Downloads são paralelos;
+essa ordem não prova primeira divergência temporal nem ligação com Edge.
+
+Linha do tempo observável, apenas por ordem do artefato: ambos registram limite
+de pull, download da imagem, migrations/seed, início de containers e espera de
+health. O sucesso registra stack pronto e E2E GREEN; a falha registra `Bus error`
+e 503 antes do E2E. Os horários do job delimitam as etapas, mas não o instante
+individual desses eventos. Ausência de mensagem 502, OOM ou evento de cache não
+equivale à ausência da condição; não há métricas de memória, CPU, disco ou `shm`.
+
+Hipóteses: corrida de inicialização e cache truncado têm suporte no relato
+upstream, não no log COMUN; faltam eventos de abertura/remoção/truncamento.
+SIGBUS por memória mapeada é documentado upstream, sem stack ou endereço deste
+job. Escassez de memória/`shm` e diferenças de runner carecem de métricas e
+identidade detalhada dos hosts. Imagem e arquitetura iguais desfavorecem uma
+explicação baseada apenas em versões, sem excluir defeito intermitente. Rate
+limit aparece em ambos e não demonstra que causou a falha. Interação entre
+serviços permanece sem timestamps e estado dos containers suficientes para
+teste causal. A menor observação adicional a submeter à revisão é uma execução
+sintética autorizada que registre sinal, OOM e eventos temporizados de
+abertura/remoção/truncamento dos caches, com controle de recursos e comparação
+fixada; sem esses eventos, mesmo um controle bem-sucedido será inconclusivo.
+
+O analisador local processou os dois `startup.log`: zero eventos temporizados,
+SIGBUS apenas na falha e `CACHE_EVIDENCE_INSUFFICIENT` em ambos; seus sete
+testes sintéticos passaram. A solicitação de revisão acima mantém o mesmo
+bloqueio e não foi enviada: não há canal autorizado identificado nesta sessão.
