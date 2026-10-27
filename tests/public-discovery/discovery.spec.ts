@@ -1,6 +1,27 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 const base = "http://127.0.0.1:3150";
+test("título público longo permanece dentro da tela", async ({
+  context,
+  page,
+}) => {
+  await context.addCookies([
+    { name: "discovery-lab", value: "long-title", url: base },
+  ]);
+  await page.goto("/comun/explorar?experiencia=app-v2&categoria=acervo");
+  const link = page.getByRole("link", { name: "Memoria".repeat(24) });
+  await expect(link).toBeVisible();
+  const linkBounds = await link.boundingBox();
+  const cardBounds = await link.locator("xpath=ancestor::li[1]").boundingBox();
+  expect(linkBounds!.x + linkBounds!.width).toBeLessThanOrEqual(
+    cardBounds!.x + cardBounds!.width,
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
 test("Feirinha mantém descoberta pública sem JavaScript", async ({
   browser,
 }, testInfo) => {

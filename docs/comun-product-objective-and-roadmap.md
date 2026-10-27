@@ -5170,6 +5170,12 @@ permanecem separados. No laboratório sintético, o teste de URL externa falhou
 uma vez com `ERR_NO_BUFFER_SPACE` e passou isoladamente; a falha inicial não
 constitui PASS da suíte inteira nem demonstra falha do produto.
 
+**Descoberta — títulos extensos.** Um título público sintético sem espaços
+ultrapassou o cartão em celular e desktop, embora a largura total da página não
+denunciasse o problema. O link passa a quebrar palavras longas dentro do cartão;
+o ensaio mede também os limites do link, além da largura da página. A prova usa
+conteúdo sintético e não substitui avaliação com pessoas.
+
 **Auditoria comparativa P6C-B1 — registros históricos, sem novo ensaio.**
 
 | Aspecto                  | Execução bem-sucedida                                                                                                                | Execução malsucedida                                                                                                                 |

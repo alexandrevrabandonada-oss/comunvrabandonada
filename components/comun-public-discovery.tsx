@@ -80,7 +80,7 @@ export function ComunPublicDiscovery({
                 <h4 className="font-black">
                   <Link
                     href={discoveryItemHref(item.path, experience, category)}
-                    className="inline-flex min-h-11 items-center underline focus-visible:outline focus-visible:outline-2"
+                    className="inline-block min-h-11 max-w-full [overflow-wrap:anywhere] underline focus-visible:outline focus-visible:outline-2"
                   >
                     {item.title}
                   </Link>
