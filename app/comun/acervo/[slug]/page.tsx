@@ -92,6 +92,10 @@ export default async function ArchiveItemPage(props: {
     return (
       <ComunShell
         publicReadOnlyFallback
+        resolvedLocation={{
+          pathname: `/comun/acervo/${encodeURIComponent(params.slug)}`,
+          experience: discoveryQuery.experiencia ?? null,
+        }}
         appBar={{
           title: item.title,
           contextLabel: `Acervo · ${item.item_type}`,
@@ -180,7 +184,13 @@ export default async function ArchiveItemPage(props: {
     );
   }
   return (
-    <ComunShell publicReadOnlyFallback>
+    <ComunShell
+      publicReadOnlyFallback
+      resolvedLocation={{
+        pathname: `/comun/acervo/${encodeURIComponent(params.slug)}`,
+        experience: discoveryQuery.experiencia ?? null,
+      }}
+    >
       <Section>
         <DiscoveryReturn query={discoveryQuery} />
         <Link

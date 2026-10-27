@@ -5106,6 +5106,20 @@ viewports sem JavaScript no teste de desenvolvimento; o candidato final precisa
 de nova prova própria. A condição de fallback não prova publicação real nem
 RLS e não substitui ensaio humano.
 
+**Continuidade da descoberta — regressão de renderização no CI.** No SHA
+`8e662847`, COST-02, Experience Coherence e Education passaram; o job Core
+Journeys falhou em mobile ao encontrar duas cópias da mensagem de filtro inválido.
+O fallback público e a árvore hidratada podem coexistir durante a navegação.
+Explorar e o detalhe público do Acervo passam a informar ao shell a localização
+já conhecida no servidor, usando o mecanismo existente que mantém o conteúdo
+público estável e restringe os controles dependentes da URL aos seus próprios
+limites Suspense. As regras de leitura e o fallback sem JavaScript são mantidos.
+
+O teste focal que replica a troca de filtros passou localmente antes da correção;
+a falha no CI é intermitente e está preservada. A correção precisa de provas
+próprias, incluindo unicidade da mensagem e percurso sem JavaScript, e de novo
+resultado do Core Journeys no SHA final; não transportar seus resultados anteriores.
+
 **Auditoria comparativa P6C-B1 — registros históricos, sem novo ensaio.**
 
 | Aspecto                  | Execução bem-sucedida                                                                                                                | Execução malsucedida                                                                                                                 |

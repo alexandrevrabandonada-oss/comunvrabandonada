@@ -7,6 +7,22 @@ test.beforeEach(async ({ page }) => {
     return u.origin === base ? route.continue() : route.abort();
   });
 });
+test("troca de filtro mantém uma única mensagem acessível", async ({
+  page,
+}) => {
+  await page.goto("/comun/explorar?categoria=radio&experiencia=app-v2");
+  await expect(page.locator('a[href*="/comun/radio"]').first()).toBeVisible();
+  await page.goto("/comun/explorar?categoria=inexistente&experiencia=app-v2");
+  await expect(
+    page.getByText("Este filtro não existe", { exact: false }),
+  ).toHaveCount(1);
+  await expect(
+    page.getByText("Este filtro não existe", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Limpar recorte" }),
+  ).toHaveAttribute("href", "/comun/explorar");
+});
 test("descoberta e retorno funcionam sem JavaScript", async ({
   browser,
 }, testInfo) => {
