@@ -5149,6 +5149,11 @@ verificação identifica o bloco visível sem afirmar que a cópia oculta afeta 
 pessoa. O ensaio não comprova áudio real, disponibilidade editorial ou uso por
 participantes humanos.
 
+Na primeira execução, o contexto independente não herdou os tamanhos dos
+projetos Playwright: os nomes mobile e desktop não comprovavam dois viewports.
+O teste foi corrigido para aplicar explicitamente 390×844 e 1366×768 e bloquear
+requisições externas; ambos os casos passaram novamente no laboratório local.
+
 **Auditoria comparativa P6C-B1 — registros históricos, sem novo ensaio.**
 
 | Aspecto                  | Execução bem-sucedida                                                                                                                | Execução malsucedida                                                                                                                 |

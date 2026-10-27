@@ -3,11 +3,17 @@ import AxeBuilder from "@axe-core/playwright";
 
 test("radio preserves public credits and discovery return without JavaScript", async ({
   browser,
-}) => {
+}, testInfo) => {
   const context = await browser.newContext({
     javaScriptEnabled: false,
     baseURL: "http://127.0.0.1:3150",
+    viewport: testInfo.project.use.viewport || { width: 390, height: 844 },
   });
+  await context.route("**/*", (route) =>
+    new URL(route.request().url()).origin === "http://127.0.0.1:3150"
+      ? route.continue()
+      : route.abort(),
+  );
   const page = await context.newPage();
   await page.goto(
     "/comun/radio/episodios/escuta-local?origem=descoberta&categoria=radio&experiencia=app-v2",
