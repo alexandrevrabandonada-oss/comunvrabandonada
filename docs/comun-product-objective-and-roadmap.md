@@ -5132,6 +5132,15 @@ Arquivos: `app/comun/explorar/page.tsx`, `app/comun/jogos/page.tsx` e testes de
 descoberta e de coerência. O próximo candidato exige provas locais e CI/Preview
 próprios; testes sintéticos e sucesso anterior não substituem validação humana.
 
+No SHA `9b3ff664`, o percurso de Jogos sem JavaScript ficou no fallback
+“Carregando experiência…” em mobile e desktop; falha e traces preservados. A
+página pública passa a usar localização resolvida no servidor e o fallback
+somente de leitura já empregado em Explorar. O teste preserva a verificação do
+filtro e do retorno, sem depender de conta; resultados próprios do novo SHA,
+CI e Preview são necessários. O job Political cycle daquele SHA falhou no reset
+local com HTTP 502 e rate limit, antes do ensaio; falha de infraestrutura não
+autoriza rerun nem enfraquecimento de gates.
+
 **Auditoria comparativa P6C-B1 — registros históricos, sem novo ensaio.**
 
 | Aspecto                  | Execução bem-sucedida                                                                                                                | Execução malsucedida                                                                                                                 |

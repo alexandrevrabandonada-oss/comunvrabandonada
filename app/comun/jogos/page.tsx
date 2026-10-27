@@ -37,6 +37,11 @@ export default async function GamesPage({
 
   return (
     <ComunShell
+      publicReadOnlyFallback
+      resolvedLocation={{
+        pathname: "/comun/jogos",
+        experience: params.experiencia ?? null,
+      }}
       appBar={
         appV2
           ? {

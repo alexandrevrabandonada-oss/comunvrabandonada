@@ -7,6 +7,35 @@ test.beforeEach(async ({ page }) => {
     return u.origin === base ? route.continue() : route.abort();
   });
 });
+test("Jogos oferece retorno ao recorte sem JavaScript", async ({
+  browser,
+}, testInfo) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: testInfo.project.use.viewport || { width: 390, height: 844 },
+  });
+  try {
+    const page = await context.newPage();
+    await page.route("**/*", (route) =>
+      new URL(route.request().url()).origin === base
+        ? route.continue()
+        : route.abort(),
+    );
+    await page.goto("/comun/jogos?origem=explorar&categoria=jogos");
+    await expect(
+      page.getByRole("heading", { name: "Jogos", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Voltar ao recorte de Jogos" }),
+    ).toHaveAttribute("href", "/comun/explorar?categoria=jogos");
+    await page
+      .getByRole("link", { name: "Voltar ao recorte de Jogos" })
+      .click();
+    await expect(page).toHaveURL(/\/comun\/explorar\?categoria=jogos$/);
+  } finally {
+    await context.close();
+  }
+});
 test("Jogos devolve ao filtro explícito sem aceitar outro contexto", async ({
   page,
 }) => {
