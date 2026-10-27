@@ -256,7 +256,11 @@ export function LiveSearchResults({
           <p>Nenhuma ação é executada automaticamente.</p>
         </section>
       ) : null}
-      <div className="mt-6 grid gap-8" aria-busy={phase === "loading"}>
+      <div
+        className="mt-6 grid gap-8"
+        aria-busy={phase === "loading"}
+        data-search-live-results
+      >
         {groups.map((group) => (
           <section key={group.type} aria-labelledby={`grupo-${group.type}`}>
             <h2
@@ -302,8 +306,21 @@ export function LiveSearchResults({
         ))}
       </div>
       <noscript>
-        <p>Resultados iniciais sem atualização automática:</p>
-        {initialResults.map((r) => (
+        <style>
+          {
+            "[data-testid='civic-search-status'], [data-search-live-results] { display: none !important; }"
+          }
+        </style>
+        <p role="status">
+          {initialAvailability === "unavailable"
+            ? "Busca indisponível. Não foi possível verificar as fontes; isso não significa ausência de resultados."
+            : initialAvailability === "partial"
+              ? "Algumas fontes estão indisponíveis; apenas resultados inicialmente verificados são exibidos."
+              : initialResults.length
+                ? "Resultados iniciais sem atualização automática."
+                : "Não encontramos conteúdo público com esses filtros."}
+        </p>
+        {safeSearchResults(initialResults).map((r) => (
           <p key={r.href}>
             <a href={contextualSearchHref(r.href, context) ?? "/comun/buscar"}>
               {r.title}

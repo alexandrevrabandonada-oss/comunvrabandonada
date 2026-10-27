@@ -3,6 +3,40 @@ import AxeBuilder from "@axe-core/playwright";
 const base = "http://127.0.0.1:3152";
 const search =
   "/comun/buscar?q=cultura&tipo=mem%C3%B3ria&pauta=cultura-local&territorio=roda-local&semantic=0";
+test("busca sem JavaScript distingue resultado público e fonte indisponível", async ({
+  browser,
+}, info) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    baseURL: base,
+    viewport: info.project.use.viewport || { width: 390, height: 844 },
+  });
+  try {
+    await context.route("**/*", (route) =>
+      new URL(route.request().url()).origin === base
+        ? route.continue()
+        : route.abort(),
+    );
+    const page = await context.newPage();
+    await page.goto(search);
+    await expect(
+      page.getByRole("link", { name: "Memória da praça — laboratório" }),
+    ).toBeVisible();
+    await expect(page.getByTestId("civic-search-status")).toBeHidden();
+    await context.addCookies([
+      { name: "search-context-lab", value: "down", url: base },
+    ]);
+    await page.reload();
+    await expect(
+      page.getByRole("status").filter({ hasText: "Busca indisponível" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Memória da praça — laboratório" }),
+    ).toHaveCount(0);
+  } finally {
+    await context.close();
+  }
+});
 test.beforeEach(async ({ page }, info) => {
   let n = 0;
   for (const c of info.testId + info.project.name)

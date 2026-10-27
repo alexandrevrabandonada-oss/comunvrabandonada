@@ -5160,6 +5160,16 @@ externas. O aviso identificou a oferta escolhida e o link retornou a Explorar.
 O ensaio não acessou nem certificou as áreas privadas ou os formulários de
 vínculo e não representa conteúdo publicado de uma organização real.
 
+**Descoberta — busca sem JavaScript.** A busca mostrava carregamento indefinido
+quando o JavaScript estava desligado, inclusive diante de indisponibilidade já
+conhecida no servidor. A apresentação `noscript` distingue fonte indisponível,
+parcial, vazia e resultados públicos iniciais, ocultando apenas os indicadores
+que dependem do cliente. Resultados são novamente filtrados pelo contrato de
+destinos públicos. A revalidação com JavaScript e seu tratamento de falhas
+permanecem separados. No laboratório sintético, o teste de URL externa falhou
+uma vez com `ERR_NO_BUFFER_SPACE` e passou isoladamente; a falha inicial não
+constitui PASS da suíte inteira nem demonstra falha do produto.
+
 **Auditoria comparativa P6C-B1 — registros históricos, sem novo ensaio.**
 
 | Aspecto                  | Execução bem-sucedida                                                                                                                | Execução malsucedida                                                                                                                 |
