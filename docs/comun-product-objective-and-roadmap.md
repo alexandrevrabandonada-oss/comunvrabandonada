@@ -5141,6 +5141,14 @@ CI e Preview são necessários. O job Political cycle daquele SHA falhou no rese
 local com HTTP 502 e rate limit, antes do ensaio; falha de infraestrutura não
 autoriza rerun nem enfraquecimento de gates.
 
+**Descoberta — Rádio sem JavaScript.** No SHA `09b2963f`, um ensaio local
+sintético abriu um episódio público em App V2, verificou um único bloco visível
+de créditos e retornou ao filtro de Rádio em Explorar, em celular e desktop.
+A primeira versão do teste encontrou uma cópia oculta do conteúdo no DOM; a
+verificação identifica o bloco visível sem afirmar que a cópia oculta afeta a
+pessoa. O ensaio não comprova áudio real, disponibilidade editorial ou uso por
+participantes humanos.
+
 **Auditoria comparativa P6C-B1 — registros históricos, sem novo ensaio.**
 
 | Aspecto                  | Execução bem-sucedida                                                                                                                | Execução malsucedida                                                                                                                 |

@@ -1,6 +1,33 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
+test("radio preserves public credits and discovery return without JavaScript", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    baseURL: "http://127.0.0.1:3150",
+  });
+  const page = await context.newPage();
+  await page.goto(
+    "/comun/radio/episodios/escuta-local?origem=descoberta&categoria=radio&experiencia=app-v2",
+  );
+  await expect(
+    page.getByRole("heading", {
+      name: "Escuta da praça — laboratório",
+      exact: true,
+    }),
+  ).toBeVisible();
+  const rights = page.locator("[data-comun-radio-rights]:visible");
+  await expect(rights).toHaveCount(1);
+  await expect(
+    rights.getByText("Equipe de escuta local — Apresentação", { exact: true }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Voltar à descoberta" }).click();
+  await expect(page).toHaveURL(/\/comun\/explorar\?.*categoria=radio/);
+  await context.close();
+});
+
 for (const mode of ["legacy", "app-v2"]) {
   test(`radio episode provenance is public and revalidated in ${mode}`, async ({
     page,
