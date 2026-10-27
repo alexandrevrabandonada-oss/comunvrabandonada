@@ -20,12 +20,20 @@ const cityGame = {
 export default async function GamesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ experiencia?: string }>;
+  searchParams: Promise<{
+    experiencia?: string;
+    origem?: string | string[];
+    categoria?: string | string[];
+  }>;
 }) {
-  const appV2 = isComunAppV2((await searchParams).experiencia);
-  const exploreHref = appV2
-    ? withComunAppV2("/comun/explorar")
+  const params = await searchParams;
+  const appV2 = isComunAppV2(params.experiencia);
+  const fromGamesFilter =
+    params.origem === "explorar" && params.categoria === "jogos";
+  const explorePath = fromGamesFilter
+    ? "/comun/explorar?categoria=jogos"
     : "/comun/explorar";
+  const exploreHref = withComunAppV2(explorePath, appV2);
 
   return (
     <ComunShell
@@ -45,7 +53,9 @@ export default async function GamesPage({
             href={exploreHref}
             className="inline-flex min-h-11 items-center font-bold underline"
           >
-            Explorar mais conteúdos
+            {fromGamesFilter
+              ? "Voltar ao recorte de Jogos"
+              : "Explorar mais conteúdos"}
           </Link>
           <p className="mt-5 text-xs font-black uppercase tracking-wider text-comun-yellow">
             Jogar também é conviver

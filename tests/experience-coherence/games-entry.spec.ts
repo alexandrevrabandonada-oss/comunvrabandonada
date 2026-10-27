@@ -58,13 +58,19 @@ test("@a11y Jogos oferece beta real sem carregar Unity no COMUN", async ({
 test("Explorar preserva Jogos na experiência App V2", async ({ page }) => {
   await page.goto("/comun/explorar?experiencia=app-v2&categoria=jogos");
   const category = page.getByRole("link", { name: "Jogos" });
-  // App V2 emits canonical URLs without the explicit query parameter.
-  await expect(category).toHaveAttribute("href", "/comun/jogos");
+  await expect(category).toHaveAttribute(
+    "href",
+    "/comun/jogos?origem=explorar&categoria=jogos",
+  );
   await category.click();
-  await expect(page).toHaveURL(/\/comun\/jogos$/);
+  await expect(page).toHaveURL(
+    /\/comun\/jogos\?origem=explorar&categoria=jogos$/,
+  );
   await expect(
-    page.getByRole("link", { name: /Explorar mais conteúdos/ }),
-  ).toHaveAttribute("href", "/comun/explorar");
+    page.getByRole("link", { name: /Voltar ao recorte de Jogos/ }),
+  ).toHaveAttribute("href", "/comun/explorar?categoria=jogos");
+  await page.getByRole("link", { name: /Voltar ao recorte de Jogos/ }).click();
+  await expect(page).toHaveURL(/\/comun\/explorar\?categoria=jogos$/);
 });
 
 test("Home oferece cultura e Jogos sem exigir organização ou cadastro", async ({

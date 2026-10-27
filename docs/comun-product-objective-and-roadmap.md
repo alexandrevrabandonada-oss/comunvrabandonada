@@ -5120,6 +5120,18 @@ a falha no CI é intermitente e está preservada. A correção precisa de provas
 próprias, incluindo unicidade da mensagem e percurso sem JavaScript, e de novo
 resultado do Core Journeys no SHA final; não transportar seus resultados anteriores.
 
+**SOC-D10 — continuidade do recorte de Jogos.** Em `55385f0d`, Core Journeys
+passou nos cinco viewports e o E2E Education, Experience Coherence e COST-02
+passaram no mesmo SHA. Ao abrir Jogos pelo recorte explícito de Jogos em Explorar,
+o link anterior voltava à lista geral e perdia o recorte. O destino agora recebe
+somente `origem=explorar` e `categoria=jogos`, e oferece retorno ao mesmo filtro.
+Entrada direta ou origem diferente mantém link neutro; `returnTo` externo não é
+aceito. A experiência legacy permanece explícita no destino de retorno.
+
+Arquivos: `app/comun/explorar/page.tsx`, `app/comun/jogos/page.tsx` e testes de
+descoberta e de coerência. O próximo candidato exige provas locais e CI/Preview
+próprios; testes sintéticos e sucesso anterior não substituem validação humana.
+
 **Auditoria comparativa P6C-B1 — registros históricos, sem novo ensaio.**
 
 | Aspecto                  | Execução bem-sucedida                                                                                                                | Execução malsucedida                                                                                                                 |

@@ -7,6 +7,35 @@ test.beforeEach(async ({ page }) => {
     return u.origin === base ? route.continue() : route.abort();
   });
 });
+test("Jogos devolve ao filtro explícito sem aceitar outro contexto", async ({
+  page,
+}) => {
+  await page.goto("/comun/explorar?experiencia=app-v2&categoria=jogos");
+  await page.getByRole("link", { name: "Jogos", exact: true }).click();
+  await expect(
+    page.getByRole("link", { name: "Voltar ao recorte de Jogos" }),
+  ).toHaveAttribute("href", "/comun/explorar?categoria=jogos");
+  await page.getByRole("link", { name: "Voltar ao recorte de Jogos" }).click();
+  await expect(page).toHaveURL(/\/comun\/explorar\?categoria=jogos$/);
+  await page.goto(
+    "/comun/jogos?origem=externa&categoria=jogos&returnTo=https%3A%2F%2Fevil.invalid",
+  );
+  await expect(
+    page.getByRole("link", { name: "Explorar mais conteúdos" }),
+  ).toHaveAttribute("href", "/comun/explorar");
+  await expect(
+    page.getByRole("link", { name: "Voltar ao recorte de Jogos" }),
+  ).toHaveCount(0);
+  await page.goto(
+    "/comun/jogos?experiencia=legacy&origem=explorar&categoria=jogos",
+  );
+  await expect(
+    page.getByRole("link", { name: "Voltar ao recorte de Jogos" }),
+  ).toHaveAttribute(
+    "href",
+    "/comun/explorar?categoria=jogos&experiencia=legacy",
+  );
+});
 test("troca de filtro mantém uma única mensagem acessível", async ({
   page,
 }) => {
