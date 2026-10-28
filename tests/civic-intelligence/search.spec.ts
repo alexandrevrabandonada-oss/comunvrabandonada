@@ -33,6 +33,11 @@ test("@a11y lexical aparece primeiro e semântica pode ser desligada", async ({
     .filter({ visible: true });
   await expect(status).toHaveCount(1);
   await expect(status).toContainText(/resultados públicos/);
+  // The SSR loading message also matches "resultados públicos". Wait for
+  // the first client-side search response before exercising router.push.
+  await expect(status).toContainText(
+    /correspondência inicial|fontes indisponíveis|Busca indisponível/,
+  );
   const toggle = page.getByRole("button", {
     name: /Usar somente termos|Buscar também relações/,
   });
