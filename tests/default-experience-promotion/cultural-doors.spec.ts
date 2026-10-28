@@ -14,9 +14,7 @@ test("Home apresenta três portas culturais públicas sem exigir cadastro", asyn
   await expect(culture.locator('a[href="/comun/jogos"]')).toBeVisible();
   await expect(culture.locator('a[href="/comun/radio"]')).toBeVisible();
   await expect(culture.locator('a[href="/comun/acervo"]')).toBeVisible();
-  await expect(culture).toContainText(
-    "sem cadastro ou participação política",
-  );
+  await expect(culture).toContainText("sem cadastro ou participação política");
 });
 
 test("porta Jogos abre a rota canônica existente", async ({ page }) => {
