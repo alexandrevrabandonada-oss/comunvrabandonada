@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { summarizeDiscoveryPresentation } from "@/lib/public-discovery-presentation";
 import {
   discoveryItemHref,
   discoveryReturnHref,
@@ -28,13 +29,19 @@ export function ComunPublicDiscovery({
   experience: string;
   category?: unknown;
 }) {
-  const groups = sources.filter(
-    (source) =>
-      source.state === "ready" &&
-      source.items.length &&
-      (!category || category === "tudo" || category === source.kind),
+  const { groups, state, unavailable } = summarizeDiscoveryPresentation(
+    sources,
+    category,
   );
-  if (!groups.length) return null;
+  if (state === "not_applicable") return null;
+  if (state !== "ready")
+    return (
+      <p role="status" className="my-7 border-y border-current/25 py-6 text-sm">
+        {state === "unavailable"
+          ? "Não foi possível verificar as fontes deste recorte agora. Tente novamente mais tarde; os caminhos de exploração continuam disponíveis."
+          : "Não encontramos itens públicos verificáveis neste recorte por enquanto. Você ainda pode explorar as categorias abaixo."}
+      </p>
+    );
   return (
     <section
       aria-labelledby="public-discovery-heading"
@@ -73,7 +80,7 @@ export function ComunPublicDiscovery({
                 <h4 className="font-black">
                   <Link
                     href={discoveryItemHref(item.path, experience, category)}
-                    className="inline-flex min-h-11 items-center underline focus-visible:outline focus-visible:outline-2"
+                    className="inline-block min-h-11 max-w-full [overflow-wrap:anywhere] underline focus-visible:outline focus-visible:outline-2"
                   >
                     {item.title}
                   </Link>
@@ -97,7 +104,7 @@ export function ComunPublicDiscovery({
           </ul>
         </section>
       ))}
-      {sources.some((source) => source.state === "unavailable") ? (
+      {unavailable ? (
         <p role="status" className="mt-4 text-sm">
           Algumas fontes estão temporariamente indisponíveis. Os itens acima vêm
           das fontes que puderam ser verificadas.
