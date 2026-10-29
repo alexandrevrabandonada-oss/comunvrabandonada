@@ -52,21 +52,26 @@ export default function HelpPage() {
           preserva seu retorno e não executa nenhuma ação automaticamente.
         </p>
         <div className="mt-8 grid gap-4 md:grid-cols-2">
-          {topics.map((topic) => (
-            <article
-              key={topic.title}
-              className="flex flex-col border-2 border-comun-paper/30 p-5"
-            >
-              <h2 className="text-xl font-black">{topic.title}</h2>
-              <p className="mt-3 flex-1 text-comun-paper/75">{topic.text}</p>
-              <Link
-                className="mt-5 inline-flex min-h-11 items-center self-start border-2 border-comun-yellow px-4 font-black text-comun-yellow underline-offset-4 hover:underline"
-                href={topic.href}
+          {topics.map((topic) => {
+            // Same-document guidance uses the browser's fragment navigation,
+            // including before hydration and when JavaScript is unavailable.
+            const TopicLink = topic.href.startsWith("#") ? "a" : Link;
+            return (
+              <article
+                key={topic.title}
+                className="flex flex-col border-2 border-comun-paper/30 p-5"
               >
-                {topic.action}
-              </Link>
-            </article>
-          ))}
+                <h2 className="text-xl font-black">{topic.title}</h2>
+                <p className="mt-3 flex-1 text-comun-paper/75">{topic.text}</p>
+                <TopicLink
+                  className="mt-5 inline-flex min-h-11 items-center self-start border-2 border-comun-yellow px-4 font-black text-comun-yellow underline-offset-4 hover:underline"
+                  href={topic.href}
+                >
+                  {topic.action}
+                </TopicLink>
+              </article>
+            );
+          })}
         </div>
         <section
           id="conexao"
