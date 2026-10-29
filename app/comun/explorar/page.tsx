@@ -291,7 +291,11 @@ function ExploreAppV2({
           {activeCategories.map(([title, description, href, value]) => (
             <Link
               key={href}
-              href={withComunAppV2(href)}
+              href={withComunAppV2(
+                value === "jogos" && category === "jogos"
+                  ? "/comun/jogos?origem=explorar&categoria=jogos"
+                  : href,
+              )}
               aria-label={title}
               className={`${categorySurfaces[value]} flex min-h-24 items-center justify-between gap-4 border p-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-comun-yellow`}
             >

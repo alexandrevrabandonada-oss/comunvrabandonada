@@ -55,14 +55,33 @@ test("@a11y Jogos oferece beta real sem carregar Unity no COMUN", async ({
   ).toEqual([]);
 });
 
-test("Explorar preserva Jogos na experiência App V2", async ({ page }) => {
+test("Explorar preserva o filtro Jogos no retorno do catálogo", async ({
+  page,
+}) => {
   await page.goto("/comun/explorar?experiencia=app-v2&categoria=jogos");
   const category = page.getByRole("link", { name: "Jogos" });
-  // App V2 emits canonical URLs without the explicit query parameter.
-  await expect(category).toHaveAttribute("href", "/comun/jogos");
+  await expect(category).toHaveAttribute(
+    "href",
+    "/comun/jogos?origem=explorar&categoria=jogos",
+  );
   await category.click();
-  await expect(page).toHaveURL(/\/comun\/jogos$/);
+  await expect(page).toHaveURL(
+    /\/comun\/jogos\?origem=explorar&categoria=jogos$/,
+  );
+  const returnLink = page.getByRole("link", {
+    name: "Voltar ao recorte de Jogos",
+  });
+  await expect(returnLink).toHaveAttribute(
+    "href",
+    "/comun/explorar?categoria=jogos",
+  );
+  await returnLink.click();
+  await expect(page).toHaveURL(/\/comun\/explorar\?categoria=jogos$/);
+});
+
+test("Jogos ignora origem inválida e não inventa filtro", async ({ page }) => {
+  await page.goto("/comun/jogos?origem=explorar&categoria=pautas");
   await expect(
-    page.getByRole("link", { name: /Voltar a Explorar/ }),
+    page.getByRole("link", { name: "Voltar a Explorar" }),
   ).toHaveAttribute("href", "/comun/explorar");
 });
