@@ -81,6 +81,11 @@ export function isSafeComunRoute(path: string) {
   }
   if (url.origin !== "https://comun.invalid" || url.search || url.hash)
     return false;
+  if (
+    url.pathname.startsWith("/comun/c/") &&
+    !/^\/comun\/c\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\/agenda)?\/?$/.test(url.pathname)
+  )
+    return false;
   return COMUN_PUBLIC_OFFLINE_PREFIXES.some(
     (prefix) =>
       url.pathname === prefix.replace(/\/$/, "") ||

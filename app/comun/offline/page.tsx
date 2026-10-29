@@ -6,6 +6,8 @@ import { ComunShell, Section } from "@/components/comun-shell";
 import {
   COMUN_LAST_SAFE_ROUTE_KEY,
   readComunOptionalStorage,
+  isSafeComunRoute,
+  removeComunOptionalStorage,
 } from "@/lib/comun-pwa";
 
 export default function OfflinePage() {
@@ -17,7 +19,14 @@ export default function OfflinePage() {
         () => window.sessionStorage,
         COMUN_LAST_SAFE_ROUTE_KEY,
       );
-      setLastRoute(lastSafe.value || "/comun");
+      const safe = lastSafe.value && isSafeComunRoute(lastSafe.value);
+      if (lastSafe.value && !safe) {
+        removeComunOptionalStorage(
+          () => window.sessionStorage,
+          COMUN_LAST_SAFE_ROUTE_KEY,
+        );
+      }
+      setLastRoute(safe ? lastSafe.value! : "/comun");
     });
   }, []);
 
@@ -29,7 +38,9 @@ export default function OfflinePage() {
           className="max-w-3xl border-2 border-comun-yellow bg-comun-paper p-6 text-comun-black"
         >
           <p className="text-xs font-black uppercase">Disponível offline</p>
-          <h1 className="mt-2 text-4xl font-black uppercase">Sem conexão agora.</h1>
+          <h1 className="mt-2 text-4xl font-black uppercase">
+            Sem conexão agora.
+          </h1>
           <p className="mt-3">
             Você ainda pode consultar páginas públicas já disponíveis neste
             aparelho. Protocolos recentes, Minha participação e qualquer envio

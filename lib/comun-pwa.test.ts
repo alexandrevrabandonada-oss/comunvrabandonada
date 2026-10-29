@@ -14,6 +14,18 @@ describe("PWA public offline boundary", () => {
     expect(isSafeComunRoute("/comun/minha-participacao")).toBe(false);
     expect(isSafeComunRoute("/comun/admin/operacao")).toBe(false);
     expect(isSafeComunRoute("https://example.org/comun/pautas/x")).toBe(false);
+    expect(isSafeComunRoute("/comun/c/vila-brasilia")).toBe(true);
+    expect(isSafeComunRoute("/comun/c/vila-brasilia/agenda")).toBe(true);
+    for (const route of [
+      "/comun/c/vila-brasilia/mesa",
+      "/comun/c/vila-brasilia/integrantes",
+      "/comun/c/vila-brasilia/admin",
+      "/comun/c/Vila-Brasilia",
+      "//example.org/comun/c/vila-brasilia",
+      "/comun/c/vila-brasilia?private=1",
+    ]) {
+      expect(isSafeComunRoute(route)).toBe(false);
+    }
   });
 });
 
