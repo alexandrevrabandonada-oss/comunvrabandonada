@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-test("offline ignora e elimina retorno privado persistido", async ({ page }) => {
-  await page.addInitScript(
-    (value) => sessionStorage.setItem("comun:last-safe-route:v1", value),
-    "/comun/c/vila-brasilia/mesa",
-  );
+test("offline elimina retorno privado persistido", async ({ page }) => {
+  await page.addInitScript(() => {
+    const key = "comun:last-safe-route:v1";
+    const unsafe = "/comun/c/vila-brasilia/mesa";
+    sessionStorage.setItem(key, unsafe);
+  });
 
   await page.goto("/comun/offline");
   const returnLink = page.getByRole("link", { name: /última página segura/ });
@@ -17,10 +18,9 @@ test("offline ignora e elimina retorno privado persistido", async ({ page }) => 
 });
 
 test("offline preserva retorno público elegível", async ({ page }) => {
-  await page.addInitScript(
-    (value) => sessionStorage.setItem("comun:last-safe-route:v1", value),
-    "/comun/acervo",
-  );
+  await page.addInitScript(() => {
+    sessionStorage.setItem("comun:last-safe-route:v1", "/comun/acervo");
+  });
 
   await page.goto("/comun/offline");
   const returnLink = page.getByRole("link", { name: /última página segura/ });
