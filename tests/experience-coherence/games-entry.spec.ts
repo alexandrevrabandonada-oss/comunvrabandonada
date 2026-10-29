@@ -79,9 +79,7 @@ test("Explorar preserva o filtro Jogos no retorno do catálogo", async ({
   await expect(page).toHaveURL(/\/comun\/explorar\?categoria=jogos$/);
 });
 
-test("Jogos ignora origem inválida e não inventa filtro", async ({
-  page,
-}) => {
+test("Jogos ignora origem inválida e não inventa filtro", async ({ page }) => {
   await page.goto("/comun/jogos?origem=explorar&categoria=pautas");
   await expect(
     page.getByRole("link", { name: "Voltar a Explorar" }),
