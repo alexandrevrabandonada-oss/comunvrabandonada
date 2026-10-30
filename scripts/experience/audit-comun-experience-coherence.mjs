@@ -326,6 +326,7 @@ export async function auditExperience(root = defaultRoot) {
     shellContract,
     experienceContract,
     minhaParticipacao,
+    myAreaNavigation,
     roda,
     collectiveAction,
     publicExperienceContract,
@@ -344,6 +345,7 @@ export async function auditExperience(root = defaultRoot) {
     readFile(path.join(root, "lib/comun-shell-contract.ts"), "utf8"),
     readFile(path.join(root, "lib/comun-experience.ts"), "utf8"),
     readFile(path.join(root, "app/comun/minha-participacao/page.tsx"), "utf8"),
+    readFile(path.join(root, "lib/comun-my-area-navigation.ts"), "utf8"),
     readFile(path.join(root, "components/comun-roda-viva.tsx"), "utf8"),
     readFile(
       path.join(root, "components/comun-collective-actions-canonical.tsx"),
@@ -479,7 +481,11 @@ export async function auditExperience(root = defaultRoot) {
       "Minhas conversas",
       "Ações em que estou",
       "Meus compromissos",
-    ].every((label) => minhaParticipacao.includes(label)),
+    ].every((label) => myAreaNavigation.includes(label)) &&
+      minhaParticipacao.includes("COMUN_MY_AREA_PRIMARY_SECTIONS") &&
+      minhaParticipacao.includes("COMUN_MY_AREA_SECONDARY_SECTIONS") &&
+      minhaParticipacao.includes("COMUN_MY_AREA_PRIMARY_SECTIONS.map(") &&
+      minhaParticipacao.includes("COMUN_MY_AREA_SECONDARY_SECTIONS.map("),
     "my_participation_human_grouping_missing",
     findings,
   );

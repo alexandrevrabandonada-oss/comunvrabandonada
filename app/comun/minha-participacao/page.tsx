@@ -30,6 +30,12 @@ import { isCollectiveActionsPreviewFixturesEnabled } from "@/lib/collective-acti
 import { collectiveActionsPreviewFixtures } from "@/lib/collective-actions-preview-fixtures";
 import { getCollectiveActionsRelease } from "@/lib/collective-actions-release";
 import { isComunAppV2, withComunAppV2 } from "@/lib/comun-shell-contract";
+import {
+  COMUN_MY_AREA_PRIMARY_SECTIONS,
+  COMUN_MY_AREA_SECONDARY_SECTIONS,
+  comunMyAreaSectionHref,
+  resolveComunMyAreaSection,
+} from "@/lib/comun-my-area-navigation";
 import { ComunPautaCard, ComunResultCard } from "@/components/comun-cards";
 import { ComunStatePanel } from "@/components/comun-state-panel";
 import {
@@ -90,28 +96,7 @@ export default async function MinhaAreaPage({
   const rawSearchParams = await searchParams;
   const requested = rawSearchParams.secao;
   const appV2 = isComunAppV2(rawSearchParams.experiencia);
-  const v2Sections = [
-    "contribuicoes",
-    "conversas",
-    "acoes",
-    "comunidades",
-    "tarefas",
-    "acompanhando",
-    "resultados",
-    "cultura",
-    "configuracoes",
-  ];
-  const legacySections = [
-    "contribuicoes",
-    "acompanhando",
-    "tarefas",
-    "resultados",
-  ];
-  const selected = (appV2 ? v2Sections : legacySections).includes(
-    requested ?? "",
-  )
-    ? requested!
-    : "contribuicoes";
+  const selected = resolveComunMyAreaSection(requested, appV2);
   const walletEnabled = isComunParticipationWalletEnabled();
   const stmuAssistedEnabled = isComunStmuAssistedEnabled();
   const stmuMultichannelEnabled = isComunStmuMultichannelEnabled();
@@ -676,13 +661,6 @@ function MinhaAreaAppV2({
   civicEnvironmentalForwardingEnabled: boolean;
   civicUrbanForwardingEnabled: boolean;
 }) {
-  const tabs = [
-    ["contribuicoes", "Meus registros"],
-    ["acompanhando", "Estou acompanhando"],
-    ["conversas", "Minhas conversas"],
-    ["acoes", "Ações em que estou"],
-    ["tarefas", "Meus compromissos"],
-  ] as const;
   return (
     <ComunShell
       inboxBadge={attention.length}
@@ -725,11 +703,27 @@ function MinhaAreaAppV2({
           aria-label="Seções de Minha participação"
           className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          {tabs.map(([value, label]) => (
+          {COMUN_MY_AREA_PRIMARY_SECTIONS.map(([value, label]) => (
             <Link
               key={value}
-              href={withComunAppV2(`/comun/minha-participacao?secao=${value}`)}
+              href={withComunAppV2(comunMyAreaSectionHref(value))}
               className="comun-v2-chip"
+              aria-current={selected === value ? "page" : undefined}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+        <nav
+          aria-label="Mais seções de Minha participação"
+          className="-mx-4 flex flex-wrap gap-2 px-4 pb-3"
+          data-comun-my-area-secondary-nav="true"
+        >
+          {COMUN_MY_AREA_SECONDARY_SECTIONS.map(([value, label]) => (
+            <Link
+              key={value}
+              href={withComunAppV2(comunMyAreaSectionHref(value))}
+              className="inline-flex min-h-11 items-center rounded-[var(--comun-radius-control)] border border-comun-black/20 px-3 text-sm font-bold underline-offset-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2"
               aria-current={selected === value ? "page" : undefined}
             >
               {label}
