@@ -11,12 +11,22 @@ export function groupComunMyAreaTasks<
 >(
   publicPautaTasks: readonly PautaTask[],
   activeAssignments: readonly ActionAssignment[],
+  assignmentsAvailable = true,
 ) {
   return {
-    commitments: activeAssignments.slice(0, COMUN_MY_AREA_TASKS_PER_GROUP),
+    commitments: assignmentsAvailable
+      ? activeAssignments.slice(0, COMUN_MY_AREA_TASKS_PER_GROUP)
+      : [],
     followedPautaTasks: publicPautaTasks.slice(0, COMUN_MY_AREA_TASKS_PER_GROUP),
-    hasCommitments: activeAssignments.length > 0,
+    commitmentState: !assignmentsAvailable
+      ? ("unavailable" as const)
+      : activeAssignments.length
+        ? ("ready" as const)
+        : ("empty" as const),
+    hasCommitments: assignmentsAvailable && activeAssignments.length > 0,
     hasFollowedPautaTasks: publicPautaTasks.length > 0,
+    commitmentTotal: assignmentsAvailable ? activeAssignments.length : null,
+    followedPautaTaskTotal: publicPautaTasks.length,
   };
 }
 
