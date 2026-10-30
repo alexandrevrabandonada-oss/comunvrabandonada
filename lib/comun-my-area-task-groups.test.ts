@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   COMUN_MY_AREA_TASKS_PER_GROUP,
+  comunAssignedActionHref,
   comunFollowedPautaHref,
   comunPublicPautaTaskStatus,
   groupComunMyAreaTasks,
@@ -52,6 +53,9 @@ describe("SOC-D10.L/P2 — responsabilidades comprovadas", () => {
     expect(comunFollowedPautaHref("calcadas-em-circulacao")).toBe(
       "/comun/pautas/calcadas-em-circulacao",
     );
+    expect(comunAssignedActionHref("mutirao-do-bairro")).toBe(
+      "/comun/acoes/mutirao-do-bairro",
+    );
     for (const value of [
       null,
       undefined,
@@ -64,6 +68,7 @@ describe("SOC-D10.L/P2 — responsabilidades comprovadas", () => {
       "a".repeat(97),
     ]) {
       expect(comunFollowedPautaHref(value)).toBeNull();
+      expect(comunAssignedActionHref(value)).toBeNull();
     }
   });
 
