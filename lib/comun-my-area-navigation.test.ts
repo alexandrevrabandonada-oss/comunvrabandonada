@@ -34,7 +34,13 @@ describe("SOC-D10.L/P2 — navegação de Minha participação", () => {
     for (const section of COMUN_MY_AREA_V2_SECTIONS) {
       expect(resolveComunMyAreaSection(section, true)).toBe(section);
     }
-    for (const input of ["", "admin", "../conta", "cultura/../../admin", null]) {
+    for (const input of [
+      "",
+      "admin",
+      "../conta",
+      "cultura/../../admin",
+      null,
+    ]) {
       expect(resolveComunMyAreaSection(input, true)).toBe("contribuicoes");
     }
   });
