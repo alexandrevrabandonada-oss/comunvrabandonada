@@ -1059,6 +1059,13 @@ function MinhaAreaAppV2({
                       </article>
                     );
                   })}
+                  {taskGroups.commitmentTotal !== null &&
+                  taskGroups.commitmentTotal > taskGroups.commitments.length ? (
+                    <p className="text-sm text-comun-black/70">
+                      Exibindo seis compromissos. Consulte as ações coletivas
+                      para conferir os demais.
+                    </p>
+                  ) : null}
                   {taskGroups.commitmentState === "unavailable" ? (
                     <p role="status" className="text-sm text-comun-black/70">
                       Não é possível consultar seus compromissos em ações
