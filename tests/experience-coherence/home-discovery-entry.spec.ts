@@ -4,11 +4,11 @@ test("P1: Início anônimo leva à descoberta pública e permite retornar", asyn
   page,
 }) => {
   await page.goto("/comun?experiencia=app-v2");
-  await expect(
-    page.locator('[data-comun-app-v2-page="home"]'),
-  ).toBeVisible();
+  const main = page.getByRole("main");
+  const home = main.locator('[data-comun-app-v2-page="home"]').first();
+  await expect(home).toBeVisible();
 
-  const entry = page.getByRole("link", {
+  const entry = main.getByRole("link", {
     name: "Explorar memórias, vozes e trocas",
   });
   await expect(entry).toHaveAttribute("href", "/comun/explorar");
@@ -18,18 +18,15 @@ test("P1: Início anônimo leva à descoberta pública e permite retornar", asyn
   await expect(entry).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/comun\/explorar(?:\?|$)/);
+  const explore = main.locator('[data-comun-app-v2-page="explore"]');
+  await expect(explore).toBeVisible();
   await expect(
-    page.locator('[data-comun-app-v2-page="explore"]'),
+    explore.getByRole("link", { name: "Acervo", exact: true }).first(),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Acervo", exact: true }).first(),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: "Rádio", exact: true }).first(),
+    explore.getByRole("link", { name: "Rádio", exact: true }).first(),
   ).toBeVisible();
 
   await page.goBack();
-  await expect(
-    page.locator('[data-comun-app-v2-page="home"]'),
-  ).toBeVisible();
+  await expect(home).toBeVisible();
 });
