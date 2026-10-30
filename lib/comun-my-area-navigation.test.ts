@@ -56,7 +56,11 @@ describe("SOC-D10.L/P2 — navegação de Minha participação", () => {
         `/comun/minha-participacao?secao=${section}`,
       );
     }
-    for (const input of ["../admin", "conta?token=secret", "https://elsewhere.test"]) {
+    for (const input of [
+      "../admin",
+      "conta?token=secret",
+      "https://elsewhere.test",
+    ]) {
       expect(comunMyAreaSectionHref(input)).toBe("/comun/minha-participacao");
     }
   });
