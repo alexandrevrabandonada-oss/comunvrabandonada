@@ -21,8 +21,12 @@ test("P1: Início anônimo leva à descoberta pública e permite retornar", asyn
   await expect(
     page.locator('[data-comun-app-v2-page="explore"]'),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "Acervo", exact: true }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "Rádio", exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Acervo", exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Rádio", exact: true }).first(),
+  ).toBeVisible();
 
   await page.goBack();
   await expect(
