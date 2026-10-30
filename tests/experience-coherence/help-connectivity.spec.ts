@@ -28,6 +28,8 @@ for (const javaScriptEnabled of [true, false]) {
         exact: true,
       });
       await expect(guidance).toBeVisible();
+      // Fragment navigation must actually scroll to the guidance, with or without JS.
+      await expect(guidance).toBeInViewport();
       await expect(guidance).toHaveAttribute("id", "conexao");
       await expect(guidance).toHaveAttribute(
         "aria-labelledby",
