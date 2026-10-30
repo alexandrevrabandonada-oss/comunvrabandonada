@@ -1,5 +1,12 @@
 # Objetivo final e roadmap auditado do COMUN
 
+## Estação SOC-D10.L — checkpoint operacional P0 → P1 (29/10/2026)
+
+- **P0 encerrado:** nove PRs históricas divergentes foram fechadas sem merge, preservando branches, SHAs e pendências; a fila de PRs abertas ficou vazia. Inventário e justificativas: [issue #578](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/issues/578). Fechar PR não significa integrar ou descartar seus resíduos.
+- **P1 ativa, WIP=1:** [issue #579](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/issues/579). O contrato de compartilhamento e retorno já existe no shell e saneia URLs; a lacuna desta estação é comprovar a jornada integrada Início/Explorar → conteúdo elegível → compartilhar → voltar em mobile e desktop, distinguindo laboratório de publicação real. O candidato de QA adiciona testes de três fontes × dois viewports sobre a mesma navegação, sem novos componentes, schema ou dados.
+- **Limiar de saída:** testes de Playwright + CI no SHA exato, Preview READY, revisão, merge protegido e Production READY **não equivalem** a teste humano nem a conteúdo real publicado. Provas editoriais, direitos, retirada, recuperação e governança seguem seus gates do programa 47.5–47.11.
+- **Sequência sem desvio:** encerrar P1 antes de P2 (Minha Área), P3 (primeiro vínculo social opt-in), P4 (interação até desfecho) e P5 (ensaio de coerência). Apenas uma PR focal ativa por vez; não reabrir o monólito #572 nem promover suas migrations/Auth/RLS. O problema Acervo ↔ Bairros do site VR Abandonada é separado: [vrabandonadapwa#32](https://github.com/alexandrevrabandonada-oss/vrabandonadapwa/issues/32).
+
 ## Checkpoint canônico operacional — 21/10/2026, após #569
 
 **Fonte de verdade neste checkpoint:** `main@f47885b1769281ac79da54f248a266af3a4f6c88`, merge por squash da [#569](https://github.com/alexandrevrabandonada-oss/comunvrabandonada/pull/569). O deployment Vercel do mesmo SHA foi observado em **Production READY**; isso comprova entrega técnica, **não** aceite humano, restauração real, ativação da Escola ou certificação de lançamento V1.

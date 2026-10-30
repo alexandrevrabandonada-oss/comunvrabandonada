@@ -155,3 +155,63 @@ test("offer destination identifies the revalidated item and its removal", async 
     page.getByRole("status").filter({ hasText: "Este item" }),
   ).toContainText("não está mais disponível");
 });
+
+for (const category of ["acervo", "radio", "feirinha"] as const) {
+  test(`P1 compartilha caminho público e retorna ao filtro: ${category}`, async ({
+    page,
+  }) => {
+    // Browser-only laboratory shim. No real share, login or clipboard write.
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "share", {
+        configurable: true,
+        value: async (payload: { url?: string }) => {
+          document.documentElement.setAttribute(
+            "data-comun-p1-shared-url",
+            payload.url ?? "",
+          );
+        },
+      });
+    });
+
+    await page.goto(
+      `/comun/explorar?experiencia=app-v2&categoria=${category}`,
+    );
+    const rail = page.getByRole("region", { name: "Para conhecer com calma" });
+    await expect(rail).toBeVisible();
+    const item = rail.getByRole("link").first();
+    const href = await item.getAttribute("href");
+    expect(href).toBeTruthy();
+    await item.click();
+
+    const returnLink = page.getByRole("link", {
+      name: "Voltar à descoberta",
+    });
+    await expect(returnLink).toBeVisible();
+    await expect(returnLink).toHaveAttribute(
+      "href",
+      new RegExp(`^/comun/explorar\\?categoria=${category}`),
+    );
+
+    // Desktop header and mobile overflow use the same existing share action.
+    if ((page.viewportSize()?.width ?? 0) < 1024) {
+      await page.locator('summary[aria-label="Mais ações"]').click();
+    }
+    const share = page.getByRole("button", {
+      name: "Compartilhar esta página",
+    });
+    await expect(share).toBeVisible();
+    await share.focus();
+    await page.keyboard.press("Enter");
+
+    const expectedPath = new URL(href!, base).pathname;
+    await expect(page.locator("html")).toHaveAttribute(
+      "data-comun-p1-shared-url",
+      `${base}${expectedPath}`,
+    );
+    await returnLink.click();
+    await expect(page).toHaveURL(
+      new RegExp(`/comun/explorar\\?categoria=${category}`),
+    );
+    await expect(rail).toBeVisible();
+  });
+}
