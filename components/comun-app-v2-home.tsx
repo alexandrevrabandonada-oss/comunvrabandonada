@@ -196,6 +196,14 @@ export function ComunAppV2Home({
             </Link>
           ))}
         </div>
+        <Link
+          href={withComunAppV2("/comun/explorar")}
+          prefetch={false}
+          className="mt-4 inline-flex min-h-11 items-center gap-2 font-black underline underline-offset-4 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2"
+        >
+          Explorar memórias, vozes e trocas
+          <ArrowRight size={18} aria-hidden="true" />
+        </Link>
       </section>
 
       <section
