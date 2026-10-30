@@ -210,6 +210,7 @@ export default async function MinhaAreaPage({
         solidarityConnections={solidarityConnections}
         solidarityEconomyEnabled={solidarityEconomyEnabled}
         collectiveTaskAssignments={collectiveTaskAssignments}
+        collectiveAssignmentsAvailable={collectiveActionsRelease.enabled}
         attention={attention}
         walletEnabled={walletEnabled}
         accountAvailable={Boolean(optionalCommunitySession?.user)}
@@ -638,6 +639,7 @@ function MinhaAreaAppV2({
   solidarityConnections,
   solidarityEconomyEnabled,
   collectiveTaskAssignments,
+  collectiveAssignmentsAvailable,
   attention,
   walletEnabled,
   accountAvailable,
@@ -661,6 +663,7 @@ function MinhaAreaAppV2({
   solidarityConnections: PrivateSolidarityMemberConnectionV1[];
   solidarityEconomyEnabled: boolean;
   collectiveTaskAssignments: any[];
+  collectiveAssignmentsAvailable: boolean;
   attention: any[];
   walletEnabled: boolean;
   accountAvailable: boolean;
@@ -676,6 +679,7 @@ function MinhaAreaAppV2({
   const taskGroups = groupComunMyAreaTasks(
     center.tasks ?? [],
     collectiveTaskAssignments,
+    collectiveAssignmentsAvailable,
   );
   return (
     <ComunShell
@@ -1055,7 +1059,14 @@ function MinhaAreaAppV2({
                       </article>
                     );
                   })}
-                  {!taskGroups.hasCommitments ? (
+                  {taskGroups.commitmentState === "unavailable" ? (
+                    <p role="status" className="text-sm text-comun-black/70">
+                      Não é possível consultar seus compromissos em ações
+                      coletivas agora. Isso não significa que você não tenha
+                      assumido tarefas.
+                    </p>
+                  ) : null}
+                  {taskGroups.commitmentState === "empty" ? (
                     <ComunStatePanel
                       state="empty"
                       actionHref={withComunAppV2("/comun/acoes")}
@@ -1118,6 +1129,13 @@ function MinhaAreaAppV2({
                       </article>
                     );
                   })}
+                  {taskGroups.followedPautaTaskTotal >
+                  taskGroups.followedPautaTasks.length ? (
+                    <p className="text-sm text-comun-black/70">
+                      Exibindo seis tarefas públicas. Consulte as pautas para
+                      ver outras atividades.
+                    </p>
+                  ) : null}
                   {!taskGroups.hasFollowedPautaTasks ? (
                     <ComunStatePanel
                       state="empty"
