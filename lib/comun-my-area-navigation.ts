@@ -42,7 +42,7 @@ export function resolveComunMyAreaSection(
 }
 
 export function comunMyAreaSectionHref(value: string): string {
-  if (!COMUN_MY_AREA_V2_SECTIONS.includes(value as (typeof COMUN_MY_AREA_V2_SECTIONS)[number]))
+  if (!COMUN_MY_AREA_V2_SECTIONS.some((section) => section === value))
     return "/comun/minha-participacao";
   return `/comun/minha-participacao?secao=${value}`;
 }
