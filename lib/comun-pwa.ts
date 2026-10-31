@@ -87,9 +87,10 @@ export function isSafeComunRoute(path: string) {
   )
     return false;
   return COMUN_PUBLIC_OFFLINE_PREFIXES.some(
-    (prefix) =>
-      url.pathname === prefix.replace(/\/$/, "") ||
-      url.pathname.startsWith(prefix),
+    (prefix) => {
+      const base = prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
+      return url.pathname === base || url.pathname.startsWith(`${base}/`);
+    },
   );
 }
 
