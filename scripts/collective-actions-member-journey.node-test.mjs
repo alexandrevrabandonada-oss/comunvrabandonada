@@ -29,6 +29,29 @@ test("Minha Participação exposes task release and action exit", () => {
   assert.match(page, /Libere suas tarefas antes de sair da ação\./);
 });
 
+test("Minha Participação separates followed public tasks from active assignments", () => {
+  const page = read("app/comun/minha-participacao/page.tsx");
+  const center = read("lib/personal-center.ts");
+  const actions = read("lib/collective-actions.ts");
+  assert.match(center, /\.from\("comun_pauta_tasks"\)/);
+  assert.match(actions, /\.from\("comun_collective_action_task_assignments"\)/);
+  assert.match(actions, /\.eq\("member_user_id", memberUserId\)/);
+  assert.match(actions, /\.eq\("status", "active"\)/);
+  assert.match(
+    page,
+    /groupComunMyAreaTasks\(\s*center\.tasks \?\? \[\],\s*collectiveTaskAssignments,\s*collectiveAssignmentsAvailable/,
+  );
+  assert.match(page, /taskGroups\.commitments\.map\(/);
+  assert.match(page, /taskGroups\.followedPautaTasks\.map\(/);
+  assert.match(page, /data-comun-my-area-task-kind="assigned-action"/);
+  assert.match(page, /data-comun-my-area-task-kind="followed-public-pauta"/);
+  assert.match(page, /commitmentState === "unavailable"/);
+  assert.doesNotMatch(
+    page,
+    /\[\.\.\.\(center\.tasks \?\? \[\]\), \.\.\.collectiveTaskAssignments\]/,
+  );
+});
+
 test("database guard preserves task capacity when a member leaves", () => {
   const migration = read(
     "supabase/migrations/20260726161426_comun_collective_action_member_journey.sql",

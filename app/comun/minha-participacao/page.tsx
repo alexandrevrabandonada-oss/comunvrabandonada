@@ -36,6 +36,12 @@ import {
   comunMyAreaSectionHref,
   resolveComunMyAreaSection,
 } from "@/lib/comun-my-area-navigation";
+import {
+  comunAssignedActionHref,
+  comunFollowedPautaHref,
+  comunPublicPautaTaskStatus,
+  groupComunMyAreaTasks,
+} from "@/lib/comun-my-area-task-groups";
 import { ComunPautaCard, ComunResultCard } from "@/components/comun-cards";
 import { ComunStatePanel } from "@/components/comun-state-panel";
 import {
@@ -204,6 +210,7 @@ export default async function MinhaAreaPage({
         solidarityConnections={solidarityConnections}
         solidarityEconomyEnabled={solidarityEconomyEnabled}
         collectiveTaskAssignments={collectiveTaskAssignments}
+        collectiveAssignmentsAvailable={collectiveActionsRelease.enabled}
         attention={attention}
         walletEnabled={walletEnabled}
         accountAvailable={Boolean(optionalCommunitySession?.user)}
@@ -372,7 +379,10 @@ export default async function MinhaAreaPage({
         </Area>
       ) : null}
       {selected === "tarefas" && center.tasks.length ? (
-        <Area title="Minhas tarefas">
+        <Area title="Tarefas públicas das pautas que acompanho">
+          <p className="mb-4 text-sm">
+            Acompanhar uma pauta não significa assumir suas tarefas.
+          </p>
           <Rows
             rows={center.tasks}
             title={(x: any) => x.title}
@@ -384,7 +394,10 @@ export default async function MinhaAreaPage({
         </Area>
       ) : null}
       {selected === "tarefas" && collectiveTaskAssignments.length ? (
-        <Area title="Tarefas em ações coletivas">
+        <Area title="Tarefas em ações coletivas — assumidas por você">
+          <p className="mb-4 text-sm">
+            Aqui aparecem apenas atribuições ativas vinculadas à sua conta.
+          </p>
           <div className="grid gap-4 md:grid-cols-2">
             {collectiveTaskAssignments.map((assignment: any) => (
               <article
@@ -626,6 +639,7 @@ function MinhaAreaAppV2({
   solidarityConnections,
   solidarityEconomyEnabled,
   collectiveTaskAssignments,
+  collectiveAssignmentsAvailable,
   attention,
   walletEnabled,
   accountAvailable,
@@ -649,6 +663,7 @@ function MinhaAreaAppV2({
   solidarityConnections: PrivateSolidarityMemberConnectionV1[];
   solidarityEconomyEnabled: boolean;
   collectiveTaskAssignments: any[];
+  collectiveAssignmentsAvailable: boolean;
   attention: any[];
   walletEnabled: boolean;
   accountAvailable: boolean;
@@ -661,6 +676,11 @@ function MinhaAreaAppV2({
   civicEnvironmentalForwardingEnabled: boolean;
   civicUrbanForwardingEnabled: boolean;
 }) {
+  const taskGroups = groupComunMyAreaTasks(
+    center.tasks ?? [],
+    collectiveTaskAssignments,
+    collectiveAssignmentsAvailable,
+  );
   return (
     <ComunShell
       inboxBadge={attention.length}
@@ -988,37 +1008,153 @@ function MinhaAreaAppV2({
             </div>
           ) : null}
           {selected === "tarefas" ? (
-            <div className="grid gap-3">
-              {[...(center.tasks ?? []), ...collectiveTaskAssignments]
-                .slice(0, 6)
-                .map((item: any, index) => (
-                  <article
-                    key={item.id ?? index}
-                    className="surface-alert rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
-                  >
-                    <p className="comun-v2-status">
-                      {item.status ?? item.priority ?? "Aguardando pessoa"}
-                    </p>
-                    <h2 className="mt-2 font-black normal-case">
-                      {item.title ?? item.task?.title ?? "Tarefa comunitária"}
-                    </h2>
-                    <p className="mt-2 text-sm">
-                      {item.summary ??
-                        item.description ??
-                        "Abra a tarefa para conferir responsabilidade e prazo."}
-                    </p>
-                  </article>
-                ))}
-              {!(center.tasks ?? []).length &&
-              !collectiveTaskAssignments.length ? (
-                <ComunStatePanel
-                  state="empty"
-                  actionHref={withComunAppV2("/comun/acoes")}
-                  actionLabel="Encontrar uma ação"
+            <div className="grid gap-8">
+              <section aria-labelledby="comun-my-area-commitments-heading">
+                <h2
+                  id="comun-my-area-commitments-heading"
+                  className="comun-v2-subtitle"
                 >
-                  Nenhuma tarefa está sob sua responsabilidade.
-                </ComunStatePanel>
-              ) : null}
+                  Compromissos que assumi
+                </h2>
+                <p className="mt-2 text-sm text-comun-black/70">
+                  Apenas tarefas atribuídas ativamente a você em ações
+                  coletivas. Acompanhar uma pauta não cria obrigação.
+                </p>
+                <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                  {taskGroups.commitments.map((assignment: any) => {
+                    const actionHref = comunAssignedActionHref(
+                      assignment.participation?.action?.slug,
+                    );
+                    return (
+                      <article
+                        key={assignment.id}
+                        data-comun-my-area-task-kind="assigned-action"
+                        className="surface-alert rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
+                      >
+                        <p className="comun-v2-status">Atribuição ativa</p>
+                        <h3 className="mt-2 font-black normal-case">
+                          {assignment.task?.title ?? "Tarefa assumida"}
+                        </h3>
+                        <p className="mt-2 text-sm text-comun-black/70">
+                          {assignment.task?.description ??
+                            "Consulte a ação para conferir o próximo passo."}
+                        </p>
+                        <p className="mt-2 text-sm">
+                          Ação:{" "}
+                          {assignment.participation?.action?.title ??
+                            "Ação coletiva"}
+                        </p>
+                        {actionHref ? (
+                          <Link
+                            href={withComunAppV2(actionHref)}
+                            className="mt-3 inline-flex min-h-11 items-center font-black underline"
+                          >
+                            Ver ação e gerenciar compromisso
+                          </Link>
+                        ) : (
+                          <p className="mt-3 text-sm" role="status">
+                            O caminho da ação não está disponível agora.
+                          </p>
+                        )}
+                      </article>
+                    );
+                  })}
+                  {taskGroups.commitmentTotal !== null &&
+                  taskGroups.commitmentTotal > taskGroups.commitments.length ? (
+                    <p className="text-sm text-comun-black/70">
+                      Exibindo seis compromissos. Consulte as ações coletivas
+                      para conferir os demais.
+                    </p>
+                  ) : null}
+                  {taskGroups.commitmentState === "unavailable" ? (
+                    <p role="status" className="text-sm text-comun-black/70">
+                      Não é possível consultar seus compromissos em ações
+                      coletivas agora. Isso não significa que você não tenha
+                      assumido tarefas.
+                    </p>
+                  ) : null}
+                  {taskGroups.commitmentState === "empty" ? (
+                    <ComunStatePanel
+                      state="empty"
+                      actionHref={withComunAppV2("/comun/acoes")}
+                      actionLabel="Conhecer ações coletivas"
+                    >
+                      Você ainda não assumiu uma tarefa em ação coletiva.
+                    </ComunStatePanel>
+                  ) : null}
+                </div>
+              </section>
+              <section aria-labelledby="comun-my-area-followed-tasks-heading">
+                <h2
+                  id="comun-my-area-followed-tasks-heading"
+                  className="comun-v2-subtitle"
+                >
+                  Tarefas nas pautas que acompanho
+                </h2>
+                <p className="mt-2 text-sm text-comun-black/70">
+                  São tarefas públicas de pautas acompanhadas. Elas não
+                  significam que você se ofereceu ou foi designado.
+                </p>
+                <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                  {taskGroups.followedPautaTasks.map((item: any) => {
+                    const pauta = (center.memberships ?? []).find(
+                      (membership: any) =>
+                        membership.pauta_id === item.pauta_id,
+                    )?.pauta;
+                    const pautaHref = comunFollowedPautaHref(pauta?.slug);
+                    return (
+                      <article
+                        key={item.id}
+                        data-comun-my-area-task-kind="followed-public-pauta"
+                        className="surface-paper rounded-[var(--comun-radius-card)] border border-comun-black/20 p-4"
+                      >
+                        <p className="comun-v2-status">
+                          {comunPublicPautaTaskStatus(item.status)}
+                        </p>
+                        <h3 className="mt-2 font-black normal-case">
+                          {item.title ?? "Tarefa pública da pauta"}
+                        </h3>
+                        <p className="mt-2 text-sm text-comun-black/70">
+                          {item.result_public ??
+                            "Resultado esperado ainda não informado."}
+                        </p>
+                        <p className="mt-2 text-sm">
+                          Pauta: {pauta?.title ?? "Pauta acompanhada"}
+                        </p>
+                        {pautaHref ? (
+                          <Link
+                            href={withComunAppV2(pautaHref)}
+                            className="mt-3 inline-flex min-h-11 items-center font-black underline"
+                          >
+                            Ver contexto da pauta
+                          </Link>
+                        ) : (
+                          <p className="mt-3 text-sm" role="status">
+                            O caminho da pauta não está disponível agora.
+                          </p>
+                        )}
+                      </article>
+                    );
+                  })}
+                  {taskGroups.followedPautaTaskTotal >
+                  taskGroups.followedPautaTasks.length ? (
+                    <p className="text-sm text-comun-black/70">
+                      Exibindo seis tarefas públicas. Consulte as pautas para
+                      ver outras atividades.
+                    </p>
+                  ) : null}
+                  {!taskGroups.hasFollowedPautaTasks ? (
+                    <ComunStatePanel
+                      state="empty"
+                      actionHref={withComunAppV2("/comun/pautas")}
+                      actionLabel="Explorar pautas"
+                    >
+                      Nenhuma tarefa pública foi encontrada nas pautas que você
+                      acompanha.
+                    </ComunStatePanel>
+                  ) : null}
+                </div>
+              </section>
             </div>
           ) : null}
           {selected === "resultados" ? (
