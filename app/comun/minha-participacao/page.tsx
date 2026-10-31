@@ -1022,9 +1022,13 @@ function MinhaAreaAppV2({
                 </p>
                 <div className="mt-4 grid gap-3 lg:grid-cols-2">
                   {taskGroups.commitments.map((assignment: any) => {
-                    const actionHref = comunAssignedActionHref(
-                      assignment.participation?.action?.slug,
-                    );
+                    const actionSlug = assignment.participation?.action?.slug;
+                    const actionHref = comunAssignedActionHref(actionSlug);
+                    const taskId = assignment.task?.id;
+                    const canRelease =
+                      Boolean(actionHref) &&
+                      typeof taskId === "string" &&
+                      taskId.length > 0;
                     return (
                       <article
                         key={assignment.id}
@@ -1049,11 +1053,38 @@ function MinhaAreaAppV2({
                             href={withComunAppV2(actionHref)}
                             className="mt-3 inline-flex min-h-11 items-center font-black underline"
                           >
-                            Ver ação e gerenciar compromisso
+                            Ver contexto da ação
                           </Link>
                         ) : (
                           <p className="mt-3 text-sm" role="status">
                             O caminho da ação não está disponível agora.
+                          </p>
+                        )}
+                        {canRelease ? (
+                          <form
+                            action={releaseCollectiveActionTask}
+                            className="mt-3"
+                          >
+                            <input
+                              type="hidden"
+                              name="slug"
+                              value={actionSlug}
+                            />
+                            <input
+                              type="hidden"
+                              name="task_id"
+                              value={taskId}
+                            />
+                            <button
+                              type="submit"
+                              className="inline-flex min-h-11 items-center border-2 border-comun-black px-3 font-black"
+                            >
+                              Liberar compromisso
+                            </button>
+                          </form>
+                        ) : (
+                          <p className="mt-2 text-sm" role="status">
+                            A liberação não está disponível nesta área.
                           </p>
                         )}
                       </article>
