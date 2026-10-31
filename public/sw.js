@@ -46,7 +46,7 @@ function matchesPathPrefix(pathname, prefix) {
 function isAllowedCommunityPage(pathname) {
   return (
     !pathname.startsWith("/comun/c/") ||
-    /^\\/comun\\/c\\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\\/agenda)?\\/?$/.test(pathname)
+    /^\/comun\/c\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\/agenda)?\/?$/.test(pathname)
   );
 }
 
