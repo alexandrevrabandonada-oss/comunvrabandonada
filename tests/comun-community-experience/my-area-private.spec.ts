@@ -151,16 +151,28 @@ test("@p2-authenticated Minha participação: provenance, next action, release a
     await expect(followed).toContainText(followedTitle);
     await expect(followed).not.toContainText(assignedTitle);
     await expect(followed).toContainText(pautaTitle);
-    await expect(assigned.getByRole("link", { name: "Ver ação e gerenciar compromisso" }))
+    await expect(assigned.getByRole("link", { name: "Ver contexto da ação" }))
       .toHaveAttribute("href", new RegExp(`^/comun/acoes/${actionSlug}\\?`));
     await expect(followed.getByRole("link", { name: "Ver contexto da pauta" }))
       .toHaveAttribute("href", new RegExp(`^/comun/pautas/${pautaSlug}\\?`));
 
-    // The link must lead to the actual action, including the release control.
-    await assigned.getByRole("link", { name: "Ver ação e gerenciar compromisso" }).click();
+    // The V2 action page preserves context; release belongs to the actual
+    // member assignment card and must not depend on a legacy action layout.
+    await assigned.getByRole("link", { name: "Ver contexto da ação" }).click();
     await expect(page).toHaveURL(new RegExp(`/comun/acoes/${actionSlug}`));
-    await page.getByRole("button", { name: "Liberar", exact: true }).click();
+    await expect(page.getByText(assignedTitle)).toBeVisible();
     await page.goto(target);
+    await expect(
+      page.locator('[data-comun-my-area-task-kind="assigned-action"]'),
+    ).toHaveCount(1);
+    await page
+      .locator('[data-comun-my-area-task-kind="assigned-action"]')
+      .getByRole("button", { name: "Liberar compromisso", exact: true })
+      .click();
+    await expect(
+      page.locator('[data-comun-my-area-task-kind="assigned-action"]'),
+    ).toHaveCount(0);
+    await page.reload();
     await expect(page.locator('[data-comun-my-area-task-kind="assigned-action"]'))
       .toHaveCount(0);
     await expect(page.getByText("Você ainda não assumiu uma tarefa em ação coletiva."))
