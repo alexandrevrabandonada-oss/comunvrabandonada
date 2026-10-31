@@ -156,6 +156,22 @@ test("@p2-authenticated Minha participação: provenance, next action, release a
     await expect(followed.getByRole("link", { name: "Ver contexto da pauta" }))
       .toHaveAttribute("href", new RegExp(`^/comun/pautas/${pautaSlug}\\?`));
 
+    // A second actual Auth identity cannot inherit the first person's records.
+    const otherContext = await browser.newContext({ baseURL });
+    try {
+      const otherPage = await otherContext.newPage();
+      await otherPage.goto(target);
+      await expect(otherPage).toHaveURL(/\/comun\/entrar\?/);
+      await otherPage.getByLabel("E-mail", { exact: true }).fill(outsider.email);
+      await otherPage.getByLabel("Senha", { exact: true }).fill(outsider.password);
+      await otherPage.getByRole("button", { name: "Entrar", exact: true }).click();
+      await expect(otherPage).toHaveURL(/\/comun\/minha-participacao\?/);
+      await expect(otherPage.getByText(followedTitle)).toHaveCount(0);
+      await expect(otherPage.getByText(assignedTitle)).toHaveCount(0);
+    } finally {
+      await otherContext.close();
+    }
+
     // The V2 action page preserves context; release belongs to the actual
     // member assignment card and must not depend on a legacy action layout.
     await assigned.getByRole("link", { name: "Ver contexto da ação" }).click();
@@ -187,21 +203,7 @@ test("@p2-authenticated Minha participação: provenance, next action, release a
     ) as { status: string };
     expect(released.status).toBe("released");
 
-    // A second actual Auth identity cannot inherit the first person's records.
-    const otherContext = await browser.newContext({ baseURL });
-    try {
-      const otherPage = await otherContext.newPage();
-      await otherPage.goto(target);
-      await expect(otherPage).toHaveURL(/\/comun\/entrar\?/);
-      await otherPage.getByLabel("E-mail", { exact: true }).fill(outsider.email);
-      await otherPage.getByLabel("Senha", { exact: true }).fill(outsider.password);
-      await otherPage.getByRole("button", { name: "Entrar", exact: true }).click();
-      await expect(otherPage).toHaveURL(/\/comun\/minha-participacao\?/);
-      await expect(otherPage.getByText(followedTitle)).toHaveCount(0);
-      await expect(otherPage.getByText(assignedTitle)).toHaveCount(0);
-    } finally {
-      await otherContext.close();
-    }
+
 
     await page.goto("/comun/conta");
     await page.getByRole("button", { name: "Sair", exact: true }).click();
