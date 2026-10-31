@@ -37,7 +37,7 @@ const [
 ]);
 
 const checks = {
-  serviceWorkerV3: serviceWorker.includes('const VERSION = "comun-pwa-v3"'),
+  serviceWorkerV4: serviceWorker.includes('const VERSION = "comun-pwa-v4"'),
   cacheRejectsQueries:
     serviceWorker.includes("!url.search") &&
     serviceWorker.includes("!url.hash"),
