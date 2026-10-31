@@ -1,9 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
-// Local-only JS fixture module: it refuses non-loopback Supabase credentials.
-// @ts-ignore -- test fixture has no TypeScript declaration
-import { localServiceClient } from "../fixtures/comun/local-fixtures.mjs";
+import { createClient } from "@supabase/supabase-js";
 
 const target = "/comun/minha-participacao?secao=tarefas&experiencia=app-v2";
 const projects = new Set(["390x844", "1366x768"]);
@@ -50,7 +48,14 @@ test("@p2-authenticated Minha participação: provenance, next action, release a
   const owner = accounts.find((a) => a.project === testInfo.project.name);
   const outsider = accounts.find((a) => a.project !== testInfo.project.name);
   if (!owner || !outsider) throw new Error("COMUN_P2_LOCAL_PERSONAS_MISSING");
-  const db = localServiceClient();
+  // The workflow exports a service key from the disposable loopback
+  // instance. No external service credentials are ever accepted here.
+  const localUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const localServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!localServiceKey) throw new Error("COMUN_P2_LOCAL_SERVICE_KEY_REQUIRED");
+  const db = createClient(localUrl, localServiceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
   const suffix = randomUUID().slice(0, 12);
   const pautaSlug = `p2-pauta-${suffix}`;
   const actionSlug = `p2-acao-${suffix}`;
