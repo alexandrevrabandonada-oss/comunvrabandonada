@@ -152,9 +152,9 @@ test("@p2-authenticated Minha participação: provenance, next action, release a
     await expect(followed).not.toContainText(assignedTitle);
     await expect(followed).toContainText(pautaTitle);
     await expect(assigned.getByRole("link", { name: "Ver contexto da ação" }))
-      .toHaveAttribute("href", new RegExp(`^/comun/acoes/${actionSlug}\\?`));
+      .toHaveAttribute("href", `/comun/acoes/${actionSlug}`);
     await expect(followed.getByRole("link", { name: "Ver contexto da pauta" }))
-      .toHaveAttribute("href", new RegExp(`^/comun/pautas/${pautaSlug}\\?`));
+      .toHaveAttribute("href", `/comun/pautas/${pautaSlug}`);
 
     // A second actual Auth identity cannot inherit the first person's records.
     const otherContext = await browser.newContext({ baseURL });
@@ -202,8 +202,6 @@ test("@p2-authenticated Minha participação: provenance, next action, release a
       "RELEASE_READBACK",
     ) as { status: string };
     expect(released.status).toBe("released");
-
-
 
     await page.goto("/comun/conta");
     await page.getByRole("button", { name: "Sair", exact: true }).click();
