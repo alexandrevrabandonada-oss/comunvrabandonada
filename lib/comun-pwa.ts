@@ -86,12 +86,10 @@ export function isSafeComunRoute(path: string) {
     !/^\/comun\/c\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\/agenda)?\/?$/.test(url.pathname)
   )
     return false;
-  return COMUN_PUBLIC_OFFLINE_PREFIXES.some(
-    (prefix) => {
-      const base = prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
-      return url.pathname === base || url.pathname.startsWith(`${base}/`);
-    },
-  );
+  return COMUN_PUBLIC_OFFLINE_PREFIXES.some((prefix) => {
+    const base = prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
+    return url.pathname === base || url.pathname.startsWith(`${base}/`);
+  });
 }
 
 export function parseSafeDrafts(raw: string | null): SafeDraft[] {
