@@ -207,7 +207,7 @@ test("conteúdo privado está fora da política de cache", async ({ request }) =
   expect(sw).toContain('cacheControl.includes("no-store")');
   expect(sw).toContain('type === "CLEAR_CONTENT_CACHES"');
   expect(sw).toContain("key !== SHELL_CACHE");
-  expect(sw).toContain('const VERSION = "comun-pwa-v3"');
+  expect(sw).toContain('const VERSION = "comun-pwa-v4"');
 });
 
 test("shell offline continua honesto e não confirma mutações", async ({
@@ -242,7 +242,7 @@ test("logout limpa caches de conteúdo sem apagar o shell seguro", async ({
     )
     .toBeTruthy();
   await page.evaluate(async () => {
-    const cache = await caches.open("comun-pwa-v3-public");
+    const cache = await caches.open("comun-pwa-v4-public");
     await cache.put(
       "/comun/pautas/fixture-publica",
       new Response("fixture pública"),
@@ -254,14 +254,14 @@ test("logout limpa caches de conteúdo sem apagar o shell seguro", async ({
   await expect
     .poll(() =>
       page.evaluate(
-        async () => !(await caches.keys()).includes("comun-pwa-v3-public"),
+        async () => !(await caches.keys()).includes("comun-pwa-v4-public"),
       ),
     )
     .toBeTruthy();
   await expect
     .poll(() =>
       page.evaluate(async () =>
-        (await caches.keys()).includes("comun-pwa-v3-shell"),
+        (await caches.keys()).includes("comun-pwa-v4-shell"),
       ),
     )
     .toBeTruthy();

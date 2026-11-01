@@ -1,4 +1,4 @@
-const VERSION = "comun-pwa-v3";
+const VERSION = "comun-pwa-v4";
 const SHELL_CACHE = `${VERSION}-shell`;
 const PUBLIC_CACHE = `${VERSION}-public`;
 const SHELL = [
@@ -35,14 +35,30 @@ const PRIVATE_PREFIXES = [
   "/api/",
 ];
 
+// A prefix must end at a path segment boundary. In particular,
+// /comun/acoes-interno is not /comun/acoes, and a community's private
+// management routes must never be considered public offline pages.
+function matchesPathPrefix(pathname, prefix) {
+  const base = prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
+  return pathname === base || pathname.startsWith(`${base}/`);
+}
+
+function isAllowedCommunityPage(pathname) {
+  return (
+    !pathname.startsWith("/comun/c/") ||
+    /^\/comun\/c\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\/agenda)?\/?$/.test(pathname)
+  );
+}
+
 function isPublicPage(url) {
   return (
     url.origin === self.location.origin &&
     url.pathname.startsWith("/comun/") &&
     !url.search &&
     !url.hash &&
-    !PRIVATE_PREFIXES.some((prefix) => url.pathname.startsWith(prefix)) &&
-    PUBLIC_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))
+    !PRIVATE_PREFIXES.some((prefix) => matchesPathPrefix(url.pathname, prefix)) &&
+    isAllowedCommunityPage(url.pathname) &&
+    PUBLIC_PREFIXES.some((prefix) => matchesPathPrefix(url.pathname, prefix))
   );
 }
 
@@ -112,7 +128,7 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  if (PRIVATE_PREFIXES.some((prefix) => url.pathname.startsWith(prefix)))
+  if (PRIVATE_PREFIXES.some((prefix) => matchesPathPrefix(url.pathname, prefix)))
     return;
   if (request.mode === "navigate" && isPublicPage(url)) {
     event.respondWith(
