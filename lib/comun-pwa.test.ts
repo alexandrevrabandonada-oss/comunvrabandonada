@@ -33,7 +33,10 @@ describe("PWA public offline boundary", () => {
 
 // Execute the real service-worker route predicate rather than relying on a
 // string search. No browser, remote HTTP request, cookie or service account.
-const workerSource = readFileSync(new URL("../public/sw.js", import.meta.url), "utf8");
+const workerSource = readFileSync(
+  new URL("../public/sw.js", import.meta.url),
+  "utf8",
+);
 function serviceWorkerAllowsOffline(url: string): boolean {
   const origin = "https://comunsocial.online";
   const program =
@@ -86,15 +89,20 @@ describe("T1: offline public cache classifier is fail-closed", () => {
     expect(serviceWorkerAllowsOffline(path)).toBe(true);
   });
 
-  it.each(rejected)("never classifies a private, ambiguous or unsafe route as public: %s", (path) => {
-    expect(isSafeComunRoute(path)).toBe(false);
-    expect(serviceWorkerAllowsOffline(path)).toBe(false);
-  });
+  it.each(rejected)(
+    "never classifies a private, ambiguous or unsafe route as public: %s",
+    (path) => {
+      expect(isSafeComunRoute(path)).toBe(false);
+      expect(serviceWorkerAllowsOffline(path)).toBe(false);
+    },
+  );
 
   it("rotates the old cache namespace, without disabling the activation cleanup", () => {
     expect(workerSource).toContain('const VERSION = "comun-pwa-v4"');
     expect(workerSource).toContain('key.startsWith("comun-pwa-")');
-    expect(workerSource).toContain('![SHELL_CACHE, PUBLIC_CACHE].includes(key)');
+    expect(workerSource).toContain(
+      '![SHELL_CACHE, PUBLIC_CACHE].includes(key)',
+    );
   });
 });
 
