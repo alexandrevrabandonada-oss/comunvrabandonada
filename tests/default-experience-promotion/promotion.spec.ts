@@ -204,7 +204,7 @@ test("manifest e service worker promovem o V2 sem cache privado", async ({
   expect(manifest.start_url).toBe("/comun");
   expect(manifest.scope).toBe("/comun/");
   const worker = await (await request.get("/sw.js")).text();
-  expect(worker).toContain('const VERSION = "comun-pwa-v3"');
+  expect(worker).toContain('const VERSION = "comun-pwa-v4"');
   expect(worker).toContain('"/comun/admin"');
   expect(worker).toContain('"/comun/entrar"');
   expect(worker).toContain('type === "CLEAR_CONTENT_CACHES"');
