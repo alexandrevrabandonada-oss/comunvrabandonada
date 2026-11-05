@@ -100,7 +100,9 @@ describe("T1: offline public cache classifier is fail-closed", () => {
   it("rotates the old cache namespace, without disabling the activation cleanup", () => {
     expect(workerSource).toContain('const VERSION = "comun-pwa-v4"');
     expect(workerSource).toContain('key.startsWith("comun-pwa-")');
-    expect(workerSource).toContain('![SHELL_CACHE, PUBLIC_CACHE].includes(key)');
+    expect(workerSource).toContain(
+      "![SHELL_CACHE, PUBLIC_CACHE].includes(key)",
+    );
   });
 });
 
